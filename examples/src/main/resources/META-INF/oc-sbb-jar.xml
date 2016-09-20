@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE oc-sbb-jar PUBLIC "-//Open Cloud Ltd.//DTD JAIN SLEE SBB Extension 1.1//EN" "http://www.opencloud.com/dtd/oc-sbb-jar_1_1.dtd">
+
+<oc-sbb-jar>
+    <!--
+    <sbb id="N67689">
+      <ejb-ref id="N65938">
+        <ejb-link>ejb:myejb</ejb-link>
+      </ejb-ref>
+    </sbb>
+    -->
+</oc-sbb-jar>

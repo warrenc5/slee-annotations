@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE library-jar PUBLIC "-//Sun Microsystems, Inc.//DTD JAIN SLEE Library 1.1//EN" "http://java.sun.com/dtd/slee-library-jar_1_1.dtd">
+
+<library-jar>
+    <library>
+        <library-name> ExampleLibrary </library-name>
+        <library-vendor> ISV1 </library-vendor>
+        <library-version> 1.0 </library-version>
+    </library>
+    <library>
+        <library-name> ExampleLibrary2 </library-name>
+        <library-vendor> ISV1 </library-vendor>
+        <library-version> 1.0 </library-version>
+    </library>
+</library-jar>

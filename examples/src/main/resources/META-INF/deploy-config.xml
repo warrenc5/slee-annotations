@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<deploy-config>
+  <!--
+        [
+           (someProperty:java.lang.String=Default),
+  
+        ]
+        -->
+  <ra-entity resource-adaptor-id="ResourceAdaptorID[name=ExampleAnnotatedResourceAdaptor,vendor=ISV1,version=1.0]" entity-name="ExampleAnnotatedResourceAdaptor Entity">
+    <properties file="">
+      <property name="someProperty" type="java.lang.String" value="Default"/>
+    </properties>
+    <ra-link name="ExampleAnnotatedResourceAdaptor Entity Link"/>
+  </ra-entity>
+  <!--
+          JAVA TESTING CODE
+           
+  properties.addProperty(new Property("someProperty",java.lang.String.class.getName(),Default));
+  -->
+  <!--
+          OC RAE 
+exitOnError false
+installlocaldu ~/.m2/repository/mofokom/ra/1.0-SNAPSHOT/ra-1.0-SNAPSHOT-du.jar
+createraentity "name=ExampleAnnotatedResourceAdaptor,vendor=ISV1,version=1.0" "ExampleAnnotatedResourceAdaptor Entity" someProperty="Default",
+bindralinkname "ExampleAnnotatedResourceAdaptor Entity" "ExampleAnnotatedResourceAdaptor Entity Link"
+activateraentity "ExampleAnnotatedResourceAdaptor Entity"
+
+clearalarms resourceadaptorentity "entity=ExampleAnnotatedResourceAdaptor Entity"
+deactivateraentity "ExampleAnnotatedResourceAdaptor Entity"
+removeallactivities "ExampleAnnotatedResourceAdaptor Entity"
+waittilraentityisinactive "ExampleAnnotatedResourceAdaptor Entity"
+unbindralinkname "ExampleAnnotatedResourceAdaptor Entity Link"
+removeraentity "ExampleAnnotatedResourceAdaptor Entity"
+uninstall file:~/.m2/repository/mofokom/ra/1.0-SNAPSHOT/ra-1.0-SNAPSHOT-du.jar
+
+          -->
+</deploy-config>

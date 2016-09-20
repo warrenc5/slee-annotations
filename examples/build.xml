@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <property file="${basedir}/build.properties"/>
+  <property name="build.dir" value="./target"/>
+  <property name="classes" value="${build.dir}/classes"/>
+  <property name="src" value="src/main/java"/>
+  <property name="jars" value="target"/>
+  <property name="lib" value="lib"/>
+  <property name="processor" value="mofokom.slee.SLEEAnnotationProcessor"/>
+  <property name="processorpath" value="${user.home}/.m2/repository/mofokom/slee-annotation-processor/1.0-SNAPSHOT/slee-annotation-processor-1.0-SNAPSHOT.jar"/>
+  <property name="client.home" value="/opt/rhino/client"/>
+  <property file="${basedir}/build.properties"/>
+  <property name="junit.home" value="/opt/junit4.1"/>
+  <property name="jboss.server.config" value="all"/> <!-- all or default -->
+  <property name="jboss.deploy" value="/opt/jboss/server/${jboss.server.config}/deploy/"/>
+  <property name="dist.dir" value="targeta/classes"/>
+  <property name="generated" value="${build.dir}/generated"/>
+  <property name="log4j.debug" value="true"/>
+  <property name="ua.du.filename" value="useragent-du.jar"/>
+  <property name="ua.sbb.filename" value="useragent-sbb.jar"/>
+  <property name="ua.service.name" value="UserAgent Service 1.0, Warren Crossing"/>
+  <property name="ua.sbb.name" value="UserAgentSbb 1.0, Warren Crossing"/>
+  <property name="example.du.filename" value="callcontrol-du.jar"/>
+  <property name="example.sbb.filename" value="callcontrol-sbb.jar"/>
+  <property name="example.service.name" value="CallControl Service 1.0, Warren Crossing"/>
+  <property name="example.sbb.name" value="CallControlSbb 1.0, Warren Crossing"/>
+  <property name="ie.du.filename" value="ie-event-du.jar"/>
+  <property name="sip.ra.type.jar" value="ocsip-resource-adaptor-type.jar"/>
+  <property name="ie.event.filename" value="ie-event.jar"/>
+  <property name="cr.du.filename" value="cr-event-du.jar"/>
+  <property name="cr.profile.filename" value="cr-profile.jar"/>
+  <!-- Run SIP SBB DDs through a filter to replace tokens -->
+  <!-- This is so that RA Types and JNDI names etc can be changed easily -->
+
+  <macrodef name="filter-sip-dd">
+    <attribute name="from"/> <!-- Source META-INF dir -->
+    <attribute name="to"/>   <!-- Dest META-INF dir -->
+    <attribute name="other.properties" default="${basedir}/other.properties"/>
+    <sequential>
+      <copy toDir="@{to}" overwrite="true">
+        <fileset dir="@{from}" includes="**/*"/>
+        <filterset>
+           <filtersfile file="@{other.properties}"/>
+        </filterset>
+      </copy>
+    </sequential>
+  </macrodef>
+
+  <path id="aspect.classpath">
+      <pathelement location="${user.home}/.m2/repository/org/aspectj/aspectjtools/1.7/aspectjtools-1.7.jar"/>
+      <pathelement location="${user.home}/.m2/repository/org/aspectj/aspectjrt/1.7.0/aspectjrt-1.7.0.jar"/>
+  </path>
+
+  <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+    <classpath>
+      <path refid="aspect.classpath"/>
+    </classpath>
+  </taskdef>
+
+
+<!-- Import common Rhino SLEE tasks 
+  <import file="${client.home}/etc/common.xml"/>
+-->
+  <path id="lib.classpath">
+    <fileset dir="lib">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  <path id="slee.classpath">
+    <pathelement path="${user.home}/.m2/repository/javax/slee/jain-slee-annotations/1.0/jain-slee-annotations-1.0.jar"/>
+    <pathelement path="${user.home}/.m2/repository/javax/slee/jainslee-api/1.1/jainslee-api-1.1.jar"/>
+  </path>
+
+  <mkdir dir="${classes}/"/>
+  <mkdir dir="${jars}/"/>
+  <mkdir dir="${generated}/"/>
+
+  <target name="clean" >
+    <delete dir="${jars}/"/>
+    <delete dir="${classes}/"/>
+    <mkdir dir="${jars}/"/>
+    <mkdir dir="${classes}/"/>
+  </target>
+
+  <target name="compile-example" description="">
+    <javac srcdir="${src}" destdir="${classes}" debug="true" fork="true">
+      <include name="**/*.java"/>
+      <classpath>
+        <path refid="slee.classpath"/>
+        <pathelement location="lib/${ie.event.filename}.jar"/>
+        <pathelement location="${processorpath}"/>
+        <pathelement location="${user.home}/.m2/repository/xalan/xalan/2.7.1/xalan-2.7.1.jar"/>
+        <pathelement location="${user.home}/.m2/repository/xml-resolver/xml-resolver/1.2/xml-resolver-1.2.jar"/>
+        <pathelement location="${user.home}/.m2/repository/xalan/serializer/2.7.1/serializer-2.7.1.jar"/>
+      </classpath>
+      <compilerarg line="-processor ${processor}"/>
+    </javac>
+
+  </target>
+
+  <target name="inject-example" depends="compile-example">
+    <iajc sourceroots="${classes}" destDir="${classes}" inpath="${classes}" > 
+        <classpath>
+          <path refid="slee.classpath"/>
+          <path refid="aspect.classpath"/>
+      </classpath>
+    </iajc>
+  </target>
+
+  <target name="package-example" depends="compile-example" description="bundle ">
+    <jar jarfile="${dist.dir}/example-sbb.jar">
+      <fileset dir="${classes}" includes="**/sbb/*.class"/>
+      <fileset dir="${classes}" includes="event/*.class" />
+      <fileset dir="${classes}" includes="entity/**/*.class" excludes="entity/**/*Bean.class"/>
+      <fileset dir="${generated}" includes="META-INF/**"/>
+    </jar>
+  </target>
+
+
+<!--
+  <target name="build-example-service" depends="compile-example-service">
+    <filter-sip-dd from="src/service/sip/tpcc/META-INF" to="tmp/META-INF" /> 
+    <deployablejar destfile="${jars}/${example.du.filename}" metainfbase="tmp/META-INF">
+      <libraryjar file="${jars}/nist-sdp-library.jar" classpath="${sdplib}"/>
+      <sbbjar destfile="${jars}/${example.sbb.filename}" classpath="${classes}/">
+      <manifest>
+        <attribute name="Class-Path" value="nist-sdp-1.0.jar JainSipRi1.2.jar "/>
+      </manifest>
+        <fileset dir="${classes}/" includes=".."/>
+        <zipfileset src="/opt/rhino/examples/sip/lib/tmp/ocsip-resource-adaptor.jar" />
+      </sbbjar>
+       <fileset dir="${sdplib}">
+                <include name="nist-sdp-1.0.jar" />
+                <include name="JainSipRi1.2.jar" />
+        </fileset>
+ 
+    </deployablejar>
+  </target>
+
+  <target name="deploy-example-service" depends="management-init,build-example-service" description="">
+    <slee-management>
+      <install srcfile="${jars}/${example.du.filename}" url="file:${jars}/${example.du.filename}"/>
+      <settracelevel componentid="${example.sbb.name}" type="sbb" level="FINEST"/>
+      <activateservice serviceid="${example.service.name}"/>
+    </slee-management>
+  </target>
+
+  <target name="undeploy-example-service" depends="management-init,undeploy-ua-service" description="">
+    <slee-management>
+      <deactivateservice serviceid="${example.service.name}"/>
+      <waittilserviceisinactive serviceid="${example.service.name}"/>
+      <uninstall url="file:${jars}/${example.du.filename}"/>
+    </slee-management>
+  </target>
+
+  <target name="reactivate-example-service" depends="management-init" description="">
+    <slee-management>
+      <deactivateservice serviceid="${example.service.name}"/>
+      <waittilserviceisinactive serviceid="${example.service.name}"/>
+      <settracelevel componentid="${example.sbb.name}" type="sbb" level="FINEST"/>
+      <activateservice serviceid="${example.service.name}"/>
+    </slee-management>
+  </target>
+
+  <target name="compile-ua-service" depends="compile-example-service,compile-entity-ejb,compile-profile" description="">
+    <javac srcdir="${src}" destdir="${classes}" source="1.4" debug="true">
+      <include name="com/opencloud/slee/services/sip/common/*.java"/>
+      <include name="com/opencloud/slee/services/sip/dialog/UA*.java"/>
+      <classpath>
+        <path refid="slee.classpath"/>
+        <path refid="sip.classpath"/>
+        <path refid="sdp.classpath"/>
+        <pathelement location="lib/${ie.event.filename}.jar"/>
+      </classpath>
+    </javac>
+
+    <javac sourcepath="${src}" srcdir="${src}" destdir="${classes}" source="1.4" debug="true">
+      <include name="service/sip/ua/**/*.java"/>
+      <include name="service/sip/Tracer.java"/>
+      <include name="com/opencloud/slee/services/sip/common/*.java"/>
+      <include name="com/opencloud/slee/services/sip/dialog/UASDialogLocalInterface.java"/>
+      <include name="com/opencloud/slee/services/sip/dialog/UACDialogLocalInterface.java"/>
+      <classpath>
+        <path refid="slee.classpath"/>
+        <path refid="sip.classpath"/>
+        <path refid="sdp.classpath"/>
+        <pathelement location="lib/${ie.event.filename}.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="build-ua-service" depends="compile-ua-service">
+    <filter-sip-dd from="src/service/sip/ua/META-INF" to="tmp/META-INF" /> 
+    <deployablejar destfile="${jars}/${ua.du.filename}" metainfbase="tmp/META-INF">
+      <sbbjar destfile="${jars}/${ua.sbb.filename}" classpath="${classes}/">
+        <fileset dir="${classes}/" includes=""/>
+      </sbbjar>
+    </deployablejar>
+  </target>
+
+  <target name="deploy-ua-service" depends="management-init,deploy-example-service,deploy-event,build-ua-service" description="">
+    <slee-management>
+      <install srcfile="${jars}/${ua.du.filename}" url="file:${jars}/${ua.du.filename}"/>
+      <settracelevel componentid="${ua.sbb.name}" type="sbb" level="FINEST"/>
+      <activateservice serviceid="${ua.service.name}"/>
+    </slee-management>
+  </target>
+
+  <target name="undeploy-ua-service" depends="management-init" description="">
+    <slee-management>
+      <deactivateservice serviceid="${ua.service.name}"/>
+      <waittilserviceisinactive serviceid="${ua.service.name}"/>
+      <uninstall url="file:${jars}/${ua.du.filename}"/>
+    </slee-management>
+  </target>
+
+  <target name="reactivate-ua-service" depends="management-init" description="">
+    <slee-management>
+      <deactivateservice serviceid="${ua.service.name}"/>
+      <waittilserviceisinactive serviceid="${ua.service.name}"/>
+      <settracelevel componentid="${ua.sbb.name}" type="sbb" level="FINEST"/>
+      <activateservice serviceid="${ua.service.name}"/>
+    </slee-management>
+  </target>
+
+  <target name="package-event" depends="compile-event">
+    <deployablejar destfile="${jars}/${ie.du.filename}"
+      metainfbase="src/event/META-INF">
+      <eventjar destfile="${jars}/${ie.event.filename}" classpath="${classes}/">
+        <fileset dir="${classes}/"
+          includes="
+          event/*.class"/>
+      </eventjar>
+    </deployablejar>
+  </target>
+
+ <target name="deploy-event" depends="management-init,package-event" description="">
+    <slee-management>
+      <install srcfile="${jars}/${ie.du.filename}" url="file:${jars}/${ie.du.filename}"/>
+    </slee-management>
+  </target>
+
+ <target name="undeploy-event" depends="management-init, undeploy-example-service" description="">
+    <slee-management>
+      <uninstall url="file:${jars}/${ie.du.filename}"/>
+    </slee-management>
+  </target>
+
+  <target name="compile-profile" description="">
+
+    <javac srcdir="${src}" destdir="${classes}" source="1.4" debug="true" >
+        <include name="profile/*.java"/>
+        <classpath>
+                <path refid="slee.classpath"/>
+                <path refid="sip.classpath"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="package-profile" depends="compile-profile">
+    <deployablejar destfile="${jars}/${cr.du.filename}"
+      metainfbase="src/profile/META-INF">
+      <profilespecjar destfile="${jars}/${cr.profile.filename}" classpath="${classes}/">
+        <fileset dir="${classes}/"
+          includes="
+          profile/*.class"/>
+      </profilespecjar>
+    </deployablejar>
+  </target>
+
+ <target name="deploy-profile" depends="management-init,package-profile" description="">
+    <slee-management>
+        <install srcfile="${jars}/${cr.du.filename}" url="file:${jars}/${cr.du.filename}"/>
+        <createprofiletable tablename="${profile.table}" profilespec="${profile.spec}" />
+        <createprofile tablename="${profile.table}" profilename="${profile.name}">
+                <profilevalue name="Addresses" value="[${address}]" />
+        </createprofile>
+    </slee-management>
+  </target>
+
+ <target name="undeploy-profile" depends="management-init,undeploy-example-service" description="">
+    <slee-management>
+        <removeprofiletable tablename="${profile.table}" />
+      <uninstall url="file:${jars}/${cr.du.filename}"/>
+    </slee-management>
+  </target>
+
+  <target name="package-admin-ejb" depends="compile-entity-ejb,compile-admin-ejb" description="bundle the ejb into a jar file, include the META-INF application configuration directories">
+
+    <jar jarfile="${dist.dir}/admin-ejb.jar">
+      <fileset dir="${classes}" includes="ejb/*.class"/>
+      <fileset dir="${classes}" includes="event/*.class" />
+      <fileset dir="${classes}" includes="entity/**/*.class" excludes="entity/**/*Bean.class"/>
+      <fileset dir="src/ejb/" includes="META-INF/**"/>
+    </jar>
+  </target>
+
+
+  <target name="deploy-admin-ejb" depends="package-admin-ejb" description="copy into jboss/server/default/deploy auto deploy directory">
+    <copy overwrite="true" file="${dist.dir}/admin-ejb.jar" toDir="${jboss.deploy}"/>
+  </target>
+
+  <target name="reploy-services" depends="undeploy-example-service,deploy-ua-service" description="undeploy-example-service,deploy-ua-service"/>
+  -->
+</project>
