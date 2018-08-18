@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Service 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-service_1_1.dtd"/>
-    <xsl:strip-space elements="."/>
+    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Service 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-service_1_1.dtd" xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
+
     <xsl:template match="/">
         <service-xml>
             <description><xsl:text>Service Auto-Generated </xsl:text><xsl:value-of select="/process/@generatedTime"/></description>

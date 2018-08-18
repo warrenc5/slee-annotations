@@ -21,9 +21,13 @@
  */
 package org.mobicents.slee.annotations.examples.profile;
 
+import javax.slee.annotation.ProfileSpec;
+import javax.slee.annotation.EnvEntry;
+import javax.slee.annotation.LibraryRef;
+import javax.slee.annotation.Collator;
+import javax.slee.annotation.Reentrant;
 import java.util.Collection;
 import javax.annotation.Resource;
-import javax.slee.annotation.*;
 import javax.slee.facilities.Tracer;
 import javax.slee.profile.Profile;
 import javax.slee.profile.ProfileContext;

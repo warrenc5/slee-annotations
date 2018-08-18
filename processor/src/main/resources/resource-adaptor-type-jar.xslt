@@ -3,9 +3,7 @@
 
     <xsl:import href="resource:common.xslt"/>
 
-    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor Type 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd"/>
-
-    <xsl:strip-space elements="."/>
+    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor Type 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd" xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
 
     <xsl:template match="/">
         <resource-adaptor-type-jar>

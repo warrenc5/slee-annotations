@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
+    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd" xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
+
     <xsl:import href="resource:common.xslt"/>
-
-    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd"/>
-
-    <xsl:strip-space elements="."/>
 
     <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
     

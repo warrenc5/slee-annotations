@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Profile Specification 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd"/>
+    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Profile Specification 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd" xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
 
-    <xsl:import href="resource:common.xslt"/>
-
-    <xsl:strip-space elements="."/>
+    <xsl:include href="resource:common.xslt"/>
 
     <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
     <xsl:template match="/">
+
         <profile-spec-jar>
-            <description><xsl:text>Profile Spec Definitions Auto-Generated </xsl:text><xsl:value-of select="/process/@generatedTime"/></description>
+            <description>
+                <xsl:text>Profile Spec Definitions Auto-Generated </xsl:text>
+                <xsl:value-of select="/process/@generatedTime"/>
+            </description>
          
             <xsl:apply-templates select="node()/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='javax.slee.annotation.ProfileSpec']"/>
             <xsl:apply-templates select="node()/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='javax.slee.annotation.ProfileSpec']/element[@name='securityPermissions']"/>
@@ -23,9 +25,9 @@
 
         <profile-spec>
             <xsl:if test="element[@name='id']/@value">
-                    <xsl:attribute name="id">
-                        <xsl:value-of select="element[@name='id']/@value"/>
-                    </xsl:attribute>
+                <xsl:attribute name="id">
+                    <xsl:value-of select="element[@name='id']/@value"/>
+                </xsl:attribute>
             </xsl:if>
 
             <xsl:if test="element[@name='readOnly']">

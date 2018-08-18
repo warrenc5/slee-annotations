@@ -4,18 +4,28 @@
     <artifactId>slee-annotation-processor</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>JAIN SLEE 1.1 Annotation Processor</name>
+
     <parent>
         <groupId>mofokom</groupId>
         <artifactId>parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
     <dependencies>
         <dependency>
             <groupId>javax.slee</groupId>
             <artifactId>jainslee-api</artifactId>
             <version>1.1</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.resource</groupId>
+                    <artifactId>connector</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.transaction</groupId>
+                    <artifactId>jta</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -44,6 +54,22 @@
             <artifactId>xml-resolver</artifactId>
             <version>1.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>1.8.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.8.13</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -53,14 +79,6 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>xml-maven-plugin</artifactId>
@@ -138,64 +156,93 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.pyx4me</groupId>
-                <artifactId>proguard-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>proguard</goal>
-                        </goals>
-                        <configuration>
-                            <injar>${project.artifactId}-${project.version}.jar</injar>
-                            <outjar>${project.artifactId}-${project.version}.jar</outjar>
-                        </configuration>
-                    </execution>
-
-                </executions>
-                <configuration>
-                    <options>
-                        <option>-dontoptimize</option>
-                        <option>-dontshrink</option>
-                        <option>-dontskipnonpubliclibraryclasses</option>
-                        <option>-dontskipnonpubliclibraryclassmembers</option>
-                        <!--
-                        <option>-dontobfuscate</option>
-                        <option>-dontpreverify</option>
-                        <option>-repackageclasses mofokom.megaco.resource.impl</option>
-                        <option>-flattenpackagehierarchy mofokom.sleeimpl</option>
-                        -->
-                        <option>-target 1.6</option>
-                        <option>-renamesourcefileattribute SLEEAnnotationProcessor-${maven.build.timestamp}.java </option>
-                        <option>-overloadaggressively</option>
-                        <option>-keepattributes LineNumbers,InnerClasses,SourceFile,ExceptionsLineNumberTable,Deprecated,Signature,*Annotation*,EnclosingMethod</option>
-                        <option>-printmapping ${basedir}/src/main/proguard/out.pro</option>
-                        <!--
-                        <option>-keep public class mofokom.test.Main {*;}</option>
-                        <option>-keep public class * extends com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet</option>
-                        -->
-                        <option>-keep public class mofokom.common.resource.** { public *; }</option>
-                        <option>-keep public class mofokom.transform.** { public *; }</option>
-                        <option>-keep public class mofokom.slee.SLEEAnnotationProcessor</option>
-                        <option>-keep enum * { *; }</option>
-                    </options>
-                    <libs>
-                        <lib>${java.home}/lib/rt.jar</lib>
-                    </libs>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.sf.proguard</groupId>
-                        <artifactId>proguard</artifactId>
-                        <version>4.8</version>
-                    </dependency>
-                </dependencies>
-                        
-            </plugin>
-            <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.6-SNAPSHOT</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.mobicents.servers.jainslee.api</groupId>
+                                    <artifactId>jain-slee-11-ext</artifactId>
+                                    <version>1.0.0-SNAPSHOT</version>
+                                    <classifier>sources</classifier>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>src/test/java</outputDirectory>
+                                    <includes>**/*.java</includes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <forceAjcCompile>true</forceAjcCompile>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <complianceLevel>1.8</complianceLevel>
+                    <showWeaveInfo>false</showWeaveInfo>
+                    <verbose>false</verbose>
+                    <proc>none</proc>
+                    <XnoInline>true</XnoInline>
+                    <Xreweavable>true</Xreweavable>
+                </configuration>
+            </plugin>
         </plugins>		
     </build>
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <version>3.8.0</version>
+                            <configuration>
+                                <proc>none</proc>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

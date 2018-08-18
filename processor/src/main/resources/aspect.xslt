@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:output omit-xml-declaration="yes" method="text" indent="no" />
-    <xsl:strip-space elements="node()"/>
 
+    <xsl:strip-space elements="node()"/>
     <xsl:key name="unique-field" match="element[@kind='FIELD']" use="concat(@name,@enclosing)"/>
 
     <xsl:key name="unique-method" match="element[@kind='FIELD' and annotation[@name='javax.annotation.Resource']]" use="@enclosing"/>
@@ -36,22 +36,29 @@
         import javax.naming.InitialContext;
         import javax.naming.NamingException;
 
+            
         public privileged aspect </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect issingleton() {
-            //pertarget(target (org.mobicents.slee.annotations.examples.resource.ExampleAnnotatedResourceAdaptor)) {
+
             </xsl:text>
-                <xsl:apply-templates select="//*[@enclosing=$name]" />
+            <xsl:if test="boolean(@implements)">
+            <xsl:text> declare parents : </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text> implements </xsl:text><xsl:value-of select="@interface"/><xsl:text>; </xsl:text>
+        </xsl:if>
+            <xsl:apply-templates select="//*[@enclosing=$name]" />
             <xsl:text>
         }
+            </xsl:text>
+            <xsl:text>
 
         privileged aspect </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text>$DebugAspect {
             pointcut debug_class(): within(</xsl:text><xsl:value-of select="annotation/@name"/><xsl:text>) &amp;&amp; !within(</xsl:text><xsl:value-of select="annotation/@package"/>.<xsl:value-of select="annotation/@simple-name"/><xsl:text>$DebugAspect) &amp;&amp; !within(</xsl:text><xsl:value-of select="annotation/@package"/>.<xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect);
+
             pointcut debug_constructor(): debug_class() &amp;&amp; execution(new(..));
             pointcut debug_method(): debug_class() &amp;&amp; execution(* *(..));
             pointcut debug_set(): debug_class() &amp;&amp; (set(* *.*));
             pointcut debug_get(): debug_class() &amp;&amp; (get(* *.*));
 
             before (): debug_constructor() {
-            System.err.println("={= " + thisJoinPointStaticPart.getSignature());
+                System.err.println("={= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_constructor() {
             System.err.println("=}=} " + thisJoinPointStaticPart.getSignature());
@@ -75,7 +82,6 @@
 
         }
 </xsl:text>
-
     </xsl:template>
     <!--
     <xsl:template match="/process//element/annotation[@name='javax.annotation.Resource']">
@@ -642,21 +648,21 @@
 
             <xsl:with-param name="jndi-name" select="concat('slee/resources/',generate-id(key('raEntityLink',concat(element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='name']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='vendor']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='version']/@value))))"/>
             
-        </xsl:apply-templates>
--->
+                        </xsl:apply-templates>
+                -->
 
-        </xsl:when>
-<!--CONFIG PROPERTIES-->
-        <xsl:otherwise>
+            </xsl:when>
+            <!--CONFIG PROPERTIES-->
+            <xsl:otherwise>
 
-            <!--JNDI PARAMETERS -->
-        <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
-            <!--NAME/MAPPED_NAME-->
-            <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
-        </xsl:apply-templates>
-        </xsl:otherwise>
+                <!--JNDI PARAMETERS -->
+                <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
+                    <!--NAME/MAPPED_NAME-->
+                    <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
+                </xsl:apply-templates>
+            </xsl:otherwise>
 
-    </xsl:choose>
+        </xsl:choose>
     </xsl:template>
 
     <!--Alarms & Custom-->
@@ -696,14 +702,14 @@
 
 
 
-<!--POINTCUTS -->
+    <!--POINTCUTS -->
 
     <xsl:template match="annotation" mode="method-intercept-pointcut">
         <xsl:param name="arg-type"/>
         <xsl:param name="method-name"/>
 
         <xsl:text>
-            pointcut method</xsl:text>
+            pointcut method_</xsl:text>
         <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
         <xsl:value-of select="$method-name"/>
         <xsl:text>(</xsl:text>
@@ -714,7 +720,8 @@
         <xsl:value-of select="../@enclosing"/>
         <xsl:text>.</xsl:text>
         <xsl:value-of select="$method-name"/>
-        <xsl:text>(</xsl:text><xsl:value-of select="$arg-type"/>
+        <xsl:text>(</xsl:text>
+        <xsl:value-of select="$arg-type"/>
         <xsl:text>)) &amp;&amp; args(arg1);</xsl:text>
 
         <xsl:text>
@@ -723,7 +730,7 @@
         <xsl:value-of select="../@enclosing"/>
         <xsl:text> object, </xsl:text>
         <xsl:value-of select="$arg-type"/>
-        <xsl:text> arg1) : method</xsl:text>
+        <xsl:text> arg1) : method_</xsl:text>
         <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
         <xsl:value-of select="$method-name"/>
         <xsl:text>(object,arg1) { </xsl:text>
@@ -754,7 +761,9 @@
         <xsl:value-of select="../@enclosing"/>
         <xsl:text>.</xsl:text>
         <xsl:value-of select="../@name"/>
-        <xsl:text>) &amp;&amp; args(l) &amp;&amp; !within(</xsl:text><xsl:value-of select="../@enclosing"/>$SleeAnnotationsAspect<xsl:text>) &amp;&amp; !within(</xsl:text><xsl:value-of select="../@enclosing"/>$DebugAspect<xsl:text>);
+        <xsl:text>) &amp;&amp; args(l) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>$SleeAnnotationsAspect<xsl:text>) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>$DebugAspect<xsl:text>);
         </xsl:text>
         <!--
         &amp;&amp; !withincode(void </xsl:text>
@@ -796,7 +805,9 @@
         <xsl:value-of select="../@enclosing"/>
         <xsl:text>.</xsl:text>
         <xsl:value-of select="../@name"/>
-        <xsl:text>) &amp;&amp; !within(</xsl:text><xsl:value-of select="../@enclosing"/>$SleeAnnotationsAspect<xsl:text>) &amp;&amp; !within(</xsl:text><xsl:value-of select="../@enclosing"/>$DebugAspect<xsl:text>);
+        <xsl:text>) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>$SleeAnnotationsAspect<xsl:text>) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>$DebugAspect<xsl:text>);
         </xsl:text>
 
         <xsl:text>
@@ -853,11 +864,11 @@
         <xsl:text>)new javax.naming.InitialContext().lookup(</xsl:text>
         <xsl:value-of select="$jndi-name"/>
         <xsl:text>);
-                    }catch(javax.naming.NamingException x){
-                    throw new RuntimeException(x);
-                }
+            }catch(javax.naming.NamingException x){
+            throw new RuntimeException(x);
             }
-        }
+            }
+            }
         </xsl:text>
     </xsl:template>
 

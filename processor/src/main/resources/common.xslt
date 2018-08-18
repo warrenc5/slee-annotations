@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
 
     <xsl:template match="element/annotation[@name='javax.slee.annotation.EJBRef']">
         <ejb-ref>

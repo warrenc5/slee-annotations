@@ -2,14 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 	
-    <!--
-    <parent>
-        <groupId>org.mobicents</groupId>
-        <artifactId>mobicents-parent</artifactId>
-        <version>2.21</version>
-    </parent>
-    -->
-	
     <groupId>org.mobicents.servers.jainslee.api</groupId>
     <artifactId>jain-slee-11-ext</artifactId>
     <version>1.0.0-SNAPSHOT</version>
@@ -20,7 +12,7 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.7</version>
+            <version>1.8.13</version>
         </dependency>
         <dependency>
             <groupId>javax.slee</groupId>
@@ -33,39 +25,21 @@
             <version>4.10</version>
             <scope>test</scope>
         </dependency>
-        <!-- PROCESSOR -->
-        <!--
         <dependency>
-            <groupId>javax.slee</groupId>
+            <groupId>mofokom.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        -->
         <dependency>
             <groupId>mofokom</groupId>
             <artifactId>slee-annotation-processor</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <!--
-        <dependency>
-            <groupId>xalan</groupId>
-            <artifactId>xalan</artifactId>
-            <version>2.7.1</version>
         </dependency>
         <dependency>
             <groupId>xml-resolver</groupId>
             <artifactId>xml-resolver</artifactId>
             <version>1.2</version>
         </dependency>
-        -->
-        <!--
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>1.7</version>
-        </dependency>
-        -->
-        <!-- END -->
         <dependency>
             <groupId>javax.ejb</groupId>
             <artifactId>ejb-api</artifactId>
@@ -79,28 +53,6 @@
         <developerConnection>scm:svn:https://mobicents.googlecode.com/svn/trunk/servers/jain-slee/api/extensions</developerConnection>
         <url>http://mobicents.googlecode.com/svn/trunk/servers/jain-slee/api/extensions</url>
     </scm>
-    <!--
-
-    <profiles>
-        <profile>
-            <id>maven-release</id>
-            <modules>
-            </modules>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-release-plugin</artifactId>
-                        <configuration>
-                            <autoVersionSubmodules>true</autoVersionSubmodules>
-                            <tagBase>https://mobicents.googlecode.com/svn/tags/servers/jain-slee/2.x.y/api/extensions</tagBase>
-                        </configuration>
-                    </plugin>
-            </plugins>
-            </build>		
-        </profile>
-    </profiles>
-    -->
     
     <build>
         <resources>
@@ -114,20 +66,19 @@
             </resource>
         </resources>
         <plugins>
-            <!--
             <plugin>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <groupId>org.mobicents.tools</groupId>
-                <inherited>false</inherited>
-                <executions />
-                <configuration>
-                    <excludePoms />
-                    <classpathExcludes />
-                    <resolveTransitiveDependencies>true</resolveTransitiveDependencies>
-                    <eclipseProjectName>mobicents-slee-api-extensions</eclipseProjectName>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-                        -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -151,26 +102,35 @@
                     </annotationProcessors>
                 </configuration>
             </plugin>      
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.4</version>
+                <version>1.8</version>
                 <executions>
                     <execution>
+                        <id>compile</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
+                    <skip>${skipTests}</skip>
                     <forceAjcCompile>true</forceAjcCompile>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <showWeaveInfo>true</showWeaveInfo>
-                    <verbose>true</verbose>
-                    <aspectDirectory>target/generated-sources/annotations</aspectDirectory>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <complianceLevel>1.8</complianceLevel>
+                    <showWeaveInfo>false</showWeaveInfo>
+                    <verbose>false</verbose>
+                    <proc>none</proc>
                     <XnoInline>true</XnoInline>
                     <Xreweavable>true</Xreweavable>
                 </configuration>

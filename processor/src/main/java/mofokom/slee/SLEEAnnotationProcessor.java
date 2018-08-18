@@ -1,11 +1,8 @@
-/*
- * To change this template, choose Tools "," Templates
- * and open the template in the editor.
- */
 package mofokom.slee;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -16,6 +13,8 @@ import java.util.regex.Pattern;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import static javax.lang.model.type.TypeKind.NONE;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementKindVisitor6;
 import javax.slee.annotation.ProfileCMPField;
@@ -31,7 +30,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import javax.lang.model.util.ElementFilter;
 import javax.slee.annotation.Collator;
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
@@ -40,8 +38,9 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.apache.xml.resolver.CatalogException;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 import org.xml.sax.*;
@@ -101,21 +100,60 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
     private org.w3c.dom.Element rootNode;
     private RoundEnvironment roundEnv;
     private DocumentBuilder db;
-    private Logger logger = Logger.getAnonymousLogger();
+    private static final Logger logger = Logger.getAnonymousLogger();
     private Document doc;
     private Map<String, Set<String>> processedAnnotation = new HashMap<String, Set<String>>();
     private Set<String> processedElement = new HashSet<String>();
-    private boolean binary = true;
+    private boolean binary;
     private Map<String, String> pubmap = new HashMap<String, String>();
     private Map<String, String> sysmap = new HashMap<String, String>();
     private Map<String, String> options;
     private boolean ajCompile;
     private List<String> aspects;
     private boolean debugOutput = true;
+    private CatalogResolver cr;
+    private TransformerFactory tf = null;
 
-    public SLEEAnnotationProcessor() {
+    public SLEEAnnotationProcessor() throws IOException, CatalogException, ParserConfigurationException, ParserConfigurationException {
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+        this.configureCatalogResolver();
+        this.createDocument();
+    }
 
+    private void createDocument() throws ParserConfigurationException {
+        doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setValidating(true);
+        db = dbf.newDocumentBuilder();
+        db.setEntityResolver(cr);
+        db.setErrorHandler(new ErrorHandler() {
+
+            @Override
+            public void warning(SAXParseException exception) throws SAXException {
+                log(exception);
+            }
+
+            @Override
+            public void error(SAXParseException exception) throws SAXException {
+                log(exception);
+            }
+
+            @Override
+            public void fatalError(SAXParseException exception) throws SAXException {
+                log(exception);
+            }
+
+            private void log(SAXParseException exception) {
+                logger.warning(exception.getPublicId() + " " + exception.getSystemId() + " @" + exception.getLineNumber() + ":" + exception.getColumnNumber() + " " + exception.getMessage());
+            }
+        });
+
+        rootNode = doc.createElement("process");
+        rootNode.setAttribute("generatedTime", new Date().toString());
+        doc.appendChild(rootNode);
+    }
+
+    private void configureCatalogResolver() throws IOException, CatalogException {
 
         pubmap.put("event-jar.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Event 1.1//EN");
         sysmap.put("event-jar.xslt", "http://java.sun.com/dtd/slee-event-jar_1_1.dtd");
@@ -130,73 +168,66 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         pubmap.put("service.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Service 1.1//EN");
         sysmap.put("service.xslt", "http://java.sun.com/dtd/slee-service_1_1.dtd");
 
-        try {
-            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setValidating(true);
-            db = dbf.newDocumentBuilder();
-            CatalogManager m = new CatalogManager();
-            m.setIgnoreMissingProperties(true);
-            m.setPreferPublic(true);
-            m.setVerbosity(3);
+        CatalogManager m = new CatalogManager();
+        m.setIgnoreMissingProperties(true);
+        m.setPreferPublic(true);
+        m.setVerbosity(3);
 
-            CatalogResolver cr = new CatalogResolver(m) {
+        cr = new CatalogResolver(m) {
 
-                @Override
-                public InputSource resolveEntity(String publicId, String systemId) {
-                    String resolvedEntity = super.getResolvedEntity(publicId, systemId);
-                    System.out.println("locating " + resolvedEntity);
-                    InputStream r = Thread.currentThread().getContextClassLoader().getResourceAsStream(resolvedEntity.substring(9));
-
-                    System.out.println("located " + r);
-                    InputSource inputSource = new InputSource(r);
-                    return inputSource;
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) {
+                String resolvedEntity = super.getResolvedEntity(publicId, systemId);
+                System.out.println("locating " + resolvedEntity);
+                if (resolvedEntity.startsWith("resource:")) {
+                    return resolveResource(resolvedEntity.substring(9));
                 }
-            };
+                return super.resolveEntity(publicId, systemId);
+            }
 
-            cr.validating = true;
-
-            cr.getCatalog().parseCatalog("application/xml", this.getClass().getClassLoader().getResourceAsStream("slee-catalog.xml"));
-            db.setEntityResolver(cr);
-            db.setErrorHandler(new ErrorHandler() {
-
-                @Override
-                public void warning(SAXParseException exception) throws SAXException {
-                    log(exception);
+            public Source resolve(String href, String base) throws TransformerException {
+                logger.info("resolve " + href);
+                if (href.startsWith("resource:")) {
+                    return new StreamSource(resolveResource(href.substring(9)).getByteStream());
                 }
 
-                @Override
-                public void error(SAXParseException exception) throws SAXException {
-                    log(exception);
-                }
+                return super.resolve(href, base);
+            }
 
-                @Override
-                public void fatalError(SAXParseException exception) throws SAXException {
-                    log(exception);
-                }
+            private InputSource resolveResource(String location) {
 
-                private void log(SAXParseException exception) {
-                    logger.warning(exception.getPublicId() + " " + exception.getSystemId() + " @" + exception.getLineNumber() + ":" + exception.getColumnNumber() + " " + exception.getMessage());
+                URL resource = Thread.currentThread().getContextClassLoader().getResource(location);
+                if (resource == null) {
+                    logger.warning(location + " not found");
                 }
-            });
+                System.out.println("located " + resource.toExternalForm());
 
-            rootNode = doc.createElement("process");
-            rootNode.setAttribute("generatedTime", new Date().toString());
-            doc.appendChild(rootNode);
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, ex.getMessage(), ex);
-            ex.printStackTrace(System.err);
-        }
+                InputStream r = null;
+                try {
+                    r = resource.openStream();
+                } catch (IOException ex) {
+                    logger.log(Level.WARNING, location + " " + ex.getMessage(), ex);
+                }
+                InputSource inputSource = new InputSource(r);
+                inputSource.setPublicId(location);
+                inputSource.setSystemId(resource.toExternalForm());
+                return inputSource;
+
+            }
+
+        };
+
+        cr.validating = true;
+
+        cr.getCatalog().parseCatalog("application/xml", this.getClass().getClassLoader().getResourceAsStream("slee-catalog.xml"));
     }
+
     private String transformerFactoryClass;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-
-        transformerFactoryClass = "org.apache.xalan.xsltc.trax.TransformerFactoryImpl";//<pr
-        //pocessingEnv.getOptions().get("transformerFactoryClass");
-        logger.info("Initialized " + transformerFactoryClass);
         super.init(processingEnv);
+        this.configureTransformer(processingEnv.getOptions().get("transformerFactoryClass"));
     }
 
     @Override
@@ -206,113 +237,56 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             return innerProcess(annotations, roundEnv);
         } catch (Throwable t) {
             t.printStackTrace();
+
+            if (!options.containsKey("nofail")) {
+                throw new RuntimeException(t);
+            }
         }
-        return false;
+        return true;
     }
 
     public boolean innerProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception {
         this.roundEnv = roundEnv;
 
         if (roundEnv.processingOver()) {
+
             processOutput(doc, "annotations.xslt", "annotations.xml", "");
-
-
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xpath = factory.newXPath();
-            DOMSource domDoc = new DOMSource(doc.getDocumentElement().getFirstChild());
-
-            if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.event.EventType'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE))
-                processOutput(doc, "event-jar.xslt", "META-INF/event-jar.xml", "");
-
-            if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Service'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE))
-                processOutput(doc, "service.xslt", "service.xml", "");
-
-            if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptor'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE))
-                processOutput(doc, "resource-adaptor-jar.xslt", "META-INF/resource-adaptor-jar.xml", "");
-            if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptorType'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE))
-                processOutput(doc, "resource-adaptor-type-jar.xslt", "META-INF/resource-adaptor-type-jar.xml", "");
-            if (xpath.compile("count(/process/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='javax.slee.annotation.ProfileSpec'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE))
-                processOutput(doc, "profile-spec-jar.xslt", "META-INF/profile-spec-jar.xml", "");
-            if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE))
-                processOutput(doc, "sbb-jar.xslt", "META-INF/sbb-jar.xml", "");
+            generateDescriptors();
 
             processOutput(doc, "aspect.xslt", "SleeAnnotationsAspect.aj", "");
 
-            if (options.containsKey("injectResource"))
-                ajCompile = true; /*
-             * Filer filer = super.processingEnv.getFiler();
-             * String pi = "notused.package-info";
-             * JavaFileObject testFile = filer.createClassFile(pi);
-             * File baseDir = new File(testFile.toUri().getPath());
-             * baseDir = baseDir.getParentFile().getParentFile();
-             * logger.info(Arrays.toString(baseDir.list()));
-             * testFile.delete();
-             *
-             * AjcCompiler ajcCompiler = new AjcCompiler();
-             * ajcCompiler.setOutputDirectory(baseDir);
-             * ajcCompiler.setBasedir(baseDir);
-             * switch (this.processingEnv.getSourceVersion()) {
-             * case RELEASE_3:
-             * ajcCompiler.setSource("1.3");
-             * break;
-             * case RELEASE_4:
-             * ajcCompiler.setSource("1.4");
-             * break;
-             * case RELEASE_5:
-             * ajcCompiler.setSource("1.5");
-             * break;
-             * case RELEASE_6:
-             * ajcCompiler.setSource("1.6");
-             * break;
-             * default:
-             * ajcCompiler.setSource("1.5");
-             *
-             * }
-             *
-             * //ajcCompiler.setWeaveDirectories(new String[]{baseDir.toString()});
-             * ajcCompiler.setVerbose(true);
-             * ajcCompiler.setForceAjcCompile(true);
-             * ajcCompiler.setIncludes(aspects.toArray(new String[aspects.size()]));
-             *
-             * String cp = "";
-             * for (URL u : ((URLClassLoader) this.getClass().getClassLoader()).getURLs()) {
-             * cp += u.getPath();
-             * cp += File.pathSeparatorChar;
-             * }
-             *
-             * for (URL u : ((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs()) {
-             * cp += u.getPath();
-             * cp += File.pathSeparatorChar;
-             * }
-             * cp += System.getProperty("sun.boot.class.path");
-             * cp += File.pathSeparatorChar;
-             * cp += baseDir.toString();
-             *
-             * ajcCompiler.setBootClassPath(cp);
-             * ajcCompiler.execute();
-             *
-             */
+            if (options.containsKey("addInterfaces")) {
+                //AddInterfaces.addInterfaces(roundEnv);
+            }
+            if (options.containsKey("injectResource")) {
+                ajCompile = true;
+                runAjcCompiler();
+
+            }
         }
 
-//        doc.getDocumentElement().appendChild(rootNode);
-
+//      doc.getDocumentElement().appendChild(rootNode);
         Filer filer = this.processingEnv.getFiler();
         for (TypeElement e : annotations) {
             Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(e);
             for (Element e2 : elements) {
-                if (processed(e2))
+                if (processed(e2)) {
                     continue;
+                }
                 List<? extends AnnotationMirror> annotationMirrors = super.processingEnv.getElementUtils().getAllAnnotationMirrors(e2);
                 Node elementNode = rootNode.appendChild(createNode(e2));
                 for (AnnotationMirror a : annotationMirrors) {
-                    if (processed(e2, a))
+                    if (processed(e2, a)) {
                         continue;
+                    }
                     elementNode.appendChild(createNode(e2, a));
-                    Node n = testForMissingMethods(e2, a);
-                    if (a.getAnnotationType().toString().equals("javax.slee.annotation.ResourceAdaptorType"))
+                    Node n = testForMissingMethods((org.w3c.dom.Element) elementNode, e2, a);
+                    if (a.getAnnotationType().toString().equals("javax.slee.annotation.ResourceAdaptorType")) {
                         doResourceAdaptorACI(e2, a);
-                    if (n.hasChildNodes())
+                    }
+                    if (n.hasChildNodes()) {
                         elementNode.appendChild(n);
+                    }
                 }
             }
         }
@@ -373,14 +347,15 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             //&& o.getClass().getComponentType().isAssignableFrom(AnnotationMirror.class))
 
             Object o = e.getValue().getValue();
-            if (e.getKey().getSimpleName().toString().equals("query"))
+            if (e.getKey().getSimpleName().toString().equals("query")) {
                 query = o.toString();
+            }
 
-            if (o instanceof AnnotationMirror)
+            if (o instanceof AnnotationMirror) {
                 n.appendChild(createNode(e.getKey(), (AnnotationMirror) o));
-            else if (o instanceof List)
+            } else if (o instanceof List) {
                 for (Object m : (List) o) {
-                    if (m instanceof AnnotationMirror)
+                    if (m instanceof AnnotationMirror) {
                         if (name.equals("javax.slee.annotation.event.EventType")) {
                             SLEEAnnotationProcessor.this.logger.fine(m.toString());
                             if (eventTypeLibraryRefs.contains(m.toString()))
@@ -388,27 +363,32 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                                 eventTypeLibraryRefs.add(m.toString());
                                 n.appendChild(createNode(e.getKey(), (AnnotationMirror) m));
                             }
-                        } else
+                        } else {
                             n.appendChild(createNode(e.getKey(), (AnnotationMirror) m));
-                    else if (m instanceof AnnotationValue) {
+                        }
+                    } else if (m instanceof AnnotationValue) {
                         org.w3c.dom.Element n2 = doc.createElement("value");
                         Object av = ((AnnotationValue) m).getValue();
                         n2.setAttribute("name", av.toString());
                         n.appendChild(n2);
                     }
                 }
-            else if (o instanceof Boolean)
+            } else if (o instanceof Boolean) {
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString().substring(0, 1).toUpperCase() + o.toString().substring(1));
-            else if (e.getKey().asType().toString().endsWith(Collator.Strength.class.getSimpleName().toString())
-                    | e.getKey().asType().toString().endsWith(Collator.Decomposition.class.getSimpleName().toString())) {
+
+            } else if (e.getKey().asType().toString().endsWith(Collator.Strength.class
+                    .getSimpleName().toString())
+                    | e.getKey().asType().toString().endsWith(Collator.Decomposition.class
+                            .getSimpleName().toString())) {
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString().charAt(0) + o.toString().toLowerCase().substring(1));
                 ((org.w3c.dom.Element) n).setAttribute("type", e.getKey().asType().toString());
-            } else
+            } else {
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString());
+            }
 
-
-            if (e.getKey().getDefaultValue() != null)
+            if (e.getKey().getDefaultValue() != null) {
                 ((org.w3c.dom.Element) n).setAttribute("default", e.getKey().getDefaultValue().toString());
+            }
 
         }
 
@@ -416,44 +396,57 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         processPackage(node, a, e2);
         if (name.equals("javax.slee.annotation.EnvEntry")) {
             //TODO handle final or value
-            if (!((VariableElement) e2).getModifiers().contains(Modifier.FINAL))
+            if (!((VariableElement) e2).getModifiers().contains(Modifier.FINAL)) {
                 logger.warning("env entry " + e2.getSimpleName() + " not final");
+            }
 
             Object constantValue = ((VariableElement) e2).getConstantValue();
 
-            if (constantValue != null)
+            if (constantValue != null) {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", constantValue.toString());
+            }
         }
-        if (name.equals("javax.annotation.Resource"))
+        if (name.equals("javax.annotation.Resource")) {
             getResourceName(node, a, e2);
+        }
+
         if (name.equals("javax.slee.annotation.ActivityContextAttributeAlias")) {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get"));
             //attribute name
             for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : a.getElementValues().entrySet()) {
-                if (entry.getKey().getSimpleName().toString().equals("attributeName"))
+                if (entry.getKey().getSimpleName().toString().equals("attributeName")) {
                     ((org.w3c.dom.Element) node).setAttribute("attribute-name", deBeanifyCamelCase(entry.getValue().getValue().toString(), "get"));
+                }
 
             }
         }
-        if (name.equals("javax.slee.annotation.ChildRelation"))
-            if (e2.getKind().isField())
+        if (name.equals("javax.slee.annotation.ChildRelation")) {
+            if (e2.getKind().isField()) {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString().replaceAll("ChildRelation$", "")));
-        if (name.equals("javax.slee.annotation.CMPField"))
-            if (e2.getKind().isField())
+            }
+        }
+        if (name.equals("javax.slee.annotation.CMPField")) {
+            if (e2.getKind().isField()) {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString()));
-            else
+            } else {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get"));
-        if (name.equals("javax.slee.annotation.ProfileCMPField"))
+            }
+        }
+        if (name.equals("javax.slee.annotation.ProfileCMPField")) {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get", "set"));
-        if (name.equals("javax.slee.annotation.UsageParameter"))
+        }
+        if (name.equals("javax.slee.annotation.UsageParameter")) {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
-        if (name.equals("javax.slee.annotation.UsageParametersInterface"))
-            //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        }
+        if (name.equals("javax.slee.annotation.UsageParametersInterface")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        {
             node.appendChild(calculateUsageParameterSet(e2, a));
+        }
 
-        if (name.equals("javax.slee.annotation.event.EventFiring") || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$"))
-            //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        if (name.equals("javax.slee.annotation.event.EventFiring") || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifySentenceCase(e2.getSimpleName().toString(), "on", "fire"));
+        }
 
         if (name.equals("javax.slee.annotation.ProfileSpec")) {
             List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
@@ -508,11 +501,10 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         return node;
     }
 
-    private Node testForMissingMethods(final Element e2, AnnotationMirror a) {
+    @SuppressWarnings("All")
+    private Node testForMissingMethods(final org.w3c.dom.Element n1, final Element e2, AnnotationMirror a) throws ClassNotFoundException, NoSuchMethodException {
         final org.w3c.dom.Element node = doc.createElement("methods");
         node.setAttribute("enlcosing", e2.toString());
-        final List<Method> methodsToAdd = new ArrayList<Method>();
-        Method[] methods = null;
         Boolean hasImplements = false;
 
         /*
@@ -523,12 +515,19 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
          * "javax.slee.SbbLocalObject"); }
          *
          */
-
         TypeElement base = null;
 
         if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.Sbb")) {
             base = super.processingEnv.getElementUtils().getTypeElement("javax.slee.Sbb");
             hasImplements = hasImplements((TypeElement) e2, "javax.slee.Sbb");
+            if (!hasImplements) {
+                /*
+                TypeMirror type = base.asType();
+                //try to insert the interface ???
+                ((TypeElement) e2).getInterfaces().add(null);
+                logger.info("interfaces : " + ((TypeElement) e2).getInterfaces().toString());
+                 */
+            }
         }
 
         if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ProfileSpec")) {
@@ -541,7 +540,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             hasImplements = hasImplements((TypeElement) e2, "javax.slee.resource.ResourceAdaptor");
         }
 
-        if (base != null)
+        if (base != null) {
             e2.accept(new ElementKindVisitor6<Void, TypeElement>() {
 
                 @Override
@@ -549,8 +548,9 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                     final List<? extends Element> existing = processingEnv.getElementUtils().getAllMembers((TypeElement) e);
                     final List<String> ex = new ArrayList<String>();
                     for (Element ie : existing) {
-                        if (!ie.getModifiers().contains(Modifier.ABSTRACT))
+                        if (!ie.getModifiers().contains(Modifier.ABSTRACT)) {
                             ex.add(ie.toString());
+                        }
                     }
                     //System.err.println(e.toString() + " "+ ex.toString());
 
@@ -573,30 +573,46 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                     return null;
                 }
             }, base);
+        }
 
-        node.setAttribute("implements", hasImplements.toString());
+        n1.setAttribute("implements", hasImplements.toString());
+        if (base != null) {
+            n1.setAttribute("interface", base.toString());
+        }
         return node;
     }
 
-    private boolean hasImplements(TypeElement e2, String javaxsleeannotationSbbLocal) {
+    private boolean hasImplements(TypeElement e2, String name) throws ClassNotFoundException, NoSuchMethodException {
+        logger.fine("hasImplements " + e2.toString() + " " + name + " " + e2.getInterfaces());
+        for (TypeMirror i : e2.getInterfaces()) {
+            if (i.toString().equals(name)) {
+                return true;
+            }
+        }
+
+        if (!e2.getSuperclass().getKind().equals(NONE)) {
+            TypeElement e3 = (TypeElement) ((DeclaredType) e2.getSuperclass()).asElement();
+            return hasImplements(e3, name);
+        }
+
         return false;
     }
 
     private void processOutput(Document doc, String transformFile, String fileName, String filePath) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, ParserConfigurationException, SAXException {
 
-
         FileObject resource;
         Filer filer = super.processingEnv.getFiler();
         resource = filer.createResource(StandardLocation.SOURCE_OUTPUT, filePath, fileName, null);
-        logger.info(resource.toUri().toString());
+        logger.info("creating resource " + resource.toUri().toString());
 
         OutputStream out = null;
         PipedInputStream pis = null;
 
-        if (transformFile.equals("aspect.xslt"))
+        if (transformFile.equals("aspect.xslt")) {
             out = new PipedOutputStream(pis = new PipedInputStream(1000000));
-        else
+        } else {
             out = resource.openOutputStream();
+        }
 
         StreamResult result;
         Transformer t = doTransform(new DOMSource(doc), transformFile, result = new StreamResult(out), pubmap.get(transformFile), sysmap.get(transformFile));
@@ -607,6 +623,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         if (transformFile != null && !transformFile.startsWith("annotations") && !transformFile.startsWith("aspect")) {
             DOMSource source = null;
 
+            logger.log(Level.INFO, "validating {0}", resource.toUri().toString());
             source = new DOMSource(db.parse(resource.toUri().toString()));
 
             out = new FileOutputStream(new File(resource.toUri().getPath()));
@@ -648,20 +665,60 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         }
     }
 
+    public void configureTransformer(String transformerFactoryClass) {
+        if (transformerFactoryClass == null) {
+            transformerFactoryClass = "org.apache.xalan.xsltc.trax.TransformerFactoryImpl";
+        }
+
+        if (transformerFactoryClass != null) {
+            tf = TransformerFactory.newInstance(transformerFactoryClass, getClass().getClassLoader());
+        } else {
+            tf = TransformerFactory.newInstance();
+        }
+        tf.setErrorListener(new ErrorListener() {
+            public void warning(TransformerException exception) throws TransformerException {
+                logger.log(Level.WARNING, message(exception));
+            }
+
+            public void error(TransformerException exception) throws TransformerException {
+                logger.log(Level.SEVERE, message(exception));
+            }
+
+            public void fatalError(TransformerException exception) throws TransformerException {
+                logger.log(Level.SEVERE, message(exception));
+            }
+
+            private String message(TransformerException exception) {
+                return String.format("%1$s %2$s", exception.getLocator().getSystemId(), exception.getMessageAndLocation());
+            }
+        });
+
+        try {
+            binary = null != Class.forName("mofokom.transform.annotations");
+        } catch (ClassNotFoundException x) {
+            logger.warning(x.getMessage());
+        }
+        if (binary) {
+            try {
+                tf.setAttribute("use-classpath", Boolean.TRUE);
+            } catch (IllegalArgumentException x) {
+                binary = false;
+                logger.warning(x.getMessage());
+            }
+        }
+
+        tf.setURIResolver(cr);
+        logger.info("Initialized " + transformerFactoryClass);
+    }
+
     private Transformer doTransform(Source source, String transformFile, Result result, String publicId, String systemId) {
         Transformer transform = null;
         Templates template = null;
-        TransformerFactory tf = null;
-        if (transformerFactoryClass != null)
-            tf = TransformerFactory.newInstance(transformerFactoryClass, getClass().getClassLoader());
-        else
-            tf = TransformerFactory.newInstance();
-
         InputStream transformStream = this.getClass().getClassLoader().getResourceAsStream(transformFile);
         try {
-            if (transformFile == null)
+            if (transformFile == null) {
                 transform = tf.newTransformer();
-            else if (binary) {
+            } else if (binary) {
                 tf.setAttribute("use-classpath", Boolean.TRUE);
                 transformFile = transformFile.replace('-', '_').substring(0, transformFile.length() - 5);
                 tf.setAttribute("translet-name", transformFile);
@@ -669,14 +726,20 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
 
                 template = tf.newTemplates(new StreamSource(transformStream));
                 transform = template.newTransformer();
-            } else
+            } else {
                 transform = tf.newTransformer(new StreamSource(transformStream));
+            }
 
-            if (systemId != null)
+            if (systemId != null) {
                 transform.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, systemId);
-            if (publicId != null)
+            }
+            if (publicId != null) {
                 transform.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, publicId);
+            }
 
+            transform.setOutputProperty(OutputKeys.INDENT, "yes");
+            transform.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
+            transform.setURIResolver(cr);
             DOMResult d = null;
 
             transform.transform(source, result);
@@ -688,19 +751,22 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
     }
 
     private boolean processed(Element e2, AnnotationMirror a) {
-        if (processedAnnotation.containsKey(e2.getEnclosingElement().toString() + e2.toString()))
-            if (processedAnnotation.get(e2.getEnclosingElement().toString() + e2.toString()).contains(a.getAnnotationType().toString()))
+        if (processedAnnotation.containsKey(e2.getEnclosingElement().toString() + e2.toString())) {
+            if (processedAnnotation.get(e2.getEnclosingElement().toString() + e2.toString()).contains(a.getAnnotationType().toString())) {
                 return true;
-            else
+            } else {
                 processedAnnotation.get(e2.getEnclosingElement().toString() + e2.toString()).add(a.getAnnotationType().toString());
-        else
+            }
+        } else {
             processedAnnotation.put(e2.getEnclosingElement().toString() + e2.toString(), new HashSet<String>());
+        }
         return false;
     }
 
     private boolean processed(Element e2) {
-        if (processedElement.contains(e2.getEnclosingElement().toString() + e2.toString()))
+        if (processedElement.contains(e2.getEnclosingElement().toString() + e2.toString())) {
             return true;
+        }
         processedElement.add(e2.getEnclosingElement().toString() + e2.toString());
         return false;
     }
@@ -733,7 +799,8 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
 
     private List<String> getAllAttributeNames(Element e2) {
         final List<String> attributes = new ArrayList<String>();
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProfileCMPField.class);
+        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProfileCMPField.class
+        );
         for (Element e : elements) {
             e.accept(new ElementKindVisitor6<Void, Element>() {
 
@@ -771,16 +838,16 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             String t = st.nextToken();
             logger.fine(t);
 
-            if (t.equals("#"))
+            if (t.equals("#")) {
                 collator = true;
-            else if (collator == true) {
+            } else if (collator == true) {
                 tn.setAttribute("collator-ref", t);
                 collator = false;
-            } else if (attributes.contains(t.toLowerCase()))
+            } else if (attributes.contains(t.toLowerCase())) {
                 tn.setAttribute("attribute-name", t);
-            else if (parameters.contains(t))
+            } else if (parameters.contains(t)) {
                 tn.setAttribute(calculatePrefix((org.w3c.dom.Element) cn) + "parameter", t);
-            else if (ops.contains(t)) {
+            } else if (ops.contains(t)) {
                 cn.appendChild(cn = doc.createElement("compare"));
                 copyTempAttrs((org.w3c.dom.Element) cn, tn);
                 ((org.w3c.dom.Element) cn).setAttribute("op", t);
@@ -795,12 +862,14 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                 cn.appendChild(cn = doc.createElement(t));
                 copyTempAttrs((org.w3c.dom.Element) cn, tn);
             } else if (t.equals("(")) {
-            } else if (t.equals(")"))
+            } else if (t.equals(")")) {
                 cn = (org.w3c.dom.Element) cn.getParentNode();
-            else if (t.equals(" ")) {
+            } else if (t.equals(" ")) {
             } else //constant
-                //FIX BUG HERE WHEN NO ATTRIBUTENAMES
+            //FIX BUG HERE WHEN NO ATTRIBUTENAMES
+            {
                 ((org.w3c.dom.Element) cn).setAttribute(calculatePrefix((org.w3c.dom.Element) cn) + "value", t);
+            }
 
         }
 
@@ -811,11 +880,12 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
 
     private String calculatePrefix(org.w3c.dom.Element cn) {
         if (cn.getNodeName().equals("range-match")
-                && (cn.getAttributeNode("from-value") == null & cn.getAttributeNode("from-parameter") == null))
+                && (cn.getAttributeNode("from-value") == null & cn.getAttributeNode("from-parameter") == null)) {
             return "from-";
-        else if (cn.getNodeName().equals("range-match")
-                && (cn.getAttributeNode("to-value") == null & cn.getAttributeNode("to-parameter") == null))
+        } else if (cn.getNodeName().equals("range-match")
+                && (cn.getAttributeNode("to-value") == null & cn.getAttributeNode("to-parameter") == null)) {
             return "to-";
+        }
         return "";
     }
 
@@ -836,11 +906,8 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         for (ExecutableElement m : ee) {
             String ename = ((TypeElement) m.getEnclosingElement()).getQualifiedName().toString();
 
-
-
-
-
-            if (!ename.equals(Object.class.getName())) {
+            if (!ename.equals(Object.class
+                    .getName())) {
                 f.appendChild(n = (org.w3c.dom.Element) this.createNode(m));
                 n.appendChild(n = doc.createElement("annotation"));
 
@@ -878,7 +945,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             }
 
             private String getSleeJndiName(String cn) {
-                if (cn.startsWith("javax.slee"))
+                if (cn.startsWith("javax.slee")) {
                     try {
                         return Class.forName(cn).getField("JNDI_NAME").get(Class.forName(cn)).toString();
                     } catch (IllegalArgumentException ex) {
@@ -887,6 +954,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                     } catch (SecurityException ex) {
                     } catch (ClassNotFoundException ex) {
                     }
+                }
                 return "{unknown}";
             }
         }, node);
@@ -904,8 +972,6 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             if (e.getKey().getSimpleName().toString().equals("aciFactory")) {
                 Object o = e.getValue().getValue();
                 TypeElement aci = super.processingEnv.getElementUtils().getTypeElement(o.toString());
-
-
 
                 for (Element m : processingEnv.getElementUtils().getAllMembers(aci)) {
                     m.accept(new ElementKindVisitor6<Boolean, Object>() {
@@ -945,11 +1011,13 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        if (!m.getReturnType().toString().equals("void"))
+        if (!m.getReturnType().toString().equals("void")) {
             mb = "return null;";
+        }
 
-        if (m.getThrownTypes().size() > 0)
+        if (m.getThrownTypes().size() > 0) {
             mt = "throws " + m.getThrownTypes().toString();
+        }
 
         return f.format(new Object[]{m.getReturnType().toString(), e.toString(), mm, mt, mb}, buffy, null).toString();
 
@@ -964,5 +1032,93 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             node.setAttribute("package", clazz.getEnclosingElement().toString());
             node.setAttribute("simple-name", clazz.getSimpleName().toString());
         }
+    }
+
+    private void addMethods(Element e2, TypeElement base) {
+    }
+
+    private void generateDescriptors() throws XPathExpressionException, InstantiationException, IllegalAccessException, IOException, ParserConfigurationException, SAXException, ClassNotFoundException {
+
+        XPathFactory factory = XPathFactory.newInstance();
+        XPath xpath = factory.newXPath();
+        DOMSource domDoc = new DOMSource(doc.getDocumentElement().getFirstChild());
+
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.event.EventType'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+            processOutput(doc, "event-jar.xslt", "META-INF/event-jar.xml", "");
+        }
+
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Service'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+            processOutput(doc, "service.xslt", "service.xml", "");
+        }
+
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptor'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+            processOutput(doc, "resource-adaptor-jar.xslt", "META-INF/resource-adaptor-jar.xml", "");
+        }
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptorType'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+            processOutput(doc, "resource-adaptor-type-jar.xslt", "META-INF/resource-adaptor-type-jar.xml", "");
+        }
+        if (xpath.compile("count(/process/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='javax.slee.annotation.ProfileSpec'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+            processOutput(doc, "profile-spec-jar.xslt", "META-INF/profile-spec-jar.xml", "");
+        }
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+            processOutput(doc, "sbb-jar.xslt", "META-INF/sbb-jar.xml", "");
+        }
+
+    }
+
+    private void runAjcCompiler() {
+        /*
+             * Filer filer = super.processingEnv.getFiler();
+             * String pi = "notused.package-info";
+             * JavaFileObject testFile = filer.createClassFile(pi);
+             * File baseDir = new File(testFile.toUri().getPath());
+             * baseDir = baseDir.getParentFile().getParentFile();
+             * logger.info(Arrays.toString(baseDir.list()));
+             * testFile.delete();
+             *
+             * AjcCompiler ajcCompiler = new AjcCompiler();
+             * ajcCompiler.setOutputDirectory(baseDir);
+             * ajcCompiler.setBasedir(baseDir);
+             * switch (this.processingEnv.getSourceVersion()) {
+             * case RELEASE_3:
+             * ajcCompiler.setSource("1.3");
+             * break;
+             * case RELEASE_4:
+             * ajcCompiler.setSource("1.4");
+             * break;
+             * case RELEASE_5:
+             * ajcCompiler.setSource("1.5");
+             * break;
+             * case RELEASE_6:
+             * ajcCompiler.setSource("1.6");
+             * break;
+             * default:
+             * ajcCompiler.setSource("1.5");
+             *
+             * }
+             *
+             * //ajcCompiler.setWeaveDirectories(new String[]{baseDir.toString()});
+             * ajcCompiler.setVerbose(true);
+             * ajcCompiler.setForceAjcCompile(true);
+             * ajcCompiler.setIncludes(aspects.toArray(new String[aspects.size()]));
+             *
+             * String cp = "";
+             * for (URL u : ((URLClassLoader) this.getClass().getClassLoader()).getURLs()) {
+             * cp += u.getPath();
+             * cp += File.pathSeparatorChar;
+             * }
+             *
+             * for (URL u : ((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs()) {
+             * cp += u.getPath();
+             * cp += File.pathSeparatorChar;
+             * }
+             * cp += System.getProperty("sun.boot.class.path");
+             * cp += File.pathSeparatorChar;
+             * cp += baseDir.toString();
+             *
+             * ajcCompiler.setBootClassPath(cp);
+             * ajcCompiler.execute();
+             *
+         */
     }
 }

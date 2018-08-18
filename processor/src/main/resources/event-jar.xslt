@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Event 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-event-jar_1_1.dtd" xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan"/>
+
     <xsl:include href="resource:common.xslt"/>
-    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE Event 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-event-jar_1_1.dtd"/>
-    <xsl:strip-space elements="."/>
+    
     <xsl:template match="/">
         <event-jar>
             <description>
@@ -16,9 +17,9 @@
     <xsl:template match="annotation[@name='javax.slee.annotation.event.EventType']">
         <event-definition>
             <xsl:if test="element[@name='id']/@value">
-                    <xsl:attribute name="id">
-                        <xsl:value-of select="element[@name='id']/@value"/>
-                    </xsl:attribute>
+                <xsl:attribute name="id">
+                    <xsl:value-of select="element[@name='id']/@value"/>
+                </xsl:attribute>
             </xsl:if>
 
             <description>

@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE SBB 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd"/>
-
-    <xsl:strip-space elements="."/>
+    <xsl:output method="xml" indent="yes" doctype-public="-//Sun Microsystems, Inc.//DTD JAIN SLEE SBB 1.1//EN" doctype-system="http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd" xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
 
     <xsl:include href="resource:common.xslt"/>
 

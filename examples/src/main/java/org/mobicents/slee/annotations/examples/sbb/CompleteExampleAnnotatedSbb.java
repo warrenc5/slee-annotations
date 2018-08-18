@@ -21,6 +21,9 @@
  */
 package org.mobicents.slee.annotations.examples.sbb;
 
+import javax.slee.annotation.Rollback;
+import javax.slee.annotation.EnvEntry;
+import javax.slee.annotation.ResourceAdaptorTypeBinding;
 import javax.slee.annotation.Service;
 import javax.slee.annotation.LibraryRef;
 import javax.slee.annotation.SbbRef;
@@ -42,7 +45,6 @@ import javax.slee.annotation.event.EventTypeRef;
 import javax.slee.annotation.event.ServiceStartedEventHandler;
 import javax.slee.annotation.event.TimerEventHandler;
 import javax.slee.annotation.ChildRelation;
-import javax.slee.annotation.*;
 import javax.slee.annotation.Sbb;
 import javax.slee.facilities.*;
 import javax.slee.profile.*;
