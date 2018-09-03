@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="sbb-jar">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element maxOccurs="unbounded" ref="sbb" />
+        <xs:element minOccurs="0" ref="security-permissions" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-name" />
+        <xs:element ref="sbb-vendor" />
+        <xs:element ref="sbb-version" />
+        <xs:element minOccurs="0" ref="sbb-alias" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="library-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="sbb-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="profile-spec-ref" />
+        <xs:element ref="sbb-classes" />
+        <xs:element minOccurs="0" ref="address-profile-spec-alias-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="event" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="activity-context-attribute-alias" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="env-entry" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="resource-adaptor-type-binding" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ejb-ref" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-alias">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-alias-ref">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="library-name" />
+        <xs:element ref="library-vendor" />
+        <xs:element ref="library-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-name" />
+        <xs:element ref="sbb-vendor" />
+        <xs:element ref="sbb-version" />
+        <xs:element ref="sbb-alias" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-spec-name" />
+        <xs:element ref="profile-spec-vendor" />
+        <xs:element ref="profile-spec-version" />
+        <xs:element minOccurs="0" ref="profile-spec-alias" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-alias">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-classes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-abstract-class" />
+        <xs:element minOccurs="0" ref="sbb-local-interface" />
+        <xs:element minOccurs="0" ref="sbb-activity-context-interface" />
+        <xs:element minOccurs="0" ref="sbb-usage-parameters-interface" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-abstract-class">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-abstract-class-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmp-field" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="get-child-relation-method" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="get-profile-cmp-method" />
+      </xs:sequence>
+      <xs:attribute name="reentrant" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-abstract-class-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cmp-field">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="cmp-field-name" />
+        <xs:element minOccurs="0" ref="sbb-alias-ref" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cmp-field-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="get-child-relation-method">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-alias-ref" />
+        <xs:element ref="get-child-relation-method-name" />
+        <xs:element ref="default-priority" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="get-child-relation-method-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="default-priority">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="get-profile-cmp-method">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-spec-alias-ref" />
+        <xs:element ref="get-profile-cmp-method-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-alias-ref">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="get-profile-cmp-method-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-local-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-local-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="isolate-security-permissions" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-local-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-activity-context-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-activity-context-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-activity-context-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-usage-parameters-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-usage-parameters-interface-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="usage-parameter" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-usage-parameters-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="usage-parameter">
+    <xs:complexType mixed="true">
+      <xs:attribute name="name" />
+      <xs:attribute name="notifications-enabled" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="address-profile-spec-alias-ref">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="event-name" />
+        <xs:element ref="event-type-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="initial-event-select" />
+        <xs:element minOccurs="0" ref="initial-event-selector-method-name" />
+        <xs:element minOccurs="0" ref="event-resource-option" />
+      </xs:sequence>
+      <xs:attribute name="event-direction" />
+      <xs:attribute name="initial-event" use="optional" />
+      <xs:attribute name="mask-on-attach" use="optional" />
+      <xs:attribute name="last-in-transaction" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="event-type-name" />
+        <xs:element ref="event-type-vendor" />
+        <xs:element ref="event-type-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="initial-event-select">
+    <xs:complexType>
+      <xs:attribute name="variable" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="initial-event-selector-method-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-resource-option">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="activity-context-attribute-alias">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="attribute-alias-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="sbb-activity-context-attribute-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="attribute-alias-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-activity-context-attribute-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="env-entry-name" />
+        <xs:element ref="env-entry-type" />
+        <xs:element minOccurs="0" ref="env-entry-value" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry-type">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry-value">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-binding">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-type-ref" />
+        <xs:element minOccurs="0" ref="activity-context-interface-factory-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="resource-adaptor-entity-binding" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="resource-adaptor-type-name" />
+        <xs:element ref="resource-adaptor-type-vendor" />
+        <xs:element ref="resource-adaptor-type-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="activity-context-interface-factory-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-entity-binding">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-object-name" />
+        <xs:element minOccurs="0" ref="resource-adaptor-entity-link" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-object-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-entity-link">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ejb-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="ejb-ref-name" />
+        <xs:element ref="ejb-ref-type" />
+        <xs:element ref="home" />
+        <xs:element ref="remote" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ejb-ref-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ejb-ref-type">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="home">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="remote">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permissions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="security-permission-spec" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permission-spec">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

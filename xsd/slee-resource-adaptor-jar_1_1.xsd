@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="resource-adaptor-jar">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element maxOccurs="unbounded" ref="resource-adaptor" />
+        <xs:element minOccurs="0" ref="security-permissions" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-name" />
+        <xs:element ref="resource-adaptor-vendor" />
+        <xs:element ref="resource-adaptor-version" />
+        <xs:element maxOccurs="unbounded" ref="resource-adaptor-type-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="library-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="profile-spec-ref" />
+        <xs:element ref="resource-adaptor-classes" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="config-property" />
+      </xs:sequence>
+      <xs:attribute name="ignore-ra-type-event-type-check" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-type-name" />
+        <xs:element ref="resource-adaptor-type-vendor" />
+        <xs:element ref="resource-adaptor-type-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="library-name" />
+        <xs:element ref="library-vendor" />
+        <xs:element ref="library-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-spec-name" />
+        <xs:element ref="profile-spec-vendor" />
+        <xs:element ref="profile-spec-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-classes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-class" />
+        <xs:element minOccurs="0" ref="resource-adaptor-usage-parameters-interface" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-class">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-class-name" />
+      </xs:sequence>
+      <xs:attribute name="supports-active-reconfiguration" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-class-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-usage-parameters-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-usage-parameters-interface-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="usage-parameter" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-usage-parameters-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="usage-parameter">
+    <xs:complexType mixed="true">
+      <xs:attribute name="name" />
+      <xs:attribute name="notifications-enabled" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="config-property">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="config-property-name" />
+        <xs:element ref="config-property-type" />
+        <xs:element minOccurs="0" ref="config-property-value" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="config-property-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="config-property-type">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="config-property-value">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permissions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="security-permission-spec" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permission-spec">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

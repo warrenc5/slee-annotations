@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="service-xml">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element maxOccurs="unbounded" ref="service" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="service">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="service-name" />
+        <xs:element ref="service-vendor" />
+        <xs:element ref="service-version" />
+        <xs:element ref="root-sbb" />
+        <xs:element ref="default-priority" />
+        <xs:element minOccurs="0" ref="address-profile-table" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="service-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="service-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="service-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="root-sbb">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="sbb-name" />
+        <xs:element ref="sbb-vendor" />
+        <xs:element ref="sbb-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sbb-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="default-priority">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="address-profile-table">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

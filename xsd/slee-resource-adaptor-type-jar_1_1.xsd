@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="resource-adaptor-type-jar">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element maxOccurs="unbounded" ref="resource-adaptor-type" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-type-name" />
+        <xs:element ref="resource-adaptor-type-vendor" />
+        <xs:element ref="resource-adaptor-type-version" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="library-ref" />
+        <xs:element ref="resource-adaptor-type-classes" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="event-type-ref" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="library-name" />
+        <xs:element ref="library-vendor" />
+        <xs:element ref="library-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-type-classes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="activity-type" />
+        <xs:element minOccurs="0" ref="activity-context-interface-factory-interface" />
+        <xs:element minOccurs="0" ref="resource-adaptor-interface" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="activity-type">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="activity-type-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="activity-type-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="activity-context-interface-factory-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="activity-context-interface-factory-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="activity-context-interface-factory-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="resource-adaptor-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="resource-adaptor-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="event-type-name" />
+        <xs:element ref="event-type-vendor" />
+        <xs:element ref="event-type-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="event-type-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

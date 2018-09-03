@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="library-jar">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element maxOccurs="unbounded" ref="library" />
+        <xs:element minOccurs="0" ref="security-permissions" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="library-name" />
+        <xs:element ref="library-vendor" />
+        <xs:element ref="library-version" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="library-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="jar" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="library-name" />
+        <xs:element ref="library-vendor" />
+        <xs:element ref="library-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="jar">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="jar-name" />
+        <xs:element minOccurs="0" ref="security-permissions" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="jar-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permissions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="security-permission-spec" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permission-spec">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

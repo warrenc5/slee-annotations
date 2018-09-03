@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="profile-spec-jar">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element maxOccurs="unbounded" ref="profile-spec" />
+        <xs:element minOccurs="0" ref="security-permissions" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="description">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-spec-name" />
+        <xs:element ref="profile-spec-vendor" />
+        <xs:element ref="profile-spec-version" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="library-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="profile-spec-ref" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="collator" />
+        <xs:element ref="profile-classes" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="env-entry" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="query" />
+        <xs:element minOccurs="0" ref="profile-hints" />
+      </xs:sequence>
+      <xs:attribute name="profile-read-only" use="optional" />
+      <xs:attribute name="profile-events-enabled" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="library-name" />
+        <xs:element ref="library-vendor" />
+        <xs:element ref="library-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-vendor">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="library-version">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-spec-ref">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-spec-name" />
+        <xs:element ref="profile-spec-vendor" />
+        <xs:element ref="profile-spec-version" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="collator">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="collator-alias" />
+        <xs:element ref="locale-language" />
+        <xs:element minOccurs="0" ref="locale-country" />
+        <xs:element minOccurs="0" ref="locale-variant" />
+      </xs:sequence>
+      <xs:attribute name="strength" use="optional" />
+      <xs:attribute name="decomposition" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="collator-alias">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="locale-language">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="locale-country">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="locale-variant">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-classes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-cmp-interface" />
+        <xs:element minOccurs="0" ref="profile-local-interface" />
+        <xs:element minOccurs="0" ref="profile-management-interface" />
+        <xs:element minOccurs="0" ref="profile-abstract-class" />
+        <xs:element minOccurs="0" ref="profile-table-interface" />
+        <xs:element minOccurs="0" ref="profile-usage-parameters-interface" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-cmp-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-cmp-interface-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="cmp-field" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-cmp-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cmp-field">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="cmp-field-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="index-hint" />
+      </xs:sequence>
+      <xs:attribute name="unique" use="optional" />
+      <xs:attribute name="unique-collator-ref" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cmp-field-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="index-hint">
+    <xs:complexType>
+      <xs:attribute name="query-operator" />
+      <xs:attribute name="collator-ref" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-local-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-local-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="isolate-security-permissions" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-local-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-management-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-management-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-management-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-abstract-class">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-abstract-class-name" />
+      </xs:sequence>
+      <xs:attribute name="reentrant" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-abstract-class-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-table-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-table-interface-name" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-table-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-usage-parameters-interface">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="profile-usage-parameters-interface-name" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="usage-parameter" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-usage-parameters-interface-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="usage-parameter">
+    <xs:complexType mixed="true">
+      <xs:attribute name="name" />
+      <xs:attribute name="notifications-enabled" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="env-entry-name" />
+        <xs:element ref="env-entry-type" />
+        <xs:element minOccurs="0" ref="env-entry-value" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry-name">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry-type">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="env-entry-value">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="query">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element minOccurs="0" ref="query-options" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="query-parameter" />
+        <xs:choice>
+          <xs:choice>
+            <xs:element ref="compare" />
+            <xs:element ref="range-match" />
+            <xs:element ref="longest-prefix-match" />
+            <xs:element ref="has-prefix" />
+            <xs:element ref="and" />
+            <xs:element ref="or" />
+            <xs:element ref="not" />
+          </xs:choice>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="name" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="query-options">
+    <xs:complexType>
+      <xs:attribute name="read-only" use="optional" />
+      <xs:attribute name="max-matches" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="query-parameter">
+    <xs:complexType>
+      <xs:attribute name="name" />
+      <xs:attribute name="type" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="compare">
+    <xs:complexType>
+      <xs:attribute name="attribute-name" />
+      <xs:attribute name="op" />
+      <xs:attribute name="value" use="optional" />
+      <xs:attribute name="parameter" use="optional" />
+      <xs:attribute name="collator-ref" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="range-match">
+    <xs:complexType>
+      <xs:attribute name="attribute-name" />
+      <xs:attribute name="from-value" use="optional" />
+      <xs:attribute name="from-parameter" use="optional" />
+      <xs:attribute name="to-value" use="optional" />
+      <xs:attribute name="to-parameter" use="optional" />
+      <xs:attribute name="collator-ref" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="longest-prefix-match">
+    <xs:complexType>
+      <xs:attribute name="attribute-name" />
+      <xs:attribute name="value" use="optional" />
+      <xs:attribute name="parameter" use="optional" />
+      <xs:attribute name="collator-ref" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="has-prefix">
+    <xs:complexType>
+      <xs:attribute name="attribute-name" />
+      <xs:attribute name="value" use="optional" />
+      <xs:attribute name="parameter" use="optional" />
+      <xs:attribute name="collator-ref" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="and">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice>
+          <xs:choice>
+            <xs:element ref="compare" />
+            <xs:element ref="range-match" />
+            <xs:element ref="longest-prefix-match" />
+            <xs:element ref="has-prefix" />
+            <xs:element ref="and" />
+            <xs:element ref="or" />
+            <xs:element ref="not" />
+          </xs:choice>
+        </xs:choice>
+        <xs:choice maxOccurs="unbounded">
+          <xs:choice>
+            <xs:element ref="compare" />
+            <xs:element ref="range-match" />
+            <xs:element ref="longest-prefix-match" />
+            <xs:element ref="has-prefix" />
+            <xs:element ref="and" />
+            <xs:element ref="or" />
+            <xs:element ref="not" />
+          </xs:choice>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="or">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice>
+          <xs:choice>
+            <xs:element ref="compare" />
+            <xs:element ref="range-match" />
+            <xs:element ref="longest-prefix-match" />
+            <xs:element ref="has-prefix" />
+            <xs:element ref="and" />
+            <xs:element ref="or" />
+            <xs:element ref="not" />
+          </xs:choice>
+        </xs:choice>
+        <xs:choice maxOccurs="unbounded">
+          <xs:choice>
+            <xs:element ref="compare" />
+            <xs:element ref="range-match" />
+            <xs:element ref="longest-prefix-match" />
+            <xs:element ref="has-prefix" />
+            <xs:element ref="and" />
+            <xs:element ref="or" />
+            <xs:element ref="not" />
+          </xs:choice>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="not">
+    <xs:complexType>
+      <xs:choice>
+        <xs:choice>
+          <xs:element ref="compare" />
+          <xs:element ref="range-match" />
+          <xs:element ref="longest-prefix-match" />
+          <xs:element ref="has-prefix" />
+          <xs:element ref="and" />
+          <xs:element ref="or" />
+          <xs:element ref="not" />
+        </xs:choice>
+      </xs:choice>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="profile-hints">
+    <xs:complexType>
+      <xs:attribute name="single-profile" use="optional" />
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permissions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="description" />
+        <xs:element ref="security-permission-spec" />
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="security-permission-spec">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID" use="optional" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
