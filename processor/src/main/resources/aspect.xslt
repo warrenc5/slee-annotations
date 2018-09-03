@@ -16,7 +16,7 @@
 
     <xsl:template match="element[@name and annotation[@package]]" mode="aspect">
         <xsl:variable name="name" select="@name" />
-        <xsl:text>file:</xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect.aj
+        <xsl:text>file:</xsl:text><xsl:value-of select="annotation/@package"/>/<xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect.aj
         </xsl:text> 
         <xsl:text>
         package </xsl:text><xsl:value-of select="annotation/@package"/><xsl:text>;</xsl:text>
@@ -420,7 +420,7 @@
         
     </xsl:template>
 
-    <xsl:template match="element/annotation[@kind='FIELD' and @name='javax.annotation.Resource' and @type='javax.slee.SbbContext']" priority="1">
+    <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.SbbContext']" priority="1">
         //set sbb context
         <xsl:apply-templates select="." mode="get-field-pointcut"/>
     </xsl:template>
@@ -718,11 +718,11 @@
         <xsl:value-of select="$arg-type"/>
         <xsl:text> arg1) :target(object) &amp;&amp; execution(void </xsl:text>
         <xsl:value-of select="../@enclosing"/>
-        <xsl:text>.</xsl:text>
+        <xsl:text>+.</xsl:text>
         <xsl:value-of select="$method-name"/>
         <xsl:text>(</xsl:text>
         <xsl:value-of select="$arg-type"/>
-        <xsl:text>)) &amp;&amp; args(arg1);</xsl:text>
+        <xsl:text>+)) &amp;&amp; args(arg1);</xsl:text>
 
         <xsl:text>
             void around( 
@@ -734,7 +734,7 @@
         <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
         <xsl:value-of select="$method-name"/>
         <xsl:text>(object,arg1) { </xsl:text>
-        //System.err.println("advice ###### around ");
+        System.err.println("advice ###### around ");
         <xsl:apply-templates select="." mode="method-intercept-inject">
             <xsl:with-param name="method-name" select="$method-name"/>
             <xsl:with-param name="arg-type" select="$arg-type"/>

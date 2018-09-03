@@ -639,7 +639,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
 
             String s2;
             BufferedWriter writer = null;
-            Pattern p = Pattern.compile("file:(.*.aj)$");
+            Pattern p = Pattern.compile("file:(.*)/(.*.aj)$");
             while ((s2 = r2.readLine()) != null) {
 
                 Matcher matcher = p.matcher(s2);
@@ -650,7 +650,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                         writer.close();
                     }
 
-                    FileObject outResource = filer.createResource(StandardLocation.SOURCE_OUTPUT, filePath, matcher.group(1), null);
+                    FileObject outResource = filer.createResource(StandardLocation.SOURCE_OUTPUT, matcher.group(1), matcher.group(2), null);
                     aspects.add(outResource.toUri().toString());
                     writer = new BufferedWriter(outResource.openWriter());
                 } else if (writer != null) {
@@ -658,6 +658,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                     writer.newLine();
                 }
             }
+            logger.log(Level.INFO, "creating " + aspects.toString());
             if (writer != null) {
                 writer.flush();
                 writer.close();
@@ -1029,7 +1030,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                 || a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ProfileSpec")
                 || a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ResourceAdaptor")) {
             TypeElement clazz = super.processingEnv.getElementUtils().getTypeElement(e2.toString());
-            node.setAttribute("package", clazz.getEnclosingElement().toString());
+            node.setAttribute("package", ((PackageElement) clazz.getEnclosingElement()).getQualifiedName().toString());
             node.setAttribute("simple-name", clazz.getSimpleName().toString());
         }
     }
