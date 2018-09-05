@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -95,7 +96,7 @@ import org.xml.sax.*;
     "javax.slee.annotation.event.ProfileUpdatedEventHandler",
     "javax.slee.annotation.event.ServiceStartedEventHandler",
     "javax.slee.annotation.event.TimerEventHandler"})
-public class SLEEAnnotationProcessor extends AbstractProcessor {
+public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private org.w3c.dom.Element rootNode;
     private RoundEnvironment roundEnv;
@@ -114,7 +115,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
     private CatalogResolver cr;
     private TransformerFactory tf = null;
 
-    public SLEEAnnotationProcessor() throws IOException, CatalogException, ParserConfigurationException, ParserConfigurationException {
+    public SleeAnnotationProcessor() throws IOException, CatalogException, ParserConfigurationException, ParserConfigurationException {
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
         this.configureCatalogResolver();
         this.createDocument();
@@ -357,7 +358,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
                 for (Object m : (List) o) {
                     if (m instanceof AnnotationMirror) {
                         if (name.equals("javax.slee.annotation.event.EventType")) {
-                            SLEEAnnotationProcessor.this.logger.fine(m.toString());
+                            SleeAnnotationProcessor.this.logger.fine(m.toString());
                             if (eventTypeLibraryRefs.contains(m.toString()))
                                 ; else {
                                 eventTypeLibraryRefs.add(m.toString());
@@ -697,7 +698,7 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
         try {
             binary = null != Class.forName("mofokom.transform.annotations");
         } catch (ClassNotFoundException x) {
-            logger.warning(x.getMessage());
+            logger.warning(x.getMessage() + " non-binary transforms only");
         }
         if (binary) {
             try {
@@ -927,7 +928,8 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
 
             @Override
             public Node visitType(TypeElement e, org.w3c.dom.Element p) {
-                p.setAttribute("processed-value", e.toString().trim());
+                p.setAttribute("processed-value",
+                        e.getModifiers().toString() + " " + e.toString().trim());
                 return null;
             }
 
@@ -942,6 +944,9 @@ public class SLEEAnnotationProcessor extends AbstractProcessor {
             public Node visitExecutable(ExecutableElement e, org.w3c.dom.Element p) {
                 p.setAttribute("type", e.getReturnType().toString());
                 p.setAttribute("processed-value", e.toString().trim());
+                String s = e.getModifiers().stream().filter(m -> !m.equals(Modifier.ABSTRACT)).map(m -> m.toString()).collect(Collectors.joining(" ")).toString();
+
+                p.setAttribute("modifiers", s);
                 return null;
             }
 

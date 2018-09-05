@@ -336,8 +336,11 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         <xsl:if test="element[@name='raEntityLink']">
                             <resource-adaptor-entity-binding>
                                 <resource-adaptor-object-name> 
+                                    <xsl:value-of select="element[@name='raObjectName']/@value"/>
+                                    <!--
                                     <xsl:text>slee/resources/</xsl:text>
                                         <xsl:value-of select="generate-id(key('raEntityLink',concat(element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='name']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='vendor']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='version']/@value)))"/>
+                                        TODO make this automatic-->
                                 </resource-adaptor-object-name>
                                 <resource-adaptor-entity-link>
                                     <xsl:value-of select="element[@name='raEntityLink']/@value"/>

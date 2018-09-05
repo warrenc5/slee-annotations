@@ -4,6 +4,7 @@
 
     <xsl:strip-space elements="node()"/>
     <xsl:key name="unique-field" match="element[@kind='FIELD']" use="concat(@name,@enclosing)"/>
+    <xsl:key name="unique-method-private" match="element[@kind='METHOD']" use="concat(@name,@enclosing)"/>
 
     <xsl:key name="unique-method" match="element[@kind='FIELD' and annotation[@name='javax.annotation.Resource']]" use="@enclosing"/>
     <xsl:key name="unique-aspect" match="element[@package]" use="@package"/>
@@ -58,26 +59,26 @@
             pointcut debug_get(): debug_class() &amp;&amp; (get(* *.*));
 
             before (): debug_constructor() {
-                System.err.println("={= " + thisJoinPointStaticPart.getSignature());
+                if(Boolean.getBoolean("debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_constructor() {
-            System.err.println("=}=} " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("=}=} " + thisJoinPointStaticPart.getSignature());
             }
 
             before (): debug_method() {
-            System.err.println("={= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
             }
             after() returning : debug_method() {
-            System.err.println("=}= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("=}= " + thisJoinPointStaticPart.getSignature());
             }
             after() throwing : debug_method() {
-            System.err.println("=*= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("=*= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_set() {
-            System.err.println("=w= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("=w= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_get() {
-            System.err.println("=r= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("=r= " + thisJoinPointStaticPart.getSignature());
             }
 
         }
@@ -444,7 +445,7 @@
         <xsl:text>if(object.</xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> == null) {
-        System.err.println("constructing tracer");
+        if(Boolean.getBoolean("debug")) System.err.println("constructing tracer");
         </xsl:text> 
         <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
         <xsl:text>=object.__context.getTracer("</xsl:text>
@@ -587,7 +588,7 @@
 
 <!-- RESOURCE GETTERS -->
     
-    <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource']" >
+    <xsl:template match="element[@kind='FIELD' or @kind='METHOD']/annotation[@name='javax.annotation.Resource']" >
         <xsl:variable name="type" select="@type" />
         <xsl:variable name="name" select="element[@name='name']/@value" />
         <xsl:variable name="enclosing" select="../@enclosing" />
@@ -640,9 +641,9 @@
 
     <xsl:when test="//element[@name=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]">
             //OVER HERE
-            <xsl:variable name="ref" select="//element[@enclosing=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]" />
-            <xsl:value-of select="$ref"/>
-            //THATS IT
+        <xsl:variable name="ref" select="//element[@enclosing=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]" />
+        <xsl:value-of select="$ref"/>
+            //THATS IT <xsl:value-of select="../@type"/>
 <!--
             <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
 
@@ -650,18 +651,47 @@
             
                         </xsl:apply-templates>
                 -->
+                <xsl:choose>
+                    <xsl:when test="../@kind='FIELD'">
+                        <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
+                            <!--NAME/MAPPED_NAME-->
+                            <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="../@kind='METHOD'">
+                        <xsl:apply-templates select="." mode="get-method-jndi-insert">
+                            <!--NAME/MAPPED_NAME-->
+                            <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise> 
+                        <!-- CANT --> 
+                    </xsl:otherwise>
+                </xsl:choose>
 
             </xsl:when>
             <!--CONFIG PROPERTIES-->
             <xsl:otherwise>
-
                 <!--JNDI PARAMETERS -->
-                <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
-                    <!--NAME/MAPPED_NAME-->
-                    <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
-                </xsl:apply-templates>
+                //JNDI <xsl:value-of select="../@name"/> - <xsl:value-of select="../@type"/>
+                <xsl:choose>
+                    <xsl:when test="../@kind='FIELD'">
+                        <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
+                            <!--NAME/MAPPED_NAME-->
+                            <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="../@kind='METHOD'">
+                        <xsl:apply-templates select="." mode="get-method-jndi-insert">
+                            <!--NAME/MAPPED_NAME-->
+                            <xsl:with-param name="jndi-name" select="concat('&quot;',element[@name='name']/@value,'&quot;')"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise> 
+                        <!-- CANT --> 
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
-
         </xsl:choose>
     </xsl:template>
 
@@ -687,20 +717,6 @@
         <xsl:text> 
         </xsl:text>
     </xsl:template>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     <!--POINTCUTS -->
 
@@ -734,7 +750,7 @@
         <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
         <xsl:value-of select="$method-name"/>
         <xsl:text>(object,arg1) { </xsl:text>
-        System.err.println("advice ###### around ");
+        if(Boolean.getBoolean("debug")) System.err.println("advice ###### around ");
         <xsl:apply-templates select="." mode="method-intercept-inject">
             <xsl:with-param name="method-name" select="$method-name"/>
             <xsl:with-param name="arg-type" select="$arg-type"/>
@@ -785,7 +801,7 @@
         <xsl:value-of select="generate-id(key('unique-field',concat(../@name,../@enclosing)))"/>
         <xsl:text>Field(object,arg1) {</xsl:text>
         <xsl:text>
-            //System.err.println("advice ###### setter " + arg1);
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### setter " + arg1);
         </xsl:text>
         <xsl:apply-templates select="." mode="set-field-inject" />
         <xsl:text>}
@@ -818,7 +834,7 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>Field(object) {</xsl:text>
         <xsl:text>
-            //System.err.println("advice ###### getter ");
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### getter ");
         </xsl:text>
         <xsl:apply-templates select="." mode="get-field-inject" />
         <xsl:text>
@@ -851,7 +867,7 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>FieldJNDI(object) {</xsl:text>
         <xsl:text>
-            //System.err.println("advice ###### jndi getter wrapper");
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi getter wrapper");
         </xsl:text>
         <xsl:text>if(object.</xsl:text>
         <xsl:value-of select="../@name"/>
@@ -861,7 +877,7 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>=(</xsl:text>
         <xsl:value-of select="../@type"/>
-        <xsl:text>)new javax.naming.InitialContext().lookup(</xsl:text>
+        <xsl:text>)((javax.naming.Context)new javax.naming.InitialContext().lookup("java:comp/env")).lookup(</xsl:text>
         <xsl:value-of select="$jndi-name"/>
         <xsl:text>);
             }catch(javax.naming.NamingException x){
@@ -871,6 +887,39 @@
             }
         </xsl:text>
     </xsl:template>
+
+    <xsl:template match="annotation" mode="get-method-jndi-insert">
+        <xsl:param name="jndi-name"/>
+
+        <xsl:text>
+            </xsl:text>
+        private <xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/><xsl:text>.</xsl:text><xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/><xsl:text>;
+        </xsl:text>
+
+        <xsl:value-of select="@modifiers"/><xsl:text> </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>() {
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi method wrapper");
+        </xsl:text>
+        <xsl:text>if(this.</xsl:text>
+        <xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+        <xsl:text> == null) {
+            try{
+            this.</xsl:text>
+        <xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+        <xsl:text>=(</xsl:text>
+        <xsl:value-of select="../@type"/>
+        <xsl:text>)((javax.naming.Context)new javax.naming.InitialContext().lookup("java:comp/env")).lookup(</xsl:text>
+        <xsl:value-of select="$jndi-name"/>
+        <xsl:text>);
+            }catch(javax.naming.NamingException x){
+            throw new RuntimeException(x);
+            }
+            }
+            return </xsl:text>
+            <xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+            <xsl:text>;
+            }</xsl:text>
+    </xsl:template>
+
 
     <xsl:template match="@*|node()">
         <xsl:copy>
