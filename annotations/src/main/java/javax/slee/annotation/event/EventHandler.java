@@ -105,7 +105,7 @@ public @interface EventHandler {
      *
      * @return
      */
-    boolean lastInTransaction() default false;
+    boolean lastInTransaction() default true;
 
     /**
      * The event-resource-option element contains arbitrary event handling

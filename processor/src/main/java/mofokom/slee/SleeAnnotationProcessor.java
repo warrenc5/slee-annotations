@@ -1,3 +1,6 @@
+//TODO allow @Resource on abstract methods - create field and return 
+//TODO call super if the method is there
+//TODO warn if alarm method does not return string
 package mofokom.slee;
 
 import java.io.*;
@@ -395,6 +398,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         //PROCESSED ELEMENTS 
         processPackage(node, a, e2);
+        switch (name) {
+            case "javax.slee.annotation.EnvEntry":
+                break;
+            default:
+        }
         if (name.equals("javax.slee.annotation.EnvEntry")) {
             //TODO handle final or value
             if (!((VariableElement) e2).getModifiers().contains(Modifier.FINAL)) {
@@ -430,7 +438,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             if (e2.getKind().isField()) {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString()));
             } else {
-                ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get"));
+                String mname = e2.getSimpleName().toString();
+
+                ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), mname.substring(0, 3)));
             }
         }
         if (name.equals("javax.slee.annotation.ProfileCMPField")) {
@@ -446,6 +456,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         if (name.equals("javax.slee.annotation.event.EventFiring") || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
         {
+
+            //addModifiers(e2, node);
+
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifySentenceCase(e2.getSimpleName().toString(), "on", "fire"));
         }
 
@@ -534,6 +547,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ProfileSpec")) {
             base = super.processingEnv.getElementUtils().getTypeElement("javax.slee.profile.Profile");
             hasImplements = hasImplements((TypeElement) e2, "javax.slee.profile.Profile");
+            //TODO don't implement if only has no profile abstract class section 3.3.4
         }
 
         if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ResourceAdaptor")) {
@@ -577,6 +591,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
 
         n1.setAttribute("implements", hasImplements.toString());
+        addModifiers(e2, n1);
         if (base != null) {
             n1.setAttribute("interface", base.toString());
         }
@@ -1126,5 +1141,15 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
              * ajcCompiler.execute();
              *
          */
+    }
+
+    private void addModifiers(Element e2, org.w3c.dom.Element node) {
+        String s = e2.getModifiers().stream().filter(m -> !m.equals(Modifier.ABSTRACT)).map(m -> m.toString()).collect(Collectors.joining(" ")).toString();
+
+        ((org.w3c.dom.Element) node).setAttribute("modifiers", s);
+        Boolean isAbstract = e2.getModifiers().contains(Modifier.ABSTRACT);
+        if (isAbstract) {
+            ((org.w3c.dom.Element) node).setAttribute("abstract", isAbstract.toString());
+        }
     }
 }

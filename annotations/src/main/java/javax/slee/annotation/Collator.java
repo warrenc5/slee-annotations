@@ -93,7 +93,7 @@ a locale language.
     /**
      *
      */
-    enum Strength {
+    public enum Strength {
 
         /**
          *

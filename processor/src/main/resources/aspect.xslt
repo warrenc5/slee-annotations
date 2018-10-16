@@ -25,6 +25,7 @@
         <xsl:text>
         import javax.slee.facilities.ActivityContextNamingFacility;
         import javax.slee.facilities.AlarmFacility;
+        import javax.slee.facilities.AlarmLevel;
         import javax.slee.facilities.TimerFacility;
         import javax.slee.facilities.Tracer;
         import javax.slee.nullactivity.NullActivityContextInterfaceFactory;
@@ -42,8 +43,13 @@
 
             </xsl:text>
             <xsl:if test="boolean(@implements)">
-            <xsl:text> declare parents : </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text> implements </xsl:text><xsl:value-of select="@interface"/><xsl:text>; </xsl:text>
-        </xsl:if>
+                <xsl:choose>
+                    <xsl:when test="annotation/@name='javax.slee.annotation.ProfileSpec' and annotation/element[@name='abstractClass']/@value = 'javax.slee.profile.Profile'" />
+                    <xsl:otherwise>
+                        <xsl:text> declare parents : </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text> implements </xsl:text><xsl:value-of select="@interface"/><xsl:text>; </xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:if>
             <xsl:apply-templates select="//*[@enclosing=$name]" />
             <xsl:text>
         }
@@ -105,7 +111,7 @@
         
     </xsl:template>
 
-    <xsl:template match="element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb']">
+    <xsl:template match="element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb']" priority="1">
         /*
         Sbb 
         */
@@ -113,6 +119,9 @@
         </xsl:text>
         <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;
         </xsl:text>
+        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__alarmFacility;
+        </xsl:text>
+        
 
         <xsl:apply-templates select="." mode="method-intercept-pointcut">
             <xsl:with-param name="arg-type" select="'javax.slee.SbbContext'"/>
@@ -128,10 +137,9 @@
         /*
         ProfileSpec 
         */
-        <xsl:text>javax.slee.profile.ProfileContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__context;
-        </xsl:text>
-        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;
-        </xsl:text>
+        <xsl:text>javax.slee.profile.ProfileContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__context;</xsl:text>
+        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;</xsl:text>
+        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__alarmFacility;</xsl:text>
         <xsl:apply-templates select="." mode="method-intercept-pointcut">
             <xsl:with-param name="method-name" select="'setProfileContext'"/>
             <xsl:with-param name="arg-type" select="'javax.slee.profile.ProfileContext'"/>
@@ -164,11 +172,9 @@
         */
         <xsl:text>javax.slee.resource.ResourceAdaptorContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__context;
         </xsl:text>
-        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;
-        </xsl:text>
-
-        <xsl:text>javax.slee.resource.ConfigProperties </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__configProperties;
-        </xsl:text>
+        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;</xsl:text>
+        <xsl:text>javax.slee.resource.ConfigProperties </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__configProperties;</xsl:text>
+        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__alarmFacility;</xsl:text>
 
         <xsl:apply-templates select="." mode="method-intercept-pointcut">
             <xsl:with-param name="method-name" select="'setResourceAdaptorContext'"/>
@@ -418,12 +424,44 @@
         <xsl:text>
             }
         </xsl:text>
+    </xsl:template>
+
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.annotation.Resource' and (@type='javax.slee.SbbContext' or @type='javax.slee.resource.ResourceAdaptorContext' or @type='javax.slee.profile.ProfileContext')]" mode="method-intercept-inject" priority="1">
+        <xsl:param name="fieldName"/>
+        <xsl:value-of select="$fieldName"/>
+        <xsl:text>
+            return object.__context;
+        </xsl:text>
         
     </xsl:template>
 
+
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.slee.annotation.event.EventHandler' and @abstract='true']" priority="1">
+        //event handler call super
+  <xsl:value-of select="@modifiers"/><xsl:text> </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>() {
+      super. //TODO
+      }
+        </xsl:text>
+    </xsl:template>
+    
+    <!-- INITIATORS -->
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.SbbContext']" priority="1">
         //set sbb context
         <xsl:apply-templates select="." mode="get-field-pointcut"/>
+    </xsl:template>
+    
+    <!--TODO  isAbstract -->
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.SbbContext']" priority="1">
+        //set sbb context
+
+        <xsl:text>
+            public </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>(){return null;}
+        </xsl:text>
+
+        <xsl:apply-templates select="." mode="method-intercept-pointcut-0">
+            <xsl:with-param name="method-name" select="../@name"/>
+            <xsl:with-param name="return-type" select="../@type"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="element/annotation[@name='javax.annotation.Resource' and @type='javax.slee.resource.ResourceAdaptorContext']" priority="1">
@@ -441,22 +479,63 @@
     </xsl:template>
     <!--TRACER-->
 
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" mode="method-intercept-inject" priority="1">
+        <xsl:param name="fieldName"/>
+        <xsl:value-of select="$fieldName"/>
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("getting tracer " + object.toString() + " "+ object.__context);</xsl:text>
+        <xsl:text> //TODO cache this tracer?
+            return object.__context.getTracer("</xsl:text>
+        <xsl:choose>
+            <xsl:when test="string-length(element/@value)=0">
+        <xsl:value-of select="../@name"/>
+            </xsl:when>
+            <xsl:otherwise>
+        <xsl:value-of select="element/@value"/>
+            </xsl:otherwise>
+            </xsl:choose>
+        <xsl:text>");
+        </xsl:text>
+    </xsl:template>
+
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" mode="get-field-inject" priority="1">
         <xsl:text>if(object.</xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> == null) {
-        if(Boolean.getBoolean("debug")) System.err.println("constructing tracer");
+        </xsl:text>
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("constructing tracer </xsl:text><xsl:value-of select="../@name"/><xsl:text> </xsl:text><xsl:value-of select="element/@value"/><xsl:text>");
+
         </xsl:text> 
         <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
         <xsl:text>=object.__context.getTracer("</xsl:text>
-        <xsl:value-of select="element/@name"/>");
-        <xsl:text>
+        <xsl:choose>
+            <xsl:when test="string-length(element/@value)=0">
+        <xsl:value-of select="../@name"/>
+            </xsl:when>
+            <xsl:otherwise>
+        <xsl:value-of select="element/@value"/>
+            </xsl:otherwise>
+            </xsl:choose>
+        <xsl:text>");
             }
         </xsl:text>
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("gotted tracer " + (object.</xsl:text><xsl:value-of select="../@name"/><xsl:text> == null)); </xsl:text>
     </xsl:template>
+
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" priority="1">
         //is tracer from ra or sbb or profile context
         <xsl:apply-templates select="." mode="get-field-pointcut"/>
+    </xsl:template>
+
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" priority="1">
+        //is tracer from ra or sbb or profile context
+        <xsl:text>
+            public </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>(){return null;}
+        </xsl:text>
+
+        <xsl:apply-templates select="." mode="method-intercept-pointcut-0">
+            <xsl:with-param name="method-name" select="../@name"/>
+            <xsl:with-param name="return-type" select="../@type"/>
+        </xsl:apply-templates>
     </xsl:template>
 
 <!--CALCULATED -->
@@ -697,15 +776,106 @@
 
     <!--Alarms & Custom-->
 
+    <!--TODO optimize lookup -->
     <xsl:template match="element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Rollback']">
         context.setRollbackOnly();
     </xsl:template>
 
     <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.slee.annotation.RaiseAlarm']">
+
+        <xsl:if test="../@abstract='true'" >
+            <xsl:text>
+                //unabstracted method
+
+            </xsl:text>
+            <xsl:value-of select="../@modifiers"/>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="../@type"/>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
+            <xsl:text>() {
+            </xsl:text>
+            <xsl:if test="not(../@type='void')">
+                <xsl:text>
+                    return null;
+                </xsl:text>
+            </xsl:if>
+            <xsl:text>
+                }
+            </xsl:text>
+        </xsl:if>
+        <xsl:apply-templates select="." mode="method-intercept-pointcut-0">
+            <xsl:with-param name="method-name" select="../@name"/>
+            <xsl:with-param name="return-type" select="../@type"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.slee.annotation.RaiseAlarm']" mode="method-intercept-inject">
+        <xsl:text>
+            if(object.__alarmFacility == null)  {
+            try {
+            object.__alarmFacility = (AlarmFacility)((javax.naming.Context)new javax.naming.InitialContext().lookup("java:comp/env")).lookup(AlarmFacility.JNDI_NAME);
+            } catch (NamingException ex) {
+            throw new RuntimeException(ex);
+            }
+            }
+            String alarmID = object.__alarmFacility.raiseAlarm("</xsl:text>
+        <xsl:value-of select="./element[@name='alarmType']/@value"/>
+        <xsl:text>", "</xsl:text>
+        <xsl:value-of select="./element[@name='instanceId']/@value"/>
+        <xsl:text>", AlarmLevel.fromInt(</xsl:text>
+        <xsl:value-of select="./element[@name='alarmLevel']/@value"/>
+        <xsl:text>), "</xsl:text>
+        <xsl:value-of select="./element[@name='alarmMessage']/@value"/>"<xsl:text>);
+            object.__context.getTracer(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>
+        <xsl:text>.class.getName()).warning(alarmID);
+        </xsl:text>
+        <xsl:if test="not(../@type='void')">
+            <xsl:text>
+                return alarmID;
+            </xsl:text>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.slee.annotation.ClearAlarm']">
+
+        <xsl:if test="../@abstract='true'" >
+            <xsl:value-of select="../@modifiers"/>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="../@type"/>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
+            <xsl:text>() {
+            </xsl:text>
+            <xsl:if test="not(../@type='void')">
+                <xsl:text>
+                    return null;
+                </xsl:text>
+            </xsl:if>
+            <xsl:text>
+                }
+            </xsl:text>
+        </xsl:if>
+        <xsl:apply-templates select="." mode="method-intercept-pointcut-0">
+            <xsl:with-param name="method-name" select="../@name"/>
+            <xsl:with-param name="return-type" select="../@type"/>
+        </xsl:apply-templates>
     </xsl:template>
+
+    <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.slee.annotation.ClearAlarm']" mode="method-intercept-inject">
+        <xsl:text>
+            if(object.__alarmFacility == null)  {
+            try {
+            object.__alarmFacility = (AlarmFacility)((javax.naming.Context)new javax.naming.InitialContext().lookup("java:comp/env")).lookup(AlarmFacility.JNDI_NAME);
+            } catch (NamingException ex) {
+            throw new RuntimeException(ex);
+            }
+            }
+            //TODO: lookup alarmId in aci naming
+            object.__alarmFacility.clearAlarm("alarm");</xsl:text>
+    </xsl:template>
+
 
     <!--METHODS -->
     <xsl:template match="methods" >
@@ -719,6 +889,48 @@
     </xsl:template>
 
     <!--POINTCUTS -->
+
+    <xsl:template match="annotation" mode="method-intercept-pointcut-0">
+        <xsl:param name="method-name"/>
+        <xsl:param name="return-type"/>
+
+        <xsl:text>
+            pointcut method_</xsl:text>
+        <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
+        <xsl:value-of select="$method-name"/>
+        <xsl:text>(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>
+        <xsl:text> object) :target(object) &amp;&amp; execution(</xsl:text>
+        <xsl:value-of select="$return-type"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@enclosing"/>
+        <xsl:text>+.</xsl:text>
+        <xsl:value-of select="$method-name"/>
+        <xsl:text>());</xsl:text>
+        <xsl:text>
+            //TODO !within
+        </xsl:text>
+        <xsl:value-of select="$return-type"/>
+        <xsl:text> around(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>
+        <xsl:text> object) : method_</xsl:text>
+        <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
+        <xsl:value-of select="$method-name"/>
+        <xsl:text>(object) { 
+        </xsl:text>
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("advice ###### around-0 </xsl:text> 
+        <xsl:value-of select="$method-name"/> 
+        <xsl:text>");</xsl:text>
+
+        <xsl:apply-templates select="." mode="method-intercept-inject">
+            <xsl:with-param name="method-name" select="$method-name"/>
+        </xsl:apply-templates>
+
+        <xsl:text>
+            //proceed(object);
+            }
+        </xsl:text>
+    </xsl:template>
 
     <xsl:template match="annotation" mode="method-intercept-pointcut">
         <xsl:param name="arg-type"/>
@@ -740,6 +952,8 @@
         <xsl:value-of select="$arg-type"/>
         <xsl:text>+)) &amp;&amp; args(arg1);</xsl:text>
 
+        //TODO !within
+
         <xsl:text>
             void around( 
         </xsl:text>
@@ -750,7 +964,11 @@
         <xsl:value-of select="generate-id(key('unique-method',../@enclosing))"/>
         <xsl:value-of select="$method-name"/>
         <xsl:text>(object,arg1) { </xsl:text>
-        if(Boolean.getBoolean("debug")) System.err.println("advice ###### around ");
+
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("advice ###### around " + object.toString() + "</xsl:text> 
+        <xsl:value-of select="$method-name"/> 
+        <xsl:text>");</xsl:text>
+
         <xsl:apply-templates select="." mode="method-intercept-inject">
             <xsl:with-param name="method-name" select="$method-name"/>
             <xsl:with-param name="arg-type" select="$arg-type"/>
@@ -801,7 +1019,9 @@
         <xsl:value-of select="generate-id(key('unique-field',concat(../@name,../@enclosing)))"/>
         <xsl:text>Field(object,arg1) {</xsl:text>
         <xsl:text>
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### setter " + arg1);
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### setter </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text> " + arg1);
         </xsl:text>
         <xsl:apply-templates select="." mode="set-field-inject" />
         <xsl:text>}
@@ -834,9 +1054,15 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>Field(object) {</xsl:text>
         <xsl:text>
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### getter ");
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### getter </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text> ");
         </xsl:text>
-        <xsl:apply-templates select="." mode="get-field-inject" />
+        <xsl:apply-templates select="." mode="get-field-inject" >
+            <xsl:with-param name="fieldName">
+                <xsl:value-of select="generate-id(key('unique-field',concat(../@name,../@enclosing)))"/>
+            </xsl:with-param>
+        </xsl:apply-templates>
         <xsl:text>
             }
         </xsl:text>
@@ -856,9 +1082,10 @@
         <xsl:value-of select="../@enclosing"/>
         <xsl:text>.</xsl:text>
         <xsl:value-of select="../@name"/>
-        <xsl:text>);
+        <xsl:text>) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>$SleeAnnotationsAspect<xsl:text>) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="../@enclosing"/>$DebugAspect<xsl:text>);
         </xsl:text>
-
         <xsl:text>
             before( </xsl:text>
         <xsl:value-of select="../@enclosing"/>
@@ -867,7 +1094,9 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>FieldJNDI(object) {</xsl:text>
         <xsl:text>
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi getter wrapper");
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi getter wrapper </xsl:text>
+        <xsl:value-of select="../@name"/> " + <xsl:value-of select="$jndi-name"/>
+        <xsl:text>);
         </xsl:text>
         <xsl:text>if(object.</xsl:text>
         <xsl:value-of select="../@name"/>
@@ -892,19 +1121,34 @@
         <xsl:param name="jndi-name"/>
 
         <xsl:text>
-            </xsl:text>
-        private <xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/><xsl:text>.</xsl:text><xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/><xsl:text>;
+        </xsl:text>
+        private <xsl:value-of select="../@type"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@enclosing"/>
+        <xsl:text>.</xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+        <xsl:text>;
         </xsl:text>
 
-        <xsl:value-of select="@modifiers"/><xsl:text> </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>() {
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi method wrapper");
+        <xsl:value-of select="@modifiers"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@type"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
+        <xsl:text>() {
+            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi method wrapper </xsl:text>
+        <xsl:value-of select="@name"/> " + <xsl:value-of select="$jndi-name"/>
+        <xsl:text>);
         </xsl:text>
         <xsl:text>if(this.</xsl:text>
-        <xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+        <xsl:value-of select="../@name"/>
+        <xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
         <xsl:text> == null) {
             try{
             this.</xsl:text>
-        <xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+        <xsl:value-of select="../@name"/>
+        <xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
         <xsl:text>=(</xsl:text>
         <xsl:value-of select="../@type"/>
         <xsl:text>)((javax.naming.Context)new javax.naming.InitialContext().lookup("java:comp/env")).lookup(</xsl:text>
@@ -915,8 +1159,9 @@
             }
             }
             return </xsl:text>
-            <xsl:value-of select="../@name"/><xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
-            <xsl:text>;
+        <xsl:value-of select="../@name"/>
+        <xsl:value-of select="generate-id(key('unique-method-private',concat(../@name,../@enclosing)))"/>
+        <xsl:text>;
             }</xsl:text>
     </xsl:template>
 

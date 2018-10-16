@@ -21,13 +21,12 @@
  */
 package org.mobicents.slee.annotations.examples.sbb;
 
-import javax.annotation.Resource;
-import javax.slee.SbbContext;
+import javax.slee.annotation.ClearAlarm;
 import javax.slee.annotation.RaiseAlarm;
 import javax.slee.annotation.Rollback;
-import javax.slee.facilities.Tracer;
 import javax.slee.annotation.Sbb;
 import javax.slee.annotation.Service;
+import javax.slee.facilities.AlarmFacility;
 import javax.slee.facilities.AlarmLevel;
 
 /**
@@ -49,20 +48,25 @@ import javax.slee.facilities.AlarmLevel;
  * @author Eduardo Martins
  *
  */
-@Sbb(name = "SimpleExampleAnnotatedSbb", vendor = "ISV1", version = "1.0", alias = "SimpleSbb", localInterface = SimpleExampleSbbLocalObject.class)
+@Sbb(name = "AbstractAlarmSbb", vendor = "ISV1", version = "1.0", alias = "SimpleSbb")
+public abstract class AbstractAlarmSbb {
 
-public abstract class NoInterfaceSbb {
+    @RaiseAlarm(alarmType = "AlarmType1", instanceId = "1", alarmLevel = AlarmLevel.LEVEL_WARNING, alarmMessage = "Another thing Went Wrong", catchException = true)
+    @Rollback
+    public abstract String someThingDifferentWentWrong() ;
 
-    @Resource(name = "MyTracer")
-    public Tracer tracer;
+    @ClearAlarm(alarmType = "AlarmType", instanceId = "1", alarmLevel = AlarmLevel.LEVEL_CRITICAL)
+    public abstract void clearAlarmFailedLoadingConfiguration();
 
-    @Resource
-    public SbbContext sbbContextField;
-
-    @Resource
-    public abstract SbbContext sbbContextMethod();
-
-    @Resource(name="Bullshit")
-    public abstract Tracer someTracer();
+    AlarmFacility facility;
+    /**
+     * public void test () { try { AlarmFacility facility =
+     * (AlarmFacility)((javax.naming.Context)new
+     * javax.naming.InitialContext().lookup("java:comp/env")).lookup(AlarmFacility.JNDI_NAME);
+     * facility.raiseAlarm(alarmType, instanceID, AlarmLevel.CLEAR, message); }
+     * catch (NamingException ex) {
+     * Logger.getLogger(DataControllerAnnotatedSbb.class.getName()).log(Level.SEVERE,
+     * null, ex); } }*
+     */
 
 }

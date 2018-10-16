@@ -1,12 +1,16 @@
 
 import javax.slee.SbbContext;
+import javax.slee.facilities.Tracer;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.mobicents.slee.annotations.examples.profile.SimpleExampleProfileCMPInterface;
 import org.mobicents.slee.annotations.examples.sbb.NoInterfaceSbb;
-import static org.mockito.Matchers.any;
-import org.mockito.Mockito;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class InterfaceTest {
 
@@ -17,23 +21,43 @@ public class InterfaceTest {
     }
 
     @Test
-    public void testSbbSubclassCall() {
-        MySubClass mock = mock(MySubClass.class);
-
-        Mockito.doCallRealMethod().when(mock).setSbbContext(any(SbbContext.class));
-        Mockito.doCallRealMethod().when(mock).check();
-
-        mock.setSbbContext(mock(SbbContext.class));
-        assertNotNull(mock.check());
+    public void testProfileCMPNOImplementsInterface() {
+        assertFalse(javax.slee.profile.Profile.class.isAssignableFrom(SimpleExampleProfileCMPInterface.class));
     }
 
-    public class MySubClass extends NoInterfaceSbb {
+    @Test
+    public void testSbbSubclassCall() {
+        System.setProperty("debug", "true");
+        MySubClass mock = spy(MySubClass.class);
+        SbbContext context;
+
+        mock.setSbbContext(context = mock(SbbContext.class));
+        doReturn(mock(Tracer.class)).when(context).getTracer(anyString());
+        //Tracer k = mock.tracer;
+        mock.sbbContextMethod();
+        Tracer k2 = mock.someTracer();
+        //assertNotNull(mock.tracer);
+        assertNotNull(mock.sbbContextField);
+        assertNotNull(mock.sbbContextMethod());
+        assertNotNull(mock.someTracer());
+    }
+
+    static class MySubClass extends NoInterfaceSbb {
+
+        public MySubClass() {
+        }
 
         public void setSbbContext(SbbContext context) {
         }
 
-        public SbbContext check() {
-            return this.sbbContext;
+        @Override
+        public SbbContext sbbContextMethod() {
+            return this.sbbContextField;
+        }
+
+        @Override
+        public Tracer someTracer() {
+            return null;
         }
     }
 
