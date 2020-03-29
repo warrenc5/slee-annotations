@@ -59,7 +59,7 @@ public class AspectFileSplitter {
         doReturn(sw).when(resource).openWriter();
 
         doCallRealMethod().when(proc).doSplitAspects(any(Reader.class));
-        proc.logger = Logger.getLogger(this.getClass().getName());
+        proc.log = Logger.getLogger(this.getClass().getName());
 
         proc.doSplitAspects(reader);
 

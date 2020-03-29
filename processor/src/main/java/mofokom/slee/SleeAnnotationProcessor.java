@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -106,7 +107,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private org.w3c.dom.Element rootNode;
     private RoundEnvironment roundEnv;
     private DocumentBuilder db;
-    public static Logger logger = Logger.getLogger(SleeAnnotationProcessor.class.getName());
+    public static Logger log = Logger.getLogger(SleeAnnotationProcessor.class.getName());
     private Document doc;
     private Map<String, Set<String>> processedAnnotation = new HashMap<String, Set<String>>();
     private Set<String> processedElement = new HashSet<String>();
@@ -150,7 +151,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             }
 
             private void log(SAXParseException exception) {
-                logger.warning(exception.getPublicId() + " " + exception.getSystemId() + " @" + exception.getLineNumber() + ":" + exception.getColumnNumber() + " " + exception.getMessage());
+                log.warning(exception.getPublicId() + " " + exception.getSystemId() + " @" + exception.getLineNumber() + ":" + exception.getColumnNumber() + " " + exception.getMessage());
             }
         });
 
@@ -192,7 +193,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             }
 
             public Source resolve(String href, String base) throws TransformerException {
-                logger.info("resolve " + href);
+                log.info("resolve " + href);
                 if (href.startsWith("resource:")) {
                     return new StreamSource(resolveResource(href.substring(9)).getByteStream());
                 }
@@ -204,7 +205,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
                 URL resource = Thread.currentThread().getContextClassLoader().getResource(location);
                 if (resource == null) {
-                    logger.warning(location + " not found");
+                    log.warning(location + " not found");
                 }
                 System.out.println("located " + resource.toExternalForm());
 
@@ -212,7 +213,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 try {
                     r = resource.openStream();
                 } catch (IOException ex) {
-                    logger.log(Level.WARNING, location + " " + ex.getMessage(), ex);
+                    log.log(Level.WARNING, location + " " + ex.getMessage(), ex);
                 }
                 InputSource inputSource = new InputSource(r);
                 inputSource.setPublicId(location);
@@ -239,6 +240,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         options = this.processingEnv.getOptions();
+        log.info(roundEnv.getRootElements().stream().map(r -> r.getSimpleName()).collect(toList()).toString());
         try {
             return innerProcess(annotations, roundEnv);
         } catch (Throwable t) {
@@ -300,6 +302,16 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
+    private org.w3c.dom.Element createNode(Element e2, TypeElement type) {
+        
+        final org.w3c.dom.Element node = doc.createElement("classtype");
+
+        node.setAttribute("name", type.getQualifiedName().toString());
+        node.setAttribute("interface", ((Boolean) type.getKind().isInterface()).toString());
+        node.setAttribute("enclosing", e2.toString());
+        return node;
+    }
+
     private Node createNode(Element e2, Method m) {
         final org.w3c.dom.Element node = doc.createElement("method");
 
@@ -341,7 +353,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
     private List<String> eventTypeLibraryRefs = new ArrayList<String>();
 
-    private Node createNode(Element e2, AnnotationMirror a) {
+    private Node createNode(Element e2, AnnotationMirror a) throws ClassNotFoundException, NoSuchMethodException {
         org.w3c.dom.Element node = doc.createElement("annotation");
         String name = a.getAnnotationType().asElement().asType().toString();
         node.setAttribute("name", name.trim());
@@ -363,7 +375,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 for (Object m : (List) o) {
                     if (m instanceof AnnotationMirror) {
                         if (name.equals(javax.slee.annotation.event.EventType.class.getName())) {
-                            SleeAnnotationProcessor.this.logger.fine(m.toString());
+                            SleeAnnotationProcessor.this.log.fine(m.toString());
                             if (eventTypeLibraryRefs.contains(m.toString()))
                                 ; else {
                                 eventTypeLibraryRefs.add(m.toString());
@@ -408,7 +420,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         if (name.equals(javax.slee.annotation.EnvEntry.class.getName())) {
             //TODO handle final or value
             if (!((VariableElement) e2).getModifiers().contains(Modifier.FINAL)) {
-                logger.warning("env entry " + e2.getSimpleName() + " not final");
+                log.warning("env entry " + e2.getSimpleName() + " not final");
             }
 
             Object constantValue = ((VariableElement) e2).getConstantValue();
@@ -465,8 +477,17 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         if (name.equals(javax.slee.annotation.ProfileSpec.class.getName())) {
             List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
-            //TODO check interfaces for Profile
             ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
+
+            Node n = testForMissingMethods((org.w3c.dom.Element) node, e2, a);
+
+            Optional<String> cmpInterface = this.getElementValue(a, "cmpInterface");
+            if (cmpInterface.isPresent()) {
+                if (!hasImplements((TypeElement) e2, this.getTypeElement(cmpInterface.get()).getQualifiedName().toString())) {
+                    Node i = this.addMissingInterfaces(node, e2, this.getTypeElement(cmpInterface.get()));
+                    ((org.w3c.dom.Element) node).appendChild(i);
+                }
+            }
         }
 
         if (name.equals(javax.slee.annotation.StaticQuery.class.getName())) {
@@ -474,7 +495,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
             String queryName = e2.getSimpleName().toString();
             List<String> attributeNames = getAllAttributeNames(e2.getEnclosingElement());
-            logger.fine(attributeNames.toString());
+            log.fine(attributeNames.toString());
             //new ArrayList<String>();
             List<String> parameterNames = new ArrayList<String>();
             org.w3c.dom.Element n = null;
@@ -517,9 +538,21 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     @SuppressWarnings("All")
+    private Node addMissingInterfaces(final org.w3c.dom.Element n1, final Element e2, TypeElement... a) throws ClassNotFoundException, NoSuchMethodException {
+        final org.w3c.dom.Element node = doc.createElement("classtypes");
+        node.setAttribute("enclosing", e2.toString());
+        if (a != null) {
+            for (TypeElement aa : a) {
+                node.appendChild(this.createNode(e2, aa));
+            }
+        }
+        return node;
+    }
+
+    @SuppressWarnings("All")
     private Node testForMissingMethods(final org.w3c.dom.Element n1, final Element e2, AnnotationMirror a) throws ClassNotFoundException, NoSuchMethodException {
         final org.w3c.dom.Element node = doc.createElement("methods");
-        node.setAttribute("enlcosing", e2.toString());
+        node.setAttribute("enclosing", e2.toString());
         Boolean hasImplements = false;
 
         /*
@@ -601,7 +634,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private boolean hasImplements(TypeElement e2, String name) throws ClassNotFoundException, NoSuchMethodException {
-        logger.fine("hasImplements " + e2.toString() + " " + name + " " + e2.getInterfaces());
+        log.fine("hasImplements " + e2.toString() + " " + name + " " + e2.getInterfaces());
         for (TypeMirror i : e2.getInterfaces()) {
             if (i.toString().equals(name)) {
                 return true;
@@ -621,7 +654,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         FileObject resource;
         Filer filer = super.processingEnv.getFiler();
         resource = filer.createResource(StandardLocation.SOURCE_OUTPUT, filePath, fileName, null);
-        logger.info("creating resource " + resource.toUri().toString());
+        log.info("creating resource " + resource.toUri().toString());
 
         OutputStream out = null;
         PipedInputStream pis = null;
@@ -641,7 +674,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         if (transformFile != null && !transformFile.startsWith("annotations") && !transformFile.startsWith("aspect")) {
             DOMSource source = null;
 
-            logger.log(Level.INFO, "validating {0}", resource.toUri().toString());
+            log.log(Level.INFO, "validating {0}", resource.toUri().toString());
             source = new DOMSource(db.parse(resource.toUri().toString()));
 
             out = new FileOutputStream(new File(resource.toUri().getPath()));
@@ -678,7 +711,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 }
 
                 FileObject outResource = getFiler().createResource(StandardLocation.SOURCE_OUTPUT, matcher.group(1), matcher.group(2), null);
-                logger.info("writing " + matcher.group(1) + " " + matcher.group(2));
+                log.info("writing " + matcher.group(1) + " " + matcher.group(2));
                 aspects.add(outResource.toUri());
                 writer = new BufferedWriter(outResource.openWriter());
             } else if (writer != null) {
@@ -686,7 +719,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 writer.newLine();
             }
         }
-        logger.log(Level.INFO, "creating " + aspects.toString());
+        log.log(Level.INFO, "creating " + aspects.toString());
         if (writer != null) {
             writer.flush();
             writer.close();
@@ -705,15 +738,15 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
         tf.setErrorListener(new ErrorListener() {
             public void warning(TransformerException exception) throws TransformerException {
-                logger.log(Level.WARNING, message(exception));
+                log.log(Level.WARNING, message(exception));
             }
 
             public void error(TransformerException exception) throws TransformerException {
-                logger.log(Level.SEVERE, message(exception));
+                log.log(Level.SEVERE, message(exception));
             }
 
             public void fatalError(TransformerException exception) throws TransformerException {
-                logger.log(Level.SEVERE, message(exception));
+                log.log(Level.SEVERE, message(exception));
             }
 
             private String message(TransformerException exception) {
@@ -724,19 +757,19 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         try {
             binary = null != Class.forName("mofokom.transform.annotations");
         } catch (ClassNotFoundException x) {
-            logger.warning(x.getMessage() + " non-binary transforms only");
+            log.warning(x.getMessage() + " non-binary transforms only");
         }
         if (binary) {
             try {
                 tf.setAttribute("use-classpath", Boolean.TRUE);
             } catch (IllegalArgumentException x) {
                 binary = false;
-                logger.warning(x.getMessage());
+                log.warning(x.getMessage());
             }
         }
 
         tf.setURIResolver(cr);
-        logger.info("Initialized " + transformerFactoryClass);
+        log.info("Initialized " + transformerFactoryClass);
     }
 
     private Transformer doTransform(Source source, String transformFile, Result result, String publicId, String systemId) {
@@ -773,7 +806,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             transform.transform(source, result);
 
         } catch (Exception ex) {
-            logger.log(Level.WARNING, ex.getMessage(), ex);
+            log.log(Level.WARNING, ex.getMessage(), ex);
         }
         return transform;
     }
@@ -804,7 +837,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private String deBeanifyCamelCase(String v, String... prefix) {
-        logger.fine(v);
+        log.fine(v);
         for (String p : prefix) {
             if (v.startsWith(p)) {
                 v = v.substring(p.length());
@@ -815,7 +848,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private String deBeanifySentenceCase(String v, String... prefix) {
-        logger.fine(v);
+        log.fine(v);
         for (String p : prefix) {
             if (v.startsWith(p)) {
                 v = v.substring(p.length());
@@ -864,7 +897,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
         while (st.hasMoreElements()) {
             String t = st.nextToken();
-            logger.fine(t);
+            log.fine(t);
 
             if (t.equals("#")) {
                 collator = true;
@@ -1010,7 +1043,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
                         @Override
                         public Boolean visitExecutableAsMethod(ExecutableElement e, Object p) {
-                        if (e.getReturnType().toString().equals(javax.slee.ActivityContextInterface.class.getName())) {
+                            if (e.getReturnType().toString().equals(javax.slee.ActivityContextInterface.class.getName())) {
                                 org.w3c.dom.Element n;
                                 n = doc.createElement("activitycontextinterface");
                                 n.setAttribute("activity", e.getParameters().get(0).asType().toString());
@@ -1167,4 +1200,17 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     public Filer getFiler() {
         return super.processingEnv.getFiler();
     }
+
+    private Optional<? extends Element> getElement(String name, Element e) {
+        return e.getEnclosedElements().stream().filter(e2 -> name.equals(e2.getSimpleName())).findFirst();
+    }
+
+    private TypeElement getTypeElement(String name) {
+        return super.processingEnv.getElementUtils().getTypeElement(name);
+    }
+
+    private Optional<String> getElementValue(AnnotationMirror a, String name) {
+        return a.getElementValues().entrySet().stream().filter(e -> name.equals(e.getKey().getSimpleName().toString())).map(e -> e.getValue().getValue().toString()).findFirst();
+    }
+
 }

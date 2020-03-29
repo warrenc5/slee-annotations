@@ -17,7 +17,8 @@
 
     <xsl:template match="element[@name and annotation[@package]]" mode="aspect">
         <xsl:variable name="name" select="@name" />
-        <xsl:text>file:</xsl:text><xsl:value-of select="annotation/@package"/>/<xsl:value-of select="annotation/@simple-name"/>
+        <xsl:text>file:</xsl:text>
+        <xsl:value-of select="annotation/@package"/>/<xsl:value-of select="annotation/@simple-name"/>
         <xsl:text>$SleeAnnotationsAspect.aj
         </xsl:text> 
         <xsl:text>
@@ -47,22 +48,24 @@
         <xsl:text>$SleeAnnotationsAspect issingleton() {
 
         </xsl:text>
+        <xsl:apply-templates select="//classtypes[@enclosing = $name]"  mode="out"/>
         <xsl:if test="boolean(@implements)">
             <xsl:choose>
                 <xsl:when test="annotation/@name='javax.slee.annotation.ProfileSpec' and annotation/element[@name='abstractClass']/@value = 'javax.slee.profile.Profile'" >
                 </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:text> declare parents : </xsl:text>
-                            <xsl:value-of select="annotation/@simple-name"/>
-                            <xsl:text> implements </xsl:text>
-                            <xsl:value-of select="@interface"/>
-                            <xsl:text>; </xsl:text>
+                <xsl:otherwise>
+                    <xsl:text> declare parents : </xsl:text>
+                    <xsl:value-of select="annotation/@simple-name"/>
+                    <xsl:text> implements </xsl:text>
+                    <xsl:value-of select="@interface"/>
+                    <xsl:text>; </xsl:text>
 
                        
-                        </xsl:otherwise>
+                </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
-        <xsl:apply-templates select="//*[@enclosing=$name]" />
+
+        <xsl:apply-templates select="//*[@enclosing = $name]"/>
         <xsl:text>
             }
         </xsl:text>
@@ -155,7 +158,7 @@
         </xsl:apply-templates>
 
         <xsl:variable name="enclosing" select="../@enclosing" />
-        <xsl:apply-templates select="//methods[@enclosing = $enclosing]" />
+        <xsl:apply-templates select="//methods[@enclosing = $enclosing]" mode="out"/>
 
     </xsl:template>
 
@@ -178,9 +181,7 @@
         </xsl:apply-templates>
 
         <xsl:variable name="enclosing" select="../@enclosing" />
-        
-
-
+        <xsl:apply-templates select="//methods[@enclosing = $enclosing]" mode="out"/>
     </xsl:template>
 
     <xsl:template match="element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptor']" mode="method-intercept-inject" priority="1">
@@ -957,13 +958,25 @@
             object.__alarmFacility.clearAlarm("alarm");</xsl:text>
     </xsl:template>
 
-
-    <!--METHODS -->
-    <xsl:template match="methods" >
-        <xsl:apply-templates select="node()" />
+    <xsl:template match="classtypes" mode="out" >
+        <xsl:apply-templates select="node()" mode="out" />
     </xsl:template>
 
-    <xsl:template match="method" >
+    <xsl:template match="classtype" mode="out" >
+        <xsl:text> declare parents : </xsl:text>
+        <xsl:value-of select="@enclosing"/>
+        <xsl:text> implements </xsl:text>
+        <xsl:value-of select="@name"/>
+        <xsl:text>; </xsl:text>
+    </xsl:template>
+
+    <!--METHODS -->
+
+    <xsl:template match="methods" mode="out">
+        <xsl:apply-templates select="node()"  mode="out"/>
+    </xsl:template>
+
+    <xsl:template match="method" mode="out">
         <xsl:value-of select="@name"/>
         <xsl:text> 
         </xsl:text>

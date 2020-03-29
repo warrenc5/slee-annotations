@@ -229,10 +229,29 @@
                                     <classifier>sources</classifier>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.build.directory}/generated-test-sources/test-annotations</outputDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-test-sources/unpack</outputDirectory>
                                     <includes>**/*.java</includes>
                                 </artifactItem>
                             </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>add-test-source</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-test-sources/unpack</source>
+                            </sources>
                         </configuration>
                     </execution>
                 </executions>
@@ -270,10 +289,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <skip></skip>
-                    <!--
-<skip>${skipTests}</skip>
-                    -->
+                    <skip>${skipTests}</skip>
                     <forceAjcCompile>true</forceAjcCompile>
                     <source>1.8</source>
                     <target>1.8</target>
