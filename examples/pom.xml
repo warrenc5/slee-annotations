@@ -7,32 +7,37 @@
     <version>1.0.0-SNAPSHOT</version>
 	
     <name>JAIN SLEE 1.1 Annotation Examples</name>
-	
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <dependencies>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>1.8.13</version>
-        </dependency>
         <dependency>
             <groupId>javax.slee</groupId>
             <artifactId>jainslee-api</artifactId>
             <version>1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.resource</groupId>
+                    <artifactId>connector</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.transaction</groupId>
+                    <artifactId>jta</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>mofokom.slee</groupId>
+            <groupId>mobi.mofokom.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>mofokom</groupId>
-            <artifactId>slee-annotation-processor</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -44,6 +49,12 @@
             <groupId>javax.ejb</groupId>
             <artifactId>ejb-api</artifactId>
             <version>3.0</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>jsr250-api</artifactId>
+            <version>1.0</version>
             <type>jar</type>
         </dependency>
     </dependencies>
@@ -78,189 +89,213 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <executions>
-                    <execution>
-                        <id>generate</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>compile</goal> 
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <staleMillis>0</staleMillis>
-                    <verbose>true</verbose>
-                    <annotationProcessors>
-                        <annotationProcessor>mofokom.slee.SLEEAnnotationProcessor</annotationProcessor>
-                    </annotationProcessors>
-                </configuration>
-            </plugin>      
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.8</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <skip>${skipTests}</skip>
-                    <forceAjcCompile>true</forceAjcCompile>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <complianceLevel>1.8</complianceLevel>
-                    <showWeaveInfo>false</showWeaveInfo>
-                    <verbose>false</verbose>
-                    <proc>none</proc>
-                    <XnoInline>true</XnoInline>
-                    <Xreweavable>true</Xreweavable>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>ra-type</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>ra-type</classifier>
-                            <attach>true</attach>
-                            <includes>
-                                <include>**/resource/ExampleActivity.class</include>
-                                <include>**/resource/ExampleActivityContextInterfaceFactory.class</include>
-                                <include>**/resource/ExampleResourceAdaptorSbbInterface.class</include>
-                                <include>META-INF/resource-adaptor-type-jar.xml</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>ra</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>ra</classifier>
-                            <attach>true</attach>
-                            <includes>
-                                <include>mofokom/slee/aspect/**</include>
-                                <include>**/resource/*.class</include>
-                                <include>**/examples/*.class</include>
-                                <include>META-INF/resource-adaptor-jar.xml</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>profile</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>profile</classifier>
-                            <attach>true</attach>
-                            <includes>
-                                <include>mofokom/slee/aspect/**</include>
-                                <include>**/examples/*.class</include>
-                                <include>**/profile/*.class</include>
-                                <include>META-INF/profile-spec-jar.xml</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>library</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>library</classifier>
-                            <attach>true</attach>
-                            <includes>
-                                <include>META-INF/library-jar.xml</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>event</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>event</classifier>
-                            <attach>true</attach>
-                            <includes>
-                                <include>**/event/*.class</include>
-                                <include>META-INF/event-jar.xml</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>sbb</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>sbb</classifier>
-                            <includes>
-                                <include>mofokom/slee/aspect/**</include>
-                                <include>**/oc-sbb-jar.xml</include>
-                                <include>**/sbb-jar.xml</include>
-                                <include>**/examples/*.class</include>
-                                <include>**/sbb/*.class</include>
-                                <include>**/ejb/*.class</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>dist-assemble</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <attach>true</attach>
-                    <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
-                    <descriptors>
-                        <descriptor>${project.build.directory}/../src/main/assemble/assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
-        </plugins>		
+        </plugins>
     </build>
     <profiles>
+        <profile>
+            <id>test</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>mobi.mofokom</groupId>
+                    <artifactId>slee-annotation-processor</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.aspectj</groupId>
+                    <artifactId>aspectjrt</artifactId>
+                    <version>1.9.2</version>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <executions>
+                            <execution>
+                                <id>generate</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>compile</goal> 
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <source>1.6</source>
+                            <target>1.6</target>
+                            <staleMillis>0</staleMillis>
+                            <!--
+                          <verbose>true</verbose>
+                            -->
+                            <annotationProcessors>
+                                <annotationProcessor>mofokom.slee.SleeAnnotationProcessor</annotationProcessor>
+                            </annotationProcessors>
+                           
+                        </configuration>
+                    </plugin>      
+                    <plugin>
+                        <groupId>com.nickwongdev</groupId>
+                        <!--
+                          <groupId>org.codehaus.mojo</groupId>
+                        -->
+                        <artifactId>aspectj-maven-plugin</artifactId>
+                        <version>1.12.1</version>
+                        <executions>
+                            <execution>
+                                <id>compile</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>${skipTests}</skip>
+                            <forceAjcCompile>true</forceAjcCompile>
+                            <source>1.8</source>
+                            <target>1.8</target>
+                            <complianceLevel>1.8</complianceLevel>
+                            <showWeaveInfo>true</showWeaveInfo>
+                            <verbose>true</verbose>
+                            <proc>none</proc>
+                            <XnoInline>true</XnoInline>
+                            <Xreweavable>true</Xreweavable>
+                            <aspectDirectory>target/generated-sources/annotations</aspectDirectory>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>ra-type</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classifier>ra-type</classifier>
+                                    <attach>true</attach>
+                                    <includes>
+                                        <include>**/resource/ExampleActivity.class</include>
+                                        <include>**/resource/ExampleActivityContextInterfaceFactory.class</include>
+                                        <include>**/resource/ExampleResourceAdaptorSbbInterface.class</include>
+                                        <include>META-INF/resource-adaptor-type-jar.xml</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>ra</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classifier>ra</classifier>
+                                    <attach>true</attach>
+                                    <includes>
+                                        <include>mofokom/slee/aspect/**</include>
+                                        <include>**/resource/*.class</include>
+                                        <include>**/examples/*.class</include>
+                                        <include>META-INF/resource-adaptor-jar.xml</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>profile</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classifier>profile</classifier>
+                                    <attach>true</attach>
+                                    <includes>
+                                        <include>mofokom/slee/aspect/**</include>
+                                        <include>**/examples/*.class</include>
+                                        <include>**/profile/*.class</include>
+                                        <include>META-INF/profile-spec-jar.xml</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>library</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classifier>library</classifier>
+                                    <attach>true</attach>
+                                    <includes>
+                                        <include>META-INF/library-jar.xml</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>event</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classifier>event</classifier>
+                                    <attach>true</attach>
+                                    <includes>
+                                        <include>**/event/*.class</include>
+                                        <include>META-INF/event-jar.xml</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>sbb</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classifier>sbb</classifier>
+                                    <includes>
+                                        <include>mofokom/slee/aspect/**</include>
+                                        <include>**/oc-sbb-jar.xml</include>
+                                        <include>**/sbb-jar.xml</include>
+                                        <include>**/examples/*.class</include>
+                                        <include>**/sbb/*.class</include>
+                                        <include>**/ejb/*.class</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>assemble</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <attach>true</attach>
+                                    <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
+                                    <descriptors>
+                                        <descriptor>${project.build.directory}/../src/main/assemble/assembly.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>		
+            </build>
+        </profile>
         <profile>
             <id>aspect</id>
             <build>
@@ -278,7 +313,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.4</version>
+                        <version>1.11</version>
                         <configuration>
                             <forceAjcCompile>true</forceAjcCompile>
                             <source>1.6</source>
@@ -297,9 +332,17 @@
                         </executions>
                     </plugin>
                 </plugins>
+                
             </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.aspectj</groupId>
+                    <artifactId>aspectjrt</artifactId>
+                    <version>1.9.2</version>
+                </dependency>
+            </dependencies>
+  
         </profile>
-
         <profile>
             <id>debug</id>
             <build>
@@ -317,7 +360,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.4</version>
+                        <version>1.11</version>
                         <configuration>
                             <forceAjcCompile>true</forceAjcCompile>
                             <source>1.6</source>
@@ -339,37 +382,39 @@
         </profile>
     </profiles>
     <repositories>
-        <repository>
-            <id>jboss-public-repository-group</id>
-            <name>JBoss Public Maven Repository Group</name>
-            <url>https://repository.jboss.org/nexus/content/groups/public</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <url>http://repo1.maven.org/maven2/</url>
-            <id>junit_4</id>
-            <layout>default</layout>
-            <name>Repository for library Library[junit_4]</name>
-        </repository>
-        <repository>
-            <id>mofokom-public</id>
-            <name>mofokom-public</name>
-            <url>http://www.mofokom.eu/maven/releases-public</url>
-        </repository>
+        <!--
+<repository>
+    <id>jboss-public-repository-group</id>
+    <name>JBoss Public Maven Repository Group</name>
+    <url>https://repository.jboss.org/nexus/content/groups/public</url>
+    <layout>default</layout>
+    <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+    </releases>
+    <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+    </snapshots>
+</repository>
+<repository>
+    <url>http://repo1.maven.org/maven2/</url>
+    <id>junit_4</id>
+    <layout>default</layout>
+    <name>Repository for library Library[junit_4]</name>
+</repository>
+<repository>
+    <id>mofokom-public</id>
+    <name>mofokom-public</name>
+    <url>http://www.mofokom.mobi/maven/releases-public</url>
+</repository>
+        -->
     </repositories>
     <distributionManagement xmlns:mvn="http://maven.apache.org/POM/4.0.0">
         <snapshotRepository>
             <id>mofokom-public</id>
             <name>mofokom-public</name>
-            <url>http://www.mofokom.eu/maven/snapshots-public</url>
+            <url>http://www.mofokom.mobi/maven/snapshots-public</url>
             <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>

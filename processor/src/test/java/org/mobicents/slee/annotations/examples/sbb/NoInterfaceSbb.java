@@ -23,12 +23,9 @@ package org.mobicents.slee.annotations.examples.sbb;
 
 import javax.annotation.Resource;
 import javax.slee.SbbContext;
-import javax.slee.annotation.RaiseAlarm;
-import javax.slee.annotation.Rollback;
 import javax.slee.facilities.Tracer;
 import javax.slee.annotation.Sbb;
 import javax.slee.annotation.Service;
-import javax.slee.facilities.AlarmLevel;
 
 /**
  * Simple example for an annotated Sbb, on service start fires a 1 sec timer and

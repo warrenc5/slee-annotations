@@ -1,3 +1,5 @@
+package examples;
+
 
 import javax.slee.SbbContext;
 import javax.slee.facilities.Tracer;

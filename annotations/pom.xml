@@ -2,24 +2,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 	
-    <groupId>mofokom.slee</groupId>
+    <groupId>mobi.mofokom.slee</groupId>
     <artifactId>jain-slee-annotations</artifactId>
     <version>1.0-SNAPSHOT</version>
 	
     <name>JAIN SLEE 1.1 Annotations</name>
 
     <distributionManagement>
-        <downloadUrl>http://www.mofokom.eu/maven/${repo}-public/${project.groupId}/${project.artifactId}/${project.version}/</downloadUrl>
+        <downloadUrl>http://www.mofokom.mobi/maven/${repo}-public/${project.groupId}/${project.artifactId}/${project.version}/</downloadUrl>
         <snapshotRepository>
             <id>mofokom-public</id>
             <name>mofokom-public</name>
-            <url>http://www.mofokom.biz/maven/snapshots-public</url>
+            <url>http://www.mofokom.mobi/maven/snapshots-public</url>
             <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
         <repository>
             <id>mofokom-public</id>
             <name>mofokom-public</name>
-            <url>http://www.mofokom.biz/maven/release-public</url>
+            <url>http://www.mofokom.mobi/maven/release-public</url>
             <uniqueVersion>false</uniqueVersion>
         </repository>
         <site>
@@ -56,7 +56,7 @@
     </dependencies>
 	
     <properties>
-        <siteRepo>http://www.mofokom.biz/maven/${repo}-public</siteRepo>
+        <siteRepo>http://www.mofokom.mobi/maven/${repo}-public</siteRepo>
     </properties>
 
     <build>
@@ -73,8 +73,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>

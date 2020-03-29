@@ -1,10 +1,12 @@
 //TODO allow @Resource on abstract methods - create field and return 
 //TODO call super if the method is there
 //TODO warn if alarm method does not return string
+//TODO: replace Classname strings with class.getName()
 package mofokom.slee;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
@@ -104,7 +106,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private org.w3c.dom.Element rootNode;
     private RoundEnvironment roundEnv;
     private DocumentBuilder db;
-    private static final Logger logger = Logger.getAnonymousLogger();
+    public static Logger logger = Logger.getLogger(SleeAnnotationProcessor.class.getName());
     private Document doc;
     private Map<String, Set<String>> processedAnnotation = new HashMap<String, Set<String>>();
     private Set<String> processedElement = new HashSet<String>();
@@ -113,7 +115,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private Map<String, String> sysmap = new HashMap<String, String>();
     private Map<String, String> options;
     private boolean ajCompile;
-    private List<String> aspects;
+    private List<URI> aspects;
     private boolean debugOutput = true;
     private CatalogResolver cr;
     private TransformerFactory tf = null;
@@ -285,7 +287,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     }
                     elementNode.appendChild(createNode(e2, a));
                     Node n = testForMissingMethods((org.w3c.dom.Element) elementNode, e2, a);
-                    if (a.getAnnotationType().toString().equals("javax.slee.annotation.ResourceAdaptorType")) {
+                    if (a.getAnnotationType().toString().equals(javax.slee.annotation.ResourceAdaptorType.class.getName())) {
                         doResourceAdaptorACI(e2, a);
                     }
                     if (n.hasChildNodes()) {
@@ -360,7 +362,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             } else if (o instanceof List) {
                 for (Object m : (List) o) {
                     if (m instanceof AnnotationMirror) {
-                        if (name.equals("javax.slee.annotation.event.EventType")) {
+                        if (name.equals(javax.slee.annotation.event.EventType.class.getName())) {
                             SleeAnnotationProcessor.this.logger.fine(m.toString());
                             if (eventTypeLibraryRefs.contains(m.toString()))
                                 ; else {
@@ -403,7 +405,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 break;
             default:
         }
-        if (name.equals("javax.slee.annotation.EnvEntry")) {
+        if (name.equals(javax.slee.annotation.EnvEntry.class.getName())) {
             //TODO handle final or value
             if (!((VariableElement) e2).getModifiers().contains(Modifier.FINAL)) {
                 logger.warning("env entry " + e2.getSimpleName() + " not final");
@@ -415,11 +417,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", constantValue.toString());
             }
         }
-        if (name.equals("javax.annotation.Resource")) {
+        if (name.equals(javax.annotation.Resource.class.getName())) {
             getResourceName(node, a, e2);
         }
 
-        if (name.equals("javax.slee.annotation.ActivityContextAttributeAlias")) {
+        if (name.equals(javax.slee.annotation.ActivityContextAttributeAlias.class.getName())) {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get"));
             //attribute name
             for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : a.getElementValues().entrySet()) {
@@ -429,12 +431,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
             }
         }
-        if (name.equals("javax.slee.annotation.ChildRelation")) {
+        if (name.equals(javax.slee.annotation.ChildRelation.class.getName())) {
             if (e2.getKind().isField()) {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString().replaceAll("ChildRelation$", "")));
             }
         }
-        if (name.equals("javax.slee.annotation.CMPField")) {
+        if (name.equals(javax.slee.annotation.CMPField.class.getName())) {
             if (e2.getKind().isField()) {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString()));
             } else {
@@ -443,32 +445,31 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), mname.substring(0, 3)));
             }
         }
-        if (name.equals("javax.slee.annotation.ProfileCMPField")) {
+        if (name.equals(javax.slee.annotation.ProfileCMPField.class.getName())) {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get", "set"));
         }
-        if (name.equals("javax.slee.annotation.UsageParameter")) {
+        if (name.equals(javax.slee.annotation.UsageParameter.class.getName())) {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
         }
-        if (name.equals("javax.slee.annotation.UsageParametersInterface")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        if (name.equals(javax.slee.annotation.UsageParametersInterface.class.getName())) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
         {
             node.appendChild(calculateUsageParameterSet(e2, a));
         }
 
-        if (name.equals("javax.slee.annotation.event.EventFiring") || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        if (name.equals(javax.slee.annotation.event.EventFiring.class.getName()) || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
         {
 
             //addModifiers(e2, node);
-
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifySentenceCase(e2.getSimpleName().toString(), "on", "fire"));
         }
 
-        if (name.equals("javax.slee.annotation.ProfileSpec")) {
+        if (name.equals(javax.slee.annotation.ProfileSpec.class.getName())) {
             List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
             //TODO check interfaces for Profile
             ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
         }
 
-        if (name.equals("javax.slee.annotation.StaticQuery")) {
+        if (name.equals(javax.slee.annotation.StaticQuery.class.getName())) {
             List<? extends VariableElement> parameters = ((ExecutableElement) e2).getParameters();
 
             String queryName = e2.getSimpleName().toString();
@@ -523,7 +524,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         /*
          * if
-         * (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.SbbLocal"))
+         * (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.SbbLocal.class.getName()))
          * { methods = javax.slee.SbbLocalObject.class.getDeclaredMethods();
          * hasImplements = hasImplements((TypeElement) e2,
          * "javax.slee.SbbLocalObject"); }
@@ -531,9 +532,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
          */
         TypeElement base = null;
 
-        if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.Sbb")) {
-            base = super.processingEnv.getElementUtils().getTypeElement("javax.slee.Sbb");
-            hasImplements = hasImplements((TypeElement) e2, "javax.slee.Sbb");
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.Sbb.class.getName())) {
+            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.Sbb.class.getName());
+            hasImplements = hasImplements((TypeElement) e2, javax.slee.Sbb.class.getName());
             if (!hasImplements) {
                 /*
                 TypeMirror type = base.asType();
@@ -544,15 +545,16 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ProfileSpec")) {
-            base = super.processingEnv.getElementUtils().getTypeElement("javax.slee.profile.Profile");
-            hasImplements = hasImplements((TypeElement) e2, "javax.slee.profile.Profile");
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ProfileSpec.class.getName())) {
+            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.profile.Profile.class.getName());
+            hasImplements = hasImplements((TypeElement) e2, javax.slee.profile.Profile.class.getName());
             //TODO don't implement if only has no profile abstract class section 3.3.4
+
         }
 
-        if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ResourceAdaptor")) {
-            base = super.processingEnv.getElementUtils().getTypeElement("javax.slee.resource.ResourceAdaptor");
-            hasImplements = hasImplements((TypeElement) e2, "javax.slee.resource.ResourceAdaptor");
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ResourceAdaptor.class.getName())) {
+            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.resource.ResourceAdaptor.class.getName());
+            hasImplements = hasImplements((TypeElement) e2, javax.slee.resource.ResourceAdaptor.class.getName());
         }
 
         if (base != null) {
@@ -649,36 +651,45 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             out.flush();
             out.close();
         } else if (transformFile.startsWith("aspect")) {
-            BufferedReader r2 = new BufferedReader(new InputStreamReader(pis));
+            doSplitAspects(new InputStreamReader(pis));
+        }
+    }
 
-            aspects = new ArrayList<String>();
+    public void doSplitAspects(Reader reader) throws IOException {
+        aspects = new ArrayList<>();
 
-            String s2;
-            BufferedWriter writer = null;
-            Pattern p = Pattern.compile("file:(.*)/(.*.aj)$");
-            while ((s2 = r2.readLine()) != null) {
+        BufferedReader r2 = new BufferedReader(reader);
+        String s2;
+        BufferedWriter writer = null;
+        Scanner scanner = new Scanner(r2);
 
-                Matcher matcher = p.matcher(s2);
+        Pattern p = Pattern.compile("file:(.*)/(.*.aj)");
 
-                if (matcher.matches()) {
-                    if (writer != null) {
-                        writer.flush();
-                        writer.close();
-                    }
+        while (scanner.hasNext()
+                && ((s2 = scanner.findInLine(p)) != null
+                || (s2 = scanner.nextLine()) != null)) {
 
-                    FileObject outResource = filer.createResource(StandardLocation.SOURCE_OUTPUT, matcher.group(1), matcher.group(2), null);
-                    aspects.add(outResource.toUri().toString());
-                    writer = new BufferedWriter(outResource.openWriter());
-                } else if (writer != null) {
-                    writer.write(s2);
-                    writer.newLine();
+            Matcher matcher = p.matcher(s2);
+
+            if (matcher.matches()) {
+                if (writer != null) {
+                    writer.flush();
+                    writer.close();
                 }
+
+                FileObject outResource = getFiler().createResource(StandardLocation.SOURCE_OUTPUT, matcher.group(1), matcher.group(2), null);
+                logger.info("writing " + matcher.group(1) + " " + matcher.group(2));
+                aspects.add(outResource.toUri());
+                writer = new BufferedWriter(outResource.openWriter());
+            } else if (writer != null) {
+                writer.write(s2);
+                writer.newLine();
             }
-            logger.log(Level.INFO, "creating " + aspects.toString());
-            if (writer != null) {
-                writer.flush();
-                writer.close();
-            }
+        }
+        logger.log(Level.INFO, "creating " + aspects.toString());
+        if (writer != null) {
+            writer.flush();
+            writer.close();
         }
     }
 
@@ -928,7 +939,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 f.appendChild(n = (org.w3c.dom.Element) this.createNode(m));
                 n.appendChild(n = doc.createElement("annotation"));
 
-                ((org.w3c.dom.Element) n).setAttribute("name", "javax.slee.annotation.UsageParameter");
+                ((org.w3c.dom.Element) n).setAttribute("name", javax.slee.annotation.UsageParameter.class.getName());
                 ((org.w3c.dom.Element) n).setAttribute("processed-value", formatUsageParameter(m.getSimpleName().toString()));
             }
         }
@@ -999,7 +1010,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
                         @Override
                         public Boolean visitExecutableAsMethod(ExecutableElement e, Object p) {
-                            if (e.getReturnType().toString().equals("javax.slee.ActivityContextInterface")) {
+                        if (e.getReturnType().toString().equals(javax.slee.ActivityContextInterface.class.getName())) {
                                 org.w3c.dom.Element n;
                                 n = doc.createElement("activitycontextinterface");
                                 n.setAttribute("activity", e.getParameters().get(0).asType().toString());
@@ -1046,9 +1057,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private void processPackage(org.w3c.dom.Element node, AnnotationMirror a, Element e2) {
 
-        if (a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.Sbb")
-                || a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ProfileSpec")
-                || a.getAnnotationType().asElement().toString().equals("javax.slee.annotation.ResourceAdaptor")) {
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.Sbb.class.getName())
+                || a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ProfileSpec.class.getName())
+                || a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ResourceAdaptor.class.getName())) {
             TypeElement clazz = super.processingEnv.getElementUtils().getTypeElement(e2.toString());
             node.setAttribute("package", ((PackageElement) clazz.getEnclosingElement()).getQualifiedName().toString());
             node.setAttribute("simple-name", clazz.getSimpleName().toString());
@@ -1151,5 +1162,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         if (isAbstract) {
             ((org.w3c.dom.Element) node).setAttribute("abstract", isAbstract.toString());
         }
+    }
+
+    public Filer getFiler() {
+        return super.processingEnv.getFiler();
     }
 }

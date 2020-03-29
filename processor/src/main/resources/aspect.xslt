@@ -17,47 +17,67 @@
 
     <xsl:template match="element[@name and annotation[@package]]" mode="aspect">
         <xsl:variable name="name" select="@name" />
-        <xsl:text>file:</xsl:text><xsl:value-of select="annotation/@package"/>/<xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect.aj
+        <xsl:text>file:</xsl:text><xsl:value-of select="annotation/@package"/>/<xsl:value-of select="annotation/@simple-name"/>
+        <xsl:text>$SleeAnnotationsAspect.aj
         </xsl:text> 
         <xsl:text>
-        package </xsl:text><xsl:value-of select="annotation/@package"/><xsl:text>;</xsl:text>
+            package </xsl:text>
+        <xsl:value-of select="annotation/@package"/>
+        <xsl:text>;</xsl:text>
 
         <xsl:text>
-        import javax.slee.facilities.ActivityContextNamingFacility;
-        import javax.slee.facilities.AlarmFacility;
-        import javax.slee.facilities.AlarmLevel;
-        import javax.slee.facilities.TimerFacility;
-        import javax.slee.facilities.Tracer;
-        import javax.slee.nullactivity.NullActivityContextInterfaceFactory;
-        import javax.slee.nullactivity.NullActivityFactory;
-        import javax.slee.profile.ProfileFacility;
-        import javax.slee.profile.ProfileTableActivityContextInterfaceFactory;
-        import javax.slee.serviceactivity.ServiceActivityContextInterfaceFactory;
-        import javax.slee.serviceactivity.ServiceActivityFactory;
-        import javax.naming.Context;
-        import javax.naming.InitialContext;
-        import javax.naming.NamingException;
+            import javax.slee.facilities.ActivityContextNamingFacility;
+            import javax.slee.facilities.AlarmFacility;
+            import javax.slee.facilities.AlarmLevel;
+            import javax.slee.facilities.TimerFacility;
+            import javax.slee.facilities.Tracer;
+            import javax.slee.nullactivity.NullActivityContextInterfaceFactory;
+            import javax.slee.nullactivity.NullActivityFactory;
+            import javax.slee.profile.ProfileFacility;
+            import javax.slee.profile.ProfileTableActivityContextInterfaceFactory;
+            import javax.slee.serviceactivity.ServiceActivityContextInterfaceFactory;
+            import javax.slee.serviceactivity.ServiceActivityFactory;
+            import javax.naming.Context;
+            import javax.naming.InitialContext;
+            import javax.naming.NamingException;
 
             
-        public privileged aspect </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect issingleton() {
+            public privileged aspect </xsl:text>
+        <xsl:value-of select="annotation/@simple-name"/>
+        <xsl:text>$SleeAnnotationsAspect issingleton() {
 
-            </xsl:text>
-            <xsl:if test="boolean(@implements)">
-                <xsl:choose>
-                    <xsl:when test="annotation/@name='javax.slee.annotation.ProfileSpec' and annotation/element[@name='abstractClass']/@value = 'javax.slee.profile.Profile'" />
-                    <xsl:otherwise>
-                        <xsl:text> declare parents : </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text> implements </xsl:text><xsl:value-of select="@interface"/><xsl:text>; </xsl:text>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:if>
-            <xsl:apply-templates select="//*[@enclosing=$name]" />
-            <xsl:text>
-        }
-            </xsl:text>
-            <xsl:text>
+        </xsl:text>
+        <xsl:if test="boolean(@implements)">
+            <xsl:choose>
+                <xsl:when test="annotation/@name='javax.slee.annotation.ProfileSpec' and annotation/element[@name='abstractClass']/@value = 'javax.slee.profile.Profile'" >
+                </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:text> declare parents : </xsl:text>
+                            <xsl:value-of select="annotation/@simple-name"/>
+                            <xsl:text> implements </xsl:text>
+                            <xsl:value-of select="@interface"/>
+                            <xsl:text>; </xsl:text>
 
-        privileged aspect </xsl:text><xsl:value-of select="annotation/@simple-name"/><xsl:text>$DebugAspect {
-            pointcut debug_class(): within(</xsl:text><xsl:value-of select="annotation/@name"/><xsl:text>) &amp;&amp; !within(</xsl:text><xsl:value-of select="annotation/@package"/>.<xsl:value-of select="annotation/@simple-name"/><xsl:text>$DebugAspect) &amp;&amp; !within(</xsl:text><xsl:value-of select="annotation/@package"/>.<xsl:value-of select="annotation/@simple-name"/><xsl:text>$SleeAnnotationsAspect);
+                       
+                        </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        <xsl:apply-templates select="//*[@enclosing=$name]" />
+        <xsl:text>
+            }
+        </xsl:text>
+        <xsl:text>
+
+            privileged aspect </xsl:text>
+        <xsl:value-of select="annotation/@simple-name"/>
+        <xsl:text>$DebugAspect {
+            pointcut debug_class(): within(</xsl:text>
+        <xsl:value-of select="annotation/@name"/>
+        <xsl:text>) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="annotation/@package"/>.<xsl:value-of select="annotation/@simple-name"/>
+        <xsl:text>$DebugAspect) &amp;&amp; !within(</xsl:text>
+        <xsl:value-of select="annotation/@package"/>.<xsl:value-of select="annotation/@simple-name"/>
+        <xsl:text>$SleeAnnotationsAspect);
 
             pointcut debug_constructor(): debug_class() &amp;&amp; execution(new(..));
             pointcut debug_method(): debug_class() &amp;&amp; execution(* *(..));
@@ -65,7 +85,7 @@
             pointcut debug_get(): debug_class() &amp;&amp; (get(* *.*));
 
             before (): debug_constructor() {
-                if(Boolean.getBoolean("debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_constructor() {
             if(Boolean.getBoolean("debug")) System.err.println("=}=} " + thisJoinPointStaticPart.getSignature());
@@ -87,8 +107,8 @@
             if(Boolean.getBoolean("debug")) System.err.println("=r= " + thisJoinPointStaticPart.getSignature());
             }
 
-        }
-</xsl:text>
+            }
+        </xsl:text>
     </xsl:template>
     <!--
     <xsl:template match="/process//element/annotation[@name='javax.annotation.Resource']">
@@ -96,7 +116,7 @@
         /xsl:template
     </xsl:template>
     -->
-<!-- SLEE Abstract class methods -->
+    <!-- SLEE Abstract class methods -->
 
     <xsl:template match="element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec' or @name='javax.slee.annotation.ResourceAdaptor']" mode="method-intercept-inject">
         <xsl:text>object.__context=arg1;
@@ -115,11 +135,17 @@
         /*
         Sbb 
         */
-        <xsl:text>javax.slee.SbbContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__context;
+        <xsl:text>javax.slee.SbbContext </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__context;
         </xsl:text>
-        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;
+        <xsl:text>javax.naming.InitialContext </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__iContext;
         </xsl:text>
-        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__alarmFacility;
+        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__alarmFacility;
         </xsl:text>
         
 
@@ -137,15 +163,23 @@
         /*
         ProfileSpec 
         */
-        <xsl:text>javax.slee.profile.ProfileContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__context;</xsl:text>
-        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;</xsl:text>
-        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__alarmFacility;</xsl:text>
+        <xsl:text>javax.slee.profile.ProfileContext </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__context;</xsl:text>
+        <xsl:text>javax.naming.InitialContext </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__iContext;</xsl:text>
+        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__alarmFacility;</xsl:text>
         <xsl:apply-templates select="." mode="method-intercept-pointcut">
             <xsl:with-param name="method-name" select="'setProfileContext'"/>
             <xsl:with-param name="arg-type" select="'javax.slee.profile.ProfileContext'"/>
         </xsl:apply-templates>
 
         <xsl:variable name="enclosing" select="../@enclosing" />
+        
+
 
     </xsl:template>
 
@@ -156,10 +190,10 @@
 
         <xsl:text>object.</xsl:text>
         <xsl:if test="$arg-type = 'javax.slee.resource.ConfigProperties'">
-        <xsl:text>__configProperties</xsl:text>
+            <xsl:text>__configProperties</xsl:text>
         </xsl:if>
         <xsl:if test="$arg-type = 'javax.slee.resource.ResourceAdaptorContext'">
-        <xsl:text>__context</xsl:text>
+            <xsl:text>__context</xsl:text>
         </xsl:if>
         <xsl:text> = arg1;
         </xsl:text>
@@ -170,11 +204,19 @@
         /*
         RA 
         */
-        <xsl:text>javax.slee.resource.ResourceAdaptorContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__context;
+        <xsl:text>javax.slee.resource.ResourceAdaptorContext </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__context;
         </xsl:text>
-        <xsl:text>javax.naming.InitialContext </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__iContext;</xsl:text>
-        <xsl:text>javax.slee.resource.ConfigProperties </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__configProperties;</xsl:text>
-        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text><xsl:value-of select="../@name"/><xsl:text>.__alarmFacility;</xsl:text>
+        <xsl:text>javax.naming.InitialContext </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__iContext;</xsl:text>
+        <xsl:text>javax.slee.resource.ConfigProperties </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__configProperties;</xsl:text>
+        <xsl:text>javax.slee.facilities.AlarmFacility </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>.__alarmFacility;</xsl:text>
 
         <xsl:apply-templates select="." mode="method-intercept-pointcut">
             <xsl:with-param name="method-name" select="'setResourceAdaptorContext'"/>
@@ -215,16 +257,16 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:text>try{
-                object.</xsl:text>
+                    object.</xsl:text>
                 <xsl:value-of select="../@name"/>
                 <xsl:text> = (</xsl:text>
                 <xsl:value-of select="../@type"/>
                 <xsl:text>)object.tmp</xsl:text>
                 <xsl:value-of select="../@name"/>
                 <xsl:text>.create();
-                }catch(javax.slee.CreateException x){
+                    }catch(javax.slee.CreateException x){
                     throw new RuntimeException(x);
-                }
+                    }
                 </xsl:text>
 
             </xsl:otherwise>
@@ -251,7 +293,7 @@
         <xsl:apply-templates select="." mode="get-field-pointcut"/>
     </xsl:template>
 
-<!--CMP FIELD -->
+    <!--CMP FIELD -->
     
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.slee.annotation.CMPField']" mode="set-field-inject">
         <xsl:text>object.set</xsl:text>
@@ -294,7 +336,8 @@
         <xsl:value-of select="../@name"/>
         <xsl:text> == null) {
         </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
+        <xsl:text>object.</xsl:text>
+        <xsl:value-of select="../@name"/>
         <xsl:text>=object.__iContext</xsl:text>;
         <xsl:text>
             }
@@ -307,12 +350,14 @@
 
     <xsl:template match="element/annotation[@name='javax.annotation.Resource' and @type='javax.naming.Context']" priority="1">
         <xsl:variable name="name">
-        <xsl:choose>
-            <xsl:when test="element[@name='mappedName' and not(@value='')]">
-                <xsl:value-of select="element[@name='mappedName']/@value"/>
-            </xsl:when>
-            <xsl:otherwise><xsl:text>"java:comp/env"</xsl:text></xsl:otherwise>
-        </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="element[@name='mappedName' and not(@value='')]">
+                    <xsl:value-of select="element[@name='mappedName']/@value"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:text>"java:comp/env"</xsl:text>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
@@ -392,9 +437,9 @@
  
     <xsl:template match="element/annotation[@name='javax.annotation.Resource' and @type='org.mobicents.slee.annotations.examples.ejb.SomeEJBRemote']">
         <!--
-       <xsl:text> (</xsl:text>
-       <xsl:value-of select="../@type"/><xsl:text> ) lookup home - create();</xsl:text>
-       -->
+        <xsl:text> (</xsl:text>
+        <xsl:value-of select="../@type"/><xsl:text> ) lookup home - create();</xsl:text>
+        -->
     </xsl:template>
 
     <!--ENV ENTRIES-->
@@ -416,10 +461,11 @@
  
     <!-- CONTEXT -->
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource' and (@type='javax.slee.SbbContext' or @type='javax.slee.resource.ResourceAdaptorContext' or @type='javax.slee.profile.ProfileContext')]" mode="get-field-inject" priority="1">
-     <xsl:text>if(object.</xsl:text>
+        <xsl:text>if(object.</xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> == null) { </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
+        <xsl:text>object.</xsl:text>
+        <xsl:value-of select="../@name"/>
         <xsl:text>=object.__context;</xsl:text>
         <xsl:text>
             }
@@ -438,9 +484,14 @@
 
     <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.slee.annotation.event.EventHandler' and @abstract='true']" priority="1">
         //event handler call super
-  <xsl:value-of select="@modifiers"/><xsl:text> </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>() {
-      super. //TODO
-      }
+        <xsl:value-of select="@modifiers"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@type"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
+        <xsl:text>() {
+            super. //TODO
+            }
         </xsl:text>
     </xsl:template>
     
@@ -455,7 +506,11 @@
         //set sbb context
 
         <xsl:text>
-            public </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>(){return null;}
+            public </xsl:text>
+        <xsl:value-of select="../@type"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
+        <xsl:text>(){return null;}
         </xsl:text>
 
         <xsl:apply-templates select="." mode="method-intercept-pointcut-0">
@@ -487,12 +542,12 @@
             return object.__context.getTracer("</xsl:text>
         <xsl:choose>
             <xsl:when test="string-length(element/@value)=0">
-        <xsl:value-of select="../@name"/>
+                <xsl:value-of select="../@name"/>
             </xsl:when>
             <xsl:otherwise>
-        <xsl:value-of select="element/@value"/>
+                <xsl:value-of select="element/@value"/>
             </xsl:otherwise>
-            </xsl:choose>
+        </xsl:choose>
         <xsl:text>");
         </xsl:text>
     </xsl:template>
@@ -502,23 +557,30 @@
         <xsl:value-of select="../@name"/>
         <xsl:text> == null) {
         </xsl:text>
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("constructing tracer </xsl:text><xsl:value-of select="../@name"/><xsl:text> </xsl:text><xsl:value-of select="element/@value"/><xsl:text>");
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("constructing tracer </xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="element/@value"/>
+        <xsl:text>");
 
         </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
+        <xsl:text>object.</xsl:text>
+        <xsl:value-of select="../@name"/>
         <xsl:text>=object.__context.getTracer("</xsl:text>
         <xsl:choose>
             <xsl:when test="string-length(element/@value)=0">
-        <xsl:value-of select="../@name"/>
+                <xsl:value-of select="../@name"/>
             </xsl:when>
             <xsl:otherwise>
-        <xsl:value-of select="element/@value"/>
+                <xsl:value-of select="element/@value"/>
             </xsl:otherwise>
-            </xsl:choose>
+        </xsl:choose>
         <xsl:text>");
             }
         </xsl:text>
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("gotted tracer " + (object.</xsl:text><xsl:value-of select="../@name"/><xsl:text> == null)); </xsl:text>
+        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("gotted tracer " + (object.</xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text> == null)); </xsl:text>
     </xsl:template>
 
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" priority="1">
@@ -529,7 +591,11 @@
     <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" priority="1">
         //is tracer from ra or sbb or profile context
         <xsl:text>
-            public </xsl:text><xsl:value-of select="../@type"/><xsl:text> </xsl:text><xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/><xsl:text>(){return null;}
+            public </xsl:text>
+        <xsl:value-of select="../@type"/>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
+        <xsl:text>(){return null;}
         </xsl:text>
 
         <xsl:apply-templates select="." mode="method-intercept-pointcut-0">
@@ -538,12 +604,12 @@
         </xsl:apply-templates>
     </xsl:template>
 
-<!--CALCULATED -->
+    <!--CALCULATED -->
     <xsl:template match="element/annotation[@name='javax.annotation.Resource' and @type='org.mobicents.slee.annotations.examples.sbb.ExampleSbbLocalObject']" priority="1">
         //profile local object
     </xsl:template>
 
-<!--CONFIG PROPERTIES -->
+    <!--CONFIG PROPERTIES -->
 
     <xsl:template match="element[@kind='FIELD' and @type='javax.slee.resource.ConfigProperties']/annotation[@name='javax.annotation.Resource']" mode="get-field-inject" priority="1">
         <xsl:text>object.</xsl:text>
@@ -556,9 +622,9 @@
         <xsl:apply-templates select="." mode="get-field-pointcut"/>
     </xsl:template>
  
-<!-- INJECT GETTER -->
+    <!-- INJECT GETTER -->
 
-<!--CONFIG PROPERTY -->
+    <!--CONFIG PROPERTY -->
 
     <xsl:template match="//element[@kind='FIELD']/annotation[@name='javax.slee.annotation.ConfigProperty']" mode="get-field-inject" priority="1">
         <xsl:text>object.</xsl:text>
@@ -566,7 +632,8 @@
         <xsl:text> = (</xsl:text>
         <xsl:value-of select="../@type"/>
         <xsl:text>)object.__configProperties.getProperty("</xsl:text>
-        <xsl:value-of select="../@name"/><xsl:text>").getValue();</xsl:text>
+        <xsl:value-of select="../@name"/>
+        <xsl:text>").getValue();</xsl:text>
     </xsl:template>
 
     <xsl:template match="//element[@kind='FIELD']/annotation[@name='javax.slee.annotation.ConfigProperty']" priority="1">
@@ -580,92 +647,100 @@
         <xsl:variable name="name" select="../@name" />
         <xsl:variable name="type" select="@type" />
         <xsl:variable name="enclosing" select="../@enclosing" />
-    <!--USAGE PARAMETERS -->
+        <!--USAGE PARAMETERS -->
 
         <xsl:choose>
-        <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
+            <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
 
-        <xsl:text>if(object.</xsl:text>
-        <xsl:value-of select="../@name"/>
-        <xsl:text> == null) {
-        </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
-        <xsl:text>=(</xsl:text>
-        <xsl:value-of select="../@type"/>
-        <xsl:text>) object.getDefault</xsl:text>
-       <xsl:choose>
-            <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
-<xsl:text>Sbb</xsl:text>
+                <xsl:text>if(object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text> == null) {
+                </xsl:text> 
+                <xsl:text>object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text>=(</xsl:text>
+                <xsl:value-of select="../@type"/>
+                <xsl:text>) object.getDefault</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
+                        <xsl:text>Sbb</xsl:text>
+                    </xsl:when>
+                </xsl:choose>
+                <xsl:text>UsageParameterSet();
+                    }
+                </xsl:text>
             </xsl:when>
-        </xsl:choose><xsl:text>UsageParameterSet();
-            }
-        </xsl:text>
-        </xsl:when>
 
-    <!--USAGE PARAMETERS -->
-        <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
+            <!--USAGE PARAMETERS -->
+            <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
         
-        <xsl:text>if(object.</xsl:text>
-        <xsl:value-of select="../@name"/>
-        <xsl:text> == null) {
-        try{
-        </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
-        <xsl:text>=(</xsl:text>
-        <xsl:value-of select="../@type"/>
-        <xsl:text>) object.get</xsl:text>
-       <xsl:choose>
-            <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
-<xsl:text>Sbb</xsl:text>
+                <xsl:text>if(object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text> == null) {
+                    try{
+                </xsl:text> 
+                <xsl:text>object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text>=(</xsl:text>
+                <xsl:value-of select="../@type"/>
+                <xsl:text>) object.get</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
+                        <xsl:text>Sbb</xsl:text>
+                    </xsl:when>
+                </xsl:choose>
+                <xsl:text>UsageParameterSet("</xsl:text>
+                <xsl:value-of select="element[@name='name']/@value"/>
+                <xsl:text>");
+                    }catch(javax.slee.usage.UnrecognizedUsageParameterSetNameException x){
+                    throw new RuntimeException(x);
+                    }
+                    }
+                </xsl:text>
             </xsl:when>
-        </xsl:choose><xsl:text>UsageParameterSet("</xsl:text>
-        <xsl:value-of select="element[@name='name']/@value"/><xsl:text>");
-        }catch(javax.slee.usage.UnrecognizedUsageParameterSetNameException x){
-        throw new RuntimeException(x);
-        }
-            }
-        </xsl:text>
-        </xsl:when>
 
-        <!--RA -->
+            <!--RA -->
 
-    <!--USAGE PARAMETERS -->
-        <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
-        <xsl:text>if(object.</xsl:text>
-        <xsl:value-of select="../@name"/>
-        <xsl:text> == null) {
-        </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
-        <xsl:text>=(</xsl:text>
-        <xsl:value-of select="../@type"/>
-        <xsl:text>) object.__context.getDefaultUsageParameterSet();
-            }
-        </xsl:text>
-        </xsl:when>
+            <!--USAGE PARAMETERS -->
+            <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
+                <xsl:text>if(object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text> == null) {
+                </xsl:text> 
+                <xsl:text>object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text>=(</xsl:text>
+                <xsl:value-of select="../@type"/>
+                <xsl:text>) object.__context.getDefaultUsageParameterSet();
+                    }
+                </xsl:text>
+            </xsl:when>
 
-    <!--USAGE PARAMETERS -->
-        <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
-        <xsl:text>if(object.</xsl:text>
-        <xsl:value-of select="../@name"/>
-        <xsl:text> == null) {
-        try{
-        </xsl:text> 
-        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/>
-        <xsl:text>=(</xsl:text>
-        <xsl:value-of select="../@type"/>
-        <xsl:text>) object.__context.getUsageParameterSet("</xsl:text>
-        <xsl:value-of select="element[@name='name']/@value"/><xsl:text>");
-        }catch(javax.slee.usage.UnrecognizedUsageParameterSetNameException x){
-        throw new RuntimeException(x);
-        }
-            }
-        </xsl:text>
+            <!--USAGE PARAMETERS -->
+            <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
+                <xsl:text>if(object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text> == null) {
+                    try{
+                </xsl:text> 
+                <xsl:text>object.</xsl:text>
+                <xsl:value-of select="../@name"/>
+                <xsl:text>=(</xsl:text>
+                <xsl:value-of select="../@type"/>
+                <xsl:text>) object.__context.getUsageParameterSet("</xsl:text>
+                <xsl:value-of select="element[@name='name']/@value"/>
+                <xsl:text>");
+                    }catch(javax.slee.usage.UnrecognizedUsageParameterSetNameException x){
+                    throw new RuntimeException(x);
+                    }
+                    }
+                </xsl:text>
         
-        </xsl:when>    
+            </xsl:when>    
         </xsl:choose>
     </xsl:template>
 
-<!-- RESOURCE GETTERS -->
+    <!-- RESOURCE GETTERS -->
     
     <xsl:template match="element[@kind='FIELD' or @kind='METHOD']/annotation[@name='javax.annotation.Resource']" >
         <xsl:variable name="type" select="@type" />
@@ -673,57 +748,63 @@
         <xsl:variable name="enclosing" select="../@enclosing" />
         <xsl:choose>
 
-<!-- USAGE PARAMETERS -->
-        <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
-        //get usage parameter method
-        <xsl:text>public abstract </xsl:text>
-        <xsl:value-of select="../@type"/><xsl:text> </xsl:text> 
-        <xsl:value-of select="../@enclosing"/><xsl:text>.getDefault</xsl:text>
-        <xsl:choose>
-            <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
-<xsl:text>Sbb</xsl:text>
+            <!-- USAGE PARAMETERS -->
+            <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
+                //get usage parameter method
+                <xsl:text>public abstract </xsl:text>
+                <xsl:value-of select="../@type"/>
+                <xsl:text> </xsl:text> 
+                <xsl:value-of select="../@enclosing"/>
+                <xsl:text>.getDefault</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
+                        <xsl:text>Sbb</xsl:text>
+                    </xsl:when>
+                </xsl:choose>
+                <xsl:text>UsageParameterSet();</xsl:text>
+
+                <xsl:apply-templates select="." mode="get-field-pointcut"/>
             </xsl:when>
-        </xsl:choose><xsl:text>UsageParameterSet();</xsl:text>
 
-        <xsl:apply-templates select="." mode="get-field-pointcut"/>
-    </xsl:when>
-
-    <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
-        //get named usage parameter method
-        <xsl:text>public abstract </xsl:text>
-        <xsl:value-of select="../@type"/><xsl:text> </xsl:text> 
-        <xsl:value-of select="../@enclosing"/><xsl:text>.get</xsl:text>
-        <xsl:choose>
-            <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
-<xsl:text>Sbb</xsl:text>
+            <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[(@name='javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
+                //get named usage parameter method
+                <xsl:text>public abstract </xsl:text>
+                <xsl:value-of select="../@type"/>
+                <xsl:text> </xsl:text> 
+                <xsl:value-of select="../@enclosing"/>
+                <xsl:text>.get</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="//element[@name = $enclosing]/annotation[@name='javax.slee.annotation.Sbb']">
+                        <xsl:text>Sbb</xsl:text>
+                    </xsl:when>
+                </xsl:choose>
+                <xsl:text>UsageParameterSet( String name) throws javax.slee.usage.UnrecognizedUsageParameterSetNameException;
+                </xsl:text>
+                <xsl:apply-templates select="." mode="get-field-pointcut"/>
             </xsl:when>
-        </xsl:choose><xsl:text>UsageParameterSet( String name) throws javax.slee.usage.UnrecognizedUsageParameterSetNameException;
-        </xsl:text>
-        <xsl:apply-templates select="." mode="get-field-pointcut"/>
-    </xsl:when>
 
-    <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
-        <xsl:apply-templates select="." mode="get-field-pointcut"/>
-    </xsl:when>
+            <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
+                <xsl:apply-templates select="." mode="get-field-pointcut"/>
+            </xsl:when>
 
-    <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
-        //ra get up from context
-        <xsl:apply-templates select="." mode="get-field-pointcut"/>
-    </xsl:when>
+            <xsl:when test="element[@name ='name' and @value=''] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
+                //ra get up from context
+                <xsl:apply-templates select="." mode="get-field-pointcut"/>
+            </xsl:when>
 
-    <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
-        //ra get named up from context
-            <xsl:apply-templates select="." mode="get-field-pointcut"/>
-    </xsl:when>
+            <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[@name='javax.slee.annotation.ResourceAdaptor' and element[@name ='usageParametersInterface' and @value=$type]]]">
+                //ra get named up from context
+                <xsl:apply-templates select="." mode="get-field-pointcut"/>
+            </xsl:when>
 
-<!-- SBB RA ENTITY LINK -->
+            <!-- SBB RA ENTITY LINK -->
 
-    <xsl:when test="//element[@name=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]">
-            //OVER HERE
-        <xsl:variable name="ref" select="//element[@enclosing=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]" />
-        <xsl:value-of select="$ref"/>
-            //THATS IT <xsl:value-of select="../@type"/>
-<!--
+            <xsl:when test="//element[@name=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]">
+                //OVER HERE
+                <xsl:variable name="ref" select="//element[@enclosing=$enclosing]/annotation[@name ='javax.slee.annotation.Sbb']/element[@name='resourceAdaptorTypeBinding']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding' and element[@name='raEntityLink' and @value=$name]]" />
+                <xsl:value-of select="$ref"/>
+                //THATS IT <xsl:value-of select="../@type"/>
+                <!--
             <xsl:apply-templates select="." mode="get-field-jndi-pointcut">
 
             <xsl:with-param name="jndi-name" select="concat('slee/resources/',generate-id(key('raEntityLink',concat(element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='name']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='vendor']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='version']/@value))))"/>

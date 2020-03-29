@@ -1,0 +1,20 @@
+config = {
+    "showOutput" : true, // verbose process output
+    "reuseOutput" : false, //when hiding output write to same file, instead of random file
+    "!timeout": 280, // kill the process after seconds
+    "!batchWait": 6, // wait a few seconds for another change before building 
+    "!interrupt": true, // kill the proccess when there is a new change 
+    "mvnOpts": "-Xms64m -Xmx256m -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5008", // MAVEN_OPTS system environment passed to process otherwise inherited
+    "!mvnArgs": "-Dmaven.surefire.debug -DforkMode=never", // any valid argument to maven
+    "!mvnCmd": "mvnDebug.cmd", //override the mvn command - automatically detects mvn.cmd on Microsoft
+    "daemon": false, //run maven in the same java process 
+    "activeFiles": {
+        "includes": [
+            ".*\.aj",".*\.xslt"
+        ]
+    },
+    
+    "buildCommands": [
+        "mvn install",
+    ]
+}
