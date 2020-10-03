@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="."/>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xalan="http://xml.apache.org/xslt">
+    <xsl:output method="xml" indent="yes" xalan:indent-amount="4" />
+    <xsl:strip-space elements="*"/>
     <xsl:template match="/">
             <xsl:apply-templates select="node()"/>
     </xsl:template>

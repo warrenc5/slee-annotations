@@ -8,6 +8,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
+import java.text.FieldPosition;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -17,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -37,6 +39,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import javax.lang.model.util.ElementFilter;
 import javax.slee.annotation.Collator;
+import javax.slee.annotation.ProfileSpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
@@ -50,6 +53,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.xml.resolver.CatalogException;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.w3c.dom.NodeList;
 import org.xml.sax.*;
 
 /**
@@ -288,12 +292,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                         continue;
                     }
                     elementNode.appendChild(createNode(e2, a));
-                    Node n = testForMissingMethods((org.w3c.dom.Element) elementNode, e2, a);
+                    //testForMissingMethods((org.w3c.dom.Element) elementNode, e2, a,base);
                     if (a.getAnnotationType().toString().equals(javax.slee.annotation.ResourceAdaptorType.class.getName())) {
                         doResourceAdaptorACI(e2, a);
-                    }
-                    if (n.hasChildNodes()) {
-                        elementNode.appendChild(n);
                     }
                 }
             }
@@ -303,12 +304,13 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private org.w3c.dom.Element createNode(Element e2, TypeElement type) {
-        
+
         final org.w3c.dom.Element node = doc.createElement("classtype");
 
         node.setAttribute("name", type.getQualifiedName().toString());
         node.setAttribute("interface", ((Boolean) type.getKind().isInterface()).toString());
         node.setAttribute("enclosing", e2.toString());
+        node.setAttribute("simple-name", e2.getSimpleName().toString());
         return node;
     }
 
@@ -461,11 +463,14 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get", "set"));
         }
         if (name.equals(javax.slee.annotation.UsageParameter.class.getName())) {
-            ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
+            if (e2.getSimpleName().toString().startsWith("increment") || e2.getSimpleName().toString().startsWith("sample")) {
+                ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
+            }
         }
         if (name.equals(javax.slee.annotation.UsageParametersInterface.class.getName())) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
         {
-            node.appendChild(calculateUsageParameterSet(e2, a));
+            //TODO add counter methods for usageparameter annotated methods.
+            calculateUsageParameterSet(e2, a, (org.w3c.dom.Element) node);
         }
 
         if (name.equals(javax.slee.annotation.event.EventFiring.class.getName()) || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
@@ -474,18 +479,48 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             //addModifiers(e2, node);
             ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifySentenceCase(e2.getSimpleName().toString(), "on", "fire"));
         }
+        TypeElement base = null;
+
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.Sbb.class.getName())) {
+            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.Sbb.class.getName());
+
+        }
+
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ProfileSpec.class.getName())) {
+            if (e2.getKind().isClass()) {
+                base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.profile.Profile.class.getName());
+            } else {
+                //TODO don't implement if only has interface i.e. no profile abstract class section 3.3.4
+            }
+        }
+
+        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ResourceAdaptor.class.getName())) {
+            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.resource.ResourceAdaptor.class.getName());
+        }
+
+        if (base != null) {
+            this.addMissingInterfaces(node, e2, base);
+            this.testForMissingMethods((org.w3c.dom.Element) node, e2, a, base);
+            List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
+            log.info("interfaces " + interfaces.toString());
+            //this.addMissingInterfaces(node, e2, interfaces.to);
+        }
 
         if (name.equals(javax.slee.annotation.ProfileSpec.class.getName())) {
-            List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
             ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
-
-            Node n = testForMissingMethods((org.w3c.dom.Element) node, e2, a);
 
             Optional<String> cmpInterface = this.getElementValue(a, "cmpInterface");
             if (cmpInterface.isPresent()) {
                 if (!hasImplements((TypeElement) e2, this.getTypeElement(cmpInterface.get()).getQualifiedName().toString())) {
-                    Node i = this.addMissingInterfaces(node, e2, this.getTypeElement(cmpInterface.get()));
-                    ((org.w3c.dom.Element) node).appendChild(i);
+                    this.addMissingInterfaces(node, e2, base = this.getTypeElement(cmpInterface.get()));
+                    //this.testForMissingMethods((org.w3c.dom.Element) node, e2, a, base);
+                }
+            }
+
+            cmpInterface = this.getElementValue(a, "managementInterface");
+            if (cmpInterface.isPresent()) {
+                if (!hasImplements((TypeElement) e2, this.getTypeElement(cmpInterface.get()).getQualifiedName().toString())) {
+                    this.addMissingInterfaces(node, e2, this.getTypeElement(cmpInterface.get()));
                 }
             }
         }
@@ -494,12 +529,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             List<? extends VariableElement> parameters = ((ExecutableElement) e2).getParameters();
 
             String queryName = e2.getSimpleName().toString();
-            List<String> attributeNames = getAllAttributeNames(e2.getEnclosingElement());
+            List<String> attributeNames = getAllAttributeNames((TypeElement) e2.getEnclosingElement());
             log.fine(attributeNames.toString());
             //new ArrayList<String>();
             List<String> parameterNames = new ArrayList<String>();
-            org.w3c.dom.Element n = null;
-
+            org.w3c.dom.Element n = null, oNode = node;
             node.appendChild(node = doc.createElement("query"));
             node.setAttribute("name", deBeanifyCamelCase(queryName, "query"));
 
@@ -516,7 +550,8 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                         attributeNames, 0,
                         parameterNames));
             } catch (Exception x) {
-                x.printStackTrace();
+                log.warning(x.getMessage() + " " + query);
+                node = oNode;
             }
         }
 
@@ -538,99 +573,67 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     @SuppressWarnings("All")
-    private Node addMissingInterfaces(final org.w3c.dom.Element n1, final Element e2, TypeElement... a) throws ClassNotFoundException, NoSuchMethodException {
-        final org.w3c.dom.Element node = doc.createElement("classtypes");
-        node.setAttribute("enclosing", e2.toString());
+    private void addMissingInterfaces(final org.w3c.dom.Element n1, final Element e2, TypeElement... a) throws ClassNotFoundException, NoSuchMethodException {
+        org.w3c.dom.Element node = doc.createElement("classtypes");
+        NodeList nl = null;
+        if ((nl = n1.getElementsByTagName("classtypes")).getLength() > 0) {
+            node = (org.w3c.dom.Element) nl.item(0);
+        } else {
+            node = doc.createElement("classtypes");
+            node.setAttribute("enclosing", e2.toString());
+            node.setAttribute("simple-name", e2.getSimpleName().toString());
+            n1.appendChild(node);
+        }
+
         if (a != null) {
             for (TypeElement aa : a) {
-                node.appendChild(this.createNode(e2, aa));
+                if (aa != null) {
+                    node.appendChild(this.createNode(e2, aa));
+                }
             }
         }
-        return node;
     }
 
     @SuppressWarnings("All")
-    private Node testForMissingMethods(final org.w3c.dom.Element n1, final Element e2, AnnotationMirror a) throws ClassNotFoundException, NoSuchMethodException {
+    private void testForMissingMethods(final org.w3c.dom.Element n1, final Element e2, AnnotationMirror a, TypeElement base) throws ClassNotFoundException, NoSuchMethodException {
         final org.w3c.dom.Element node = doc.createElement("methods");
         node.setAttribute("enclosing", e2.toString());
-        Boolean hasImplements = false;
 
-        /*
-         * if
-         * (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.SbbLocal.class.getName()))
-         * { methods = javax.slee.SbbLocalObject.class.getDeclaredMethods();
-         * hasImplements = hasImplements((TypeElement) e2,
-         * "javax.slee.SbbLocalObject"); }
-         *
-         */
-        TypeElement base = null;
+        e2.accept(new ElementKindVisitor6<Void, TypeElement>() {
 
-        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.Sbb.class.getName())) {
-            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.Sbb.class.getName());
-            hasImplements = hasImplements((TypeElement) e2, javax.slee.Sbb.class.getName());
-            if (!hasImplements) {
-                /*
-                TypeMirror type = base.asType();
-                //try to insert the interface ???
-                ((TypeElement) e2).getInterfaces().add(null);
-                logger.info("interfaces : " + ((TypeElement) e2).getInterfaces().toString());
-                 */
-            }
-        }
-
-        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ProfileSpec.class.getName())) {
-            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.profile.Profile.class.getName());
-            hasImplements = hasImplements((TypeElement) e2, javax.slee.profile.Profile.class.getName());
-            //TODO don't implement if only has no profile abstract class section 3.3.4
-
-        }
-
-        if (a.getAnnotationType().asElement().toString().equals(javax.slee.annotation.ResourceAdaptor.class.getName())) {
-            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.resource.ResourceAdaptor.class.getName());
-            hasImplements = hasImplements((TypeElement) e2, javax.slee.resource.ResourceAdaptor.class.getName());
-        }
-
-        if (base != null) {
-            e2.accept(new ElementKindVisitor6<Void, TypeElement>() {
-
-                @Override
-                public Void visitTypeAsClass(TypeElement e, TypeElement p) {
-                    final List<? extends Element> existing = processingEnv.getElementUtils().getAllMembers((TypeElement) e);
-                    final List<String> ex = new ArrayList<String>();
-                    for (Element ie : existing) {
-                        if (!ie.getModifiers().contains(Modifier.ABSTRACT)) {
-                            ex.add(ie.toString());
-                        }
+            @Override
+            public Void visitTypeAsClass(TypeElement e, TypeElement p) {
+                final List<? extends Element> existing = processingEnv.getElementUtils().getAllMembers((TypeElement) e);
+                final List<String> ex = new ArrayList<String>();
+                for (Element ie : existing) {
+                    if (!ie.getModifiers().contains(Modifier.ABSTRACT)) {
+                        ex.add(ie.toString());
                     }
-                    //System.err.println(e.toString() + " "+ ex.toString());
-
-                    p.accept(new ElementKindVisitor6<Void, Void>() {
-
-                        @Override
-                        public Void visitTypeAsInterface(TypeElement e, Void p) {
-                            List<? extends Element> elements = processingEnv.getElementUtils().getAllMembers((TypeElement) e);
-                            for (Element ee : elements) {
-                                if (!ex.contains(ee.toString())) {
-                                    Node n = createNode((TypeElement) e2, (ExecutableElement) ee);
-                                    node.appendChild(n);
-                                }
-                            }
-
-                            return null;
-                        }
-                    }, null);
-
-                    return null;
                 }
-            }, base);
-        }
+                //System.err.println(e.toString() + " "+ ex.toString());
 
-        n1.setAttribute("implements", hasImplements.toString());
+                p.accept(new ElementKindVisitor6<Void, Void>() {
+
+                    @Override
+                    public Void visitTypeAsInterface(TypeElement e, Void p) {
+                        List<? extends Element> elements = processingEnv.getElementUtils().getAllMembers((TypeElement) e);
+                        for (Element ee : elements) {
+                            if (!ex.contains(ee.toString())) {
+                                Node n = createNode((TypeElement) e2, (ExecutableElement) ee);
+                                node.appendChild(n);
+                            }
+                        }
+
+                        return null;
+                    }
+                }, null);
+
+                return null;
+            }
+        }, base);
+
         addModifiers(e2, n1);
-        if (base != null) {
-            n1.setAttribute("interface", base.toString());
-        }
-        return node;
+        n1.appendChild(node);
     }
 
     private boolean hasImplements(TypeElement e2, String name) throws ClassNotFoundException, NoSuchMethodException {
@@ -858,10 +861,34 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         return v;
     }
 
-    private List<String> getAllAttributeNames(Element e2) {
+    private List<String> getAllAttributeNames(final TypeElement e2) {
         final List<String> attributes = new ArrayList<String>();
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProfileCMPField.class
-        );
+        //find profile having this table interface
+        Optional<TypeElement> cmp = roundEnv.getElementsAnnotatedWith(ProfileSpec.class)
+                .stream()
+                .filter(
+                        e -> e.getAnnotationMirrors().stream().anyMatch(a -> {
+                            Optional<String> tableInterface = this.getElementValue(a, "tableInterface");
+                            if (tableInterface.isEmpty()) {
+                                return false;
+                            }
+                            return e2.getQualifiedName().toString().equals(tableInterface.get());
+                        })
+                ).flatMap(
+                        e -> e.getAnnotationMirrors().stream()
+                                .flatMap(a -> this.getElementValue(a, "cmpInterface").stream())
+                )
+                .map(n -> getTypeElement(n))
+                .findAny();
+
+        TypeElement e3 = cmp.get();
+        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProfileCMPField.class)
+                .stream().
+                filter(
+                        t -> ((TypeElement) t.getEnclosingElement()).getQualifiedName().toString().equals(e3.getQualifiedName().toString())
+                )
+                .collect(toSet());
+
         for (Element e : elements) {
             e.accept(new ElementKindVisitor6<Void, Element>() {
 
@@ -876,12 +903,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     attributes.add(e.getSimpleName().toString());
                     return null;
                 }
-            }, e2);
+            }, e3);
         }
         return attributes;
     }
 
-    public org.w3c.dom.Node parse(String query, List<String> attributes, int iiii, List<String> parameters) {
+    public org.w3c.dom.Node parse(String query, List<String> attributes, int iiii, List<String> parameters) throws Exception {
         DocumentFragment e = doc.createDocumentFragment();
         org.w3c.dom.Node cn = e;
         org.w3c.dom.Element tn = doc.createElement("tmp");
@@ -929,7 +956,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             } else //constant
             //FIX BUG HERE WHEN NO ATTRIBUTENAMES
             {
-                ((org.w3c.dom.Element) cn).setAttribute(calculatePrefix((org.w3c.dom.Element) cn) + "value", t);
+                if (cn instanceof org.w3c.dom.Element) {
+                    ((org.w3c.dom.Element) cn).setAttribute(calculatePrefix((org.w3c.dom.Element) cn) + "value", t);
+                } else {
+                    throw new Exception("no attribute-name attribute on query (missing CMP parameter?)");
+                }
             }
 
         }
@@ -959,24 +990,48 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private Node calculateUsageParameterSet(Element e2, AnnotationMirror a) {
+    private Node calculateUsageParameterSet(Element e2, AnnotationMirror a, org.w3c.dom.Element node) {
         DocumentFragment f = doc.createDocumentFragment();
         List<ExecutableElement> ee = ElementFilter.methodsIn(this.processingEnv.getElementUtils().getAllMembers((TypeElement) e2));
         org.w3c.dom.Element n = null;
 
+        final org.w3c.dom.Element mnode = doc.createElement("methods");
+        mnode.setAttribute("enclosing", e2.toString());
+        node.appendChild(mnode);
+        MessageFormat mf = new MessageFormat("public {0} {1} ();");
+
         for (ExecutableElement m : ee) {
-            String ename = ((TypeElement) m.getEnclosingElement()).getQualifiedName().toString();
 
-            if (!ename.equals(Object.class
-                    .getName())) {
-                f.appendChild(n = (org.w3c.dom.Element) this.createNode(m));
-                n.appendChild(n = doc.createElement("annotation"));
+            if (m.getSimpleName().toString().startsWith("increment") || m.getSimpleName().toString().startsWith("sample")) {
+                String ename = ((TypeElement) m.getEnclosingElement()).getQualifiedName().toString();
 
-                ((org.w3c.dom.Element) n).setAttribute("name", javax.slee.annotation.UsageParameter.class.getName());
-                ((org.w3c.dom.Element) n).setAttribute("processed-value", formatUsageParameter(m.getSimpleName().toString()));
+                if (!ename.equals(Object.class
+                        .getName())) {
+                    f.appendChild(n = (org.w3c.dom.Element) this.createNode(m));
+                    n.appendChild(n = doc.createElement("annotation"));
+
+                    ((org.w3c.dom.Element) n).setAttribute("name", javax.slee.annotation.UsageParameter.class.getName());
+                    final String name = formatUsageParameter(m.getSimpleName().toString());
+                    ((org.w3c.dom.Element) n).setAttribute("processed-value", name);
+
+                    if (!ee.stream().filter(m2 -> !m.equals(m2)).anyMatch(
+                            m2 -> m2.getSimpleName().toString().equals("get" + this.capitalizeFirst(name))
+                    )) {
+                        ((org.w3c.dom.Element) n).setAttribute("missing-counter", Boolean.TRUE.toString());
+
+                        final org.w3c.dom.Element me = doc.createElement("method");
+                        String r = m.getSimpleName().toString().startsWith("sample") ? "javax.slee.usage.SampleStatistics" : "long";
+
+                        me.setAttribute("name", mf.format(new Object[]{r, "get" + this.capitalizeFirst(name)}, new StringBuffer(), new FieldPosition(0)).toString());
+                        me.setAttribute("enclosing", e2.toString());
+                        mnode.appendChild(me);
+                    }
+                }
+            } else {
             }
         }
 
+        node.appendChild(f);
         return f;
     }
 
@@ -1211,6 +1266,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private Optional<String> getElementValue(AnnotationMirror a, String name) {
         return a.getElementValues().entrySet().stream().filter(e -> name.equals(e.getKey().getSimpleName().toString())).map(e -> e.getValue().getValue().toString()).findFirst();
+    }
+
+    private String capitalizeFirst(String name) {
+        StringBuilder bob = new StringBuilder(name);
+        bob.setCharAt(0, Character.toUpperCase(bob.charAt(0)));
+        return bob.toString();
     }
 
 }

@@ -28,11 +28,12 @@ import javax.slee.annotation.Collator;
 import javax.slee.annotation.Reentrant;
 import java.util.Collection;
 import javax.annotation.Resource;
+import javax.slee.CreateException;
 import javax.slee.facilities.Tracer;
 import javax.slee.profile.Profile;
 import javax.slee.profile.ProfileContext;
 import javax.slee.profile.ProfileLocalObject;
-import javax.slee.usage.UnrecognizedUsageParameterSetNameException;
+import javax.slee.profile.ProfileVerificationException;
 
 import org.mobicents.slee.annotations.examples.ExampleUsageParametersInterface;
 
@@ -58,7 +59,7 @@ collators = {
 readOnly = true,
 singleProfileHint = true,
 securityPermissions = ProfileSpec.ALL_PERMISSIONS)
-public abstract class CompleteExampleAnnotatedProfile implements Profile, ExampleProfileManagementInterface {
+public abstract class CompleteExampleAnnotatedProfile implements Profile{
 
     @EnvEntry(value = "Hello")
     private final String envEntry="YeSSS IT WORKS";
@@ -80,5 +81,45 @@ public abstract class CompleteExampleAnnotatedProfile implements Profile, Exampl
             this.profileContext.getProfileTable().remove(local.getProfileName());
         }
     }
-    //
+
+    @Override
+    public void setProfileContext(ProfileContext context) {
+    }
+
+    @Override
+    public void unsetProfileContext() {
+    }
+
+    @Override
+    public void profileInitialize() {
+    }
+
+    @Override
+    public void profilePostCreate() throws CreateException {
+    }
+
+    @Override
+    public void profileActivate() {
+    }
+
+    @Override
+    public void profilePassivate() {
+    }
+
+    @Override
+    public void profileLoad() {
+    }
+
+    @Override
+    public void profileStore() {
+    }
+
+    @Override
+    public void profileRemove() {
+    }
+
+    @Override
+    public void profileVerify() throws ProfileVerificationException {
+    }
+    
 }

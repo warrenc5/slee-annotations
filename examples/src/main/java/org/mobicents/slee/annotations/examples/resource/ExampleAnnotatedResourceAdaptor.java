@@ -118,7 +118,7 @@ public class ExampleAnnotatedResourceAdaptor implements javax.slee.resource.Reso
 
     @Override
     public Object getResourceAdaptorInterface(String className) {
-        return null;
+        return this;
     }
 
     @Override

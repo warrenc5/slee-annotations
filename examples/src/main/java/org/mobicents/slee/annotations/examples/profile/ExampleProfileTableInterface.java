@@ -32,6 +32,7 @@ public interface ExampleProfileTableInterface extends ProfileTable {
     @StaticQuery(readOnly="true", 
             maxMatches="100", 
             query="x less-than 0")// FIXME: Rhinobug? and another has-prefix something")
-    public abstract Collection<ProfileLocalObject> queryTestQuery(String something, int anotherParameter);
+    public abstract Collection queryTestThis(String something, int anotherParameter);
+    //public abstract Collection<ProfileLocalObject> queryTestQuery(String something, int anotherParameter);
 	
 }

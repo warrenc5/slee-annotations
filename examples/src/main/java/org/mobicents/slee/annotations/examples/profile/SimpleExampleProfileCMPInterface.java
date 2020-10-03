@@ -30,7 +30,7 @@ import javax.slee.annotation.ProfileSpec;
 public interface SimpleExampleProfileCMPInterface {
 
 	@ProfileCMPField
-	public String getX();
-	public void setX(String x);
+	public String getW();
+	public void setW(String x);
 
 }

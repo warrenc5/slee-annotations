@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:output omit-xml-declaration="yes" method="text" indent="no" />
+   
+    <xsl:output omit-xml-declaration="yes" method="text" indent="yes" />
 
     <xsl:strip-space elements="node()"/>
     <xsl:key name="unique-field" match="element[@kind='FIELD']" use="concat(@name,@enclosing)"/>
@@ -49,23 +50,27 @@
 
         </xsl:text>
         <xsl:apply-templates select="//classtypes[@enclosing = $name]"  mode="out"/>
-        <xsl:if test="boolean(@implements)">
-            <xsl:choose>
-                <xsl:when test="annotation/@name='javax.slee.annotation.ProfileSpec' and annotation/element[@name='abstractClass']/@value = 'javax.slee.profile.Profile'" >
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text> declare parents : </xsl:text>
-                    <xsl:value-of select="annotation/@simple-name"/>
-                    <xsl:text> implements </xsl:text>
-                    <xsl:value-of select="@interface"/>
-                    <xsl:text>; </xsl:text>
+        <!--TODO: add this class if abstractClass is missing -->
+        <!--
+    <xsl:if test="boolean(@implements)">
+        <xsl:choose>
+            <xsl:when test="annotation/@name='javax.slee.annotation.ProfileSpec' and annotation/element[@name='abstractClass']/@value = 'javax.slee.profile.Profile'" >
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:text> declare parents : </xsl:text>
+                <xsl:value-of select="annotation/@simple-name"/>
+                <xsl:text> implements </xsl:text>
+                <xsl:value-of select="@interface"/>
+                <xsl:text>; </xsl:text>
 
-                       
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
+                   
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:if>
+        -->
 
         <xsl:apply-templates select="//*[@enclosing = $name]"/>
+
         <xsl:text>
             }
         </xsl:text>
@@ -248,10 +253,10 @@
         <xsl:text>ChildRelation();
         </xsl:text>
         <xsl:choose>
-            <xsl:when test="../element[@type='javax.slee.ChildRelation']">
+            <xsl:when test="../@type='javax.slee.ChildRelation'">
                 <xsl:text>object.</xsl:text>
                 <xsl:value-of select="../@name"/>
-                <xsl:text> = tmp</xsl:text>
+                <xsl:text> = object.tmp</xsl:text>
                 <xsl:value-of select="../@name"/>
                 <xsl:text>;
                 </xsl:text>
@@ -264,7 +269,7 @@
                 <xsl:value-of select="../@type"/>
                 <xsl:text>)object.tmp</xsl:text>
                 <xsl:value-of select="../@name"/>
-                <xsl:text>.create();
+                <xsl:text>.create(); 
                     }catch(javax.slee.CreateException x){
                     throw new RuntimeException(x);
                     }
@@ -628,13 +633,17 @@
     <!--CONFIG PROPERTY -->
 
     <xsl:template match="//element[@kind='FIELD']/annotation[@name='javax.slee.annotation.ConfigProperty']" mode="get-field-inject" priority="1">
-        <xsl:text>object.</xsl:text>
+        <!--TODO: null config -->
+
+
+        <xsl:text>javax.slee.resource.ConfigProperties.Property o = null; 
+        object.</xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> = (</xsl:text>
         <xsl:value-of select="../@type"/>
-        <xsl:text>)object.__configProperties.getProperty("</xsl:text>
+        <xsl:text>)((o = object.__configProperties.getProperty("</xsl:text>
         <xsl:value-of select="../@name"/>
-        <xsl:text>").getValue();</xsl:text>
+        <xsl:text>")) == null? null:o.getValue());</xsl:text>
     </xsl:template>
 
     <xsl:template match="//element[@kind='FIELD']/annotation[@name='javax.slee.annotation.ConfigProperty']" priority="1">
@@ -959,15 +968,18 @@
     </xsl:template>
 
     <xsl:template match="classtypes" mode="out" >
-        <xsl:apply-templates select="node()" mode="out" />
-    </xsl:template>
-
-    <xsl:template match="classtype" mode="out" >
-        <xsl:text> declare parents : </xsl:text>
-        <xsl:value-of select="@enclosing"/>
+        <xsl:text> 
+            declare parents : </xsl:text>
+        <xsl:value-of select="@simple-name"/>
         <xsl:text> implements </xsl:text>
-        <xsl:value-of select="@name"/>
-        <xsl:text>; </xsl:text>
+        <xsl:for-each select="classtype">
+            <xsl:value-of select="@name" />
+            <xsl:if test="(position( )) != last()">
+                <xsl:text>,</xsl:text>
+            </xsl:if>
+        </xsl:for-each>
+        <xsl:text>;</xsl:text>
+        
     </xsl:template>
 
     <!--METHODS -->
