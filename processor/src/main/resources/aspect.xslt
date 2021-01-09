@@ -309,6 +309,10 @@
     </xsl:template>
 
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.slee.annotation.CMPField']" mode="get-field-inject">
+        <xsl:text>object.</xsl:text><xsl:value-of select="../@name"/><xsl:text> = object.get</xsl:text>
+        <xsl:value-of select="@processed-value"/>
+        <xsl:text>(); 
+        </xsl:text>
     </xsl:template>
 
     <xsl:template match="element[@kind='FIELD']/annotation[@name='javax.slee.annotation.CMPField']">
