@@ -26,7 +26,7 @@ import javax.slee.SbbLocalObject;
  */
 @Documented
 @Target(value = {ElementType.TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface Sbb {
 
     /**

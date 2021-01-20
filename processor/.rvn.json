@@ -15,6 +15,7 @@ config = {
     },
     
     "buildCommands": [
-        "mvn  install",
+        "mvnDebug test",
+        "!mvn install"
     ]
 }

@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ActivityContextAttributeAlias {
 
     /**

@@ -27,7 +27,7 @@ import javax.slee.profile.ProfileTable;
  */
 @Documented
 @Target(value = {ElementType.TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ProfileSpec {
 
     /**

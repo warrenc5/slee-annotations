@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(value={ElementType.ANNOTATION_TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface EventTypeRef {
 
     /**

@@ -93,26 +93,26 @@
             pointcut debug_get(): debug_class() &amp;&amp; (get(* *.*));
 
             before (): debug_constructor() {
-            if(Boolean.getBoolean("debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_constructor() {
-            if(Boolean.getBoolean("debug")) System.err.println("=}=} " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("=}=} " + thisJoinPointStaticPart.getSignature());
             }
 
             before (): debug_method() {
-            if(Boolean.getBoolean("debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("={= " + thisJoinPointStaticPart.getSignature());
             }
             after() returning : debug_method() {
-            if(Boolean.getBoolean("debug")) System.err.println("=}= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("=}= " + thisJoinPointStaticPart.getSignature());
             }
             after() throwing : debug_method() {
-            if(Boolean.getBoolean("debug")) System.err.println("=*= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("=*= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_set() {
-            if(Boolean.getBoolean("debug")) System.err.println("=w= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("=w= " + thisJoinPointStaticPart.getSignature());
             }
             after(): debug_get() {
-            if(Boolean.getBoolean("debug")) System.err.println("=r= " + thisJoinPointStaticPart.getSignature());
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("=r= " + thisJoinPointStaticPart.getSignature());
             }
 
             }
@@ -319,6 +319,7 @@
         <xsl:apply-templates select="." mode="get-field-pointcut"/>
         <xsl:apply-templates select="." mode="set-field-pointcut"/>
 
+        //TODO add debug advice around added abstracts 
         <xsl:text>
             public abstract </xsl:text>
         <xsl:value-of select="../@type"/>
@@ -547,7 +548,7 @@
     <xsl:template match="element[@kind='METHOD']/annotation[@name='javax.annotation.Resource' and @type='javax.slee.facilities.Tracer']" mode="method-intercept-inject" priority="1">
         <xsl:param name="fieldName"/>
         <xsl:value-of select="$fieldName"/>
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("getting tracer " + object.toString() + " "+ object.__context);</xsl:text>
+        <xsl:text>if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("getting tracer " + object.toString() + " "+ object.__context);</xsl:text>
         <xsl:text> //TODO cache this tracer?
             return object.__context.getTracer("</xsl:text>
         <xsl:choose>
@@ -567,7 +568,7 @@
         <xsl:value-of select="../@name"/>
         <xsl:text> == null) {
         </xsl:text>
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("constructing tracer </xsl:text>
+        <xsl:text>if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("constructing tracer </xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> </xsl:text>
         <xsl:value-of select="element/@value"/>
@@ -588,7 +589,7 @@
         <xsl:text>");
             }
         </xsl:text>
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("gotted tracer " + (object.</xsl:text>
+        <xsl:text>if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("gotted tracer " + (object.</xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> == null)); </xsl:text>
     </xsl:template>
@@ -1028,7 +1029,7 @@
         <xsl:value-of select="$method-name"/>
         <xsl:text>(object) { 
         </xsl:text>
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("advice ###### around-0 </xsl:text> 
+        <xsl:text>if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("advice ###### around-0 </xsl:text> 
         <xsl:value-of select="$method-name"/> 
         <xsl:text>");</xsl:text>
 
@@ -1075,7 +1076,7 @@
         <xsl:value-of select="$method-name"/>
         <xsl:text>(object,arg1) { </xsl:text>
 
-        <xsl:text>if(Boolean.getBoolean("debug")) System.err.println("advice ###### around " + object.toString() + "</xsl:text> 
+        <xsl:text>if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("advice ###### around " + object.toString() + "</xsl:text> 
         <xsl:value-of select="$method-name"/> 
         <xsl:text>");</xsl:text>
 
@@ -1129,7 +1130,7 @@
         <xsl:value-of select="generate-id(key('unique-field',concat(../@name,../@enclosing)))"/>
         <xsl:text>Field(object,arg1) {</xsl:text>
         <xsl:text>
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### setter </xsl:text>
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("advice ###### setter </xsl:text>
         <xsl:value-of select="../@name"/>
         <xsl:text> " + arg1);
         </xsl:text>
@@ -1164,9 +1165,11 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>Field(object) {</xsl:text>
         <xsl:text>
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### getter </xsl:text>
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("advice ###### getter </xsl:text>
         <xsl:value-of select="../@name"/>
-        <xsl:text> ");
+        
+        <xsl:text>" + object.getClass().toString());
+            <!--todo can show null or hashcode-->
         </xsl:text>
         <xsl:apply-templates select="." mode="get-field-inject" >
             <xsl:with-param name="fieldName">
@@ -1204,7 +1207,7 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>FieldJNDI(object) {</xsl:text>
         <xsl:text>
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi getter wrapper </xsl:text>
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("advice ###### jndi getter wrapper </xsl:text>
         <xsl:value-of select="../@name"/> " + <xsl:value-of select="$jndi-name"/>
         <xsl:text>);
         </xsl:text>
@@ -1247,7 +1250,7 @@
         <xsl:text> </xsl:text>
         <xsl:value-of select="../@enclosing"/>.<xsl:value-of select="../@name"/>
         <xsl:text>() {
-            if(Boolean.getBoolean("debug")) System.err.println("advice ###### jndi method wrapper </xsl:text>
+            if(Boolean.getBoolean("slee.annotation.debug")) System.err.println("advice ###### jndi method wrapper </xsl:text>
         <xsl:value-of select="@name"/> " + <xsl:value-of select="$jndi-name"/>
         <xsl:text>);
         </xsl:text>

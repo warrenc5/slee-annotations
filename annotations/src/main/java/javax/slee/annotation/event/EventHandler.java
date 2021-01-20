@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(value = {ElementType.METHOD})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface EventHandler {
     /**
      * The description element may contain any descriptive text about the parent

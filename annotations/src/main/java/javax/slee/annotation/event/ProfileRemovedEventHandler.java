@@ -17,7 +17,7 @@ import javax.slee.profile.ProfileRemovedEvent;
  */
 @Documented
 @Target(value = { ElementType.METHOD })
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ProfileRemovedEventHandler {
 
     /**

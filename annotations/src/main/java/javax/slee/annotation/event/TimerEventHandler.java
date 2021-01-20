@@ -15,7 +15,7 @@ import javax.slee.annotation.event.EventHandler.InitialEventSelect;
  */
 @Documented
 @Target(value = { ElementType.METHOD })
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface TimerEventHandler {
     /**
      * 

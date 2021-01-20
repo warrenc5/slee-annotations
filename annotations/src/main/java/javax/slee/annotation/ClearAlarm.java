@@ -15,7 +15,7 @@ import java.lang.annotation.ElementType;
  */
 @Documented
 @Target(value = {ElementType.METHOD})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ClearAlarm {
 
     /**

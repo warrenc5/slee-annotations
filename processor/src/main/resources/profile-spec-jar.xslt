@@ -101,7 +101,7 @@
                             <xsl:if test="element[@name='indexHint' and not(@value='NONE')]">
                                 <index-hint>
                                     <xsl:attribute name="query-operator">
-                                        <xsl:value-of select="element[@name='indexHint']/@value"/>
+                                        <xsl:value-of select="element[@name='indexHint']/@processed-value"/>
                                     </xsl:attribute>
                                 </index-hint>
                             </xsl:if>
@@ -174,7 +174,7 @@
 
             <xsl:apply-templates select="//element[@enclosing=$profileSpecClass]/annotation[@name='javax.slee.annotation.EnvEntry']"/>
 
-            <xsl:for-each select="/process/element[@enclosing=$profileSpecClass or @enclosing=$profileTableInterface]/query">
+            <xsl:for-each select="/process/element[@enclosing=$profileSpecClass or @enclosing=$profileTableInterface]//query">
                 <xsl:copy-of select="."/>
             </xsl:for-each>
 

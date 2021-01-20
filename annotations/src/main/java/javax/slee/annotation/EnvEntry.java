@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.FIELD})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface EnvEntry {
 
     /**

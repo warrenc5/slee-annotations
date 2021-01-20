@@ -21,7 +21,7 @@ import javax.slee.Sbb;
  */
 @Documented
 @Target(value = {ElementType.TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface Service {
 
     String id() default "";

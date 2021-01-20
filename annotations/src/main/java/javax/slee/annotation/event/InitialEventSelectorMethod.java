@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(value = {ElementType.METHOD})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface InitialEventSelectorMethod {
 
     /**

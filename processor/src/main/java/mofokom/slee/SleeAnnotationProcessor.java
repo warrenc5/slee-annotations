@@ -25,25 +25,19 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import static javax.lang.model.type.TypeKind.NONE;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.ElementKindVisitor6;
+import javax.slee.annotation.Collator;
 import javax.slee.annotation.ProfileCMPField;
+import javax.slee.annotation.ProfileSpec;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.dom.DOMSource;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import javax.lang.model.util.ElementFilter;
-import javax.slee.annotation.Collator;
-import javax.slee.annotation.ProfileSpec;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
@@ -53,6 +47,11 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.xml.resolver.CatalogException;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.*;
 
@@ -402,10 +401,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                             .getSimpleName().toString())) {
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString().charAt(0) + o.toString().toLowerCase().substring(1));
                 ((org.w3c.dom.Element) n).setAttribute("type", e.getKey().asType().toString());
+            } else if (e.getKey().asType().toString().endsWith(ProfileCMPField.QueryOperator.class.getSimpleName())) {
+                ((org.w3c.dom.Element) n).setAttribute("processed-value", kebabCase(o.toString()));
+                ((org.w3c.dom.Element) n).setAttribute("value", o.toString());
             } else {
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString());
             }
-
             if (e.getKey().getDefaultValue() != null) {
                 ((org.w3c.dom.Element) n).setAttribute("default", e.getKey().getDefaultValue().toString());
             }
@@ -869,23 +870,27 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 .filter(
                         e -> e.getAnnotationMirrors().stream().anyMatch(a -> {
                             Optional<String> tableInterface = this.getElementValue(a, "tableInterface");
-                            if (tableInterface.isEmpty()) {
+                            if (!tableInterface.isPresent()) {
                                 return false;
                             }
                             return e2.getQualifiedName().toString().equals(tableInterface.get());
                         })
                 ).flatMap(
                         e -> e.getAnnotationMirrors().stream()
-                                .flatMap(a -> this.getElementValue(a, "cmpInterface").stream())
+                                .map(a -> this.getElementValue(a, "cmpInterface"))
+                                .filter(o -> o.isPresent()).collect(toList()).stream()
+                //FIXME use optional.stream
                 )
-                .map(n -> getTypeElement(n))
+                .map(n -> getTypeElement(n.get()))
                 .findAny();
 
         TypeElement e3 = cmp.get();
+        TypeMirror m;
         Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProfileCMPField.class)
                 .stream().
                 filter(
                         t -> ((TypeElement) t.getEnclosingElement()).getQualifiedName().toString().equals(e3.getQualifiedName().toString())
+                        || e3.getInterfaces().contains(((TypeElement) t.getEnclosingElement()).asType())
                 )
                 .collect(toSet());
 
@@ -909,6 +914,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     public org.w3c.dom.Node parse(String query, List<String> attributes, int iiii, List<String> parameters) throws Exception {
+
         DocumentFragment e = doc.createDocumentFragment();
         org.w3c.dom.Node cn = e;
         org.w3c.dom.Element tn = doc.createElement("tmp");
@@ -1272,6 +1278,10 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         StringBuilder bob = new StringBuilder(name);
         bob.setCharAt(0, Character.toUpperCase(bob.charAt(0)));
         return bob.toString();
+    }
+
+    private String kebabCase(String snakeCase) {
+        return snakeCase.toLowerCase().replaceAll("_", "-");
     }
 
 }

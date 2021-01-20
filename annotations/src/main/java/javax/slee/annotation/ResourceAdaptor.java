@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(value = {ElementType.TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ResourceAdaptor {
 
     /**

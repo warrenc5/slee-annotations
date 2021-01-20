@@ -81,18 +81,23 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         <xsl:variable name="event" select=".//annotation[@name='javax.slee.annotation.event.EventTypeRef']"/> 
                         <xsl:variable name="iesm" select="/process/element[@kind='METHOD' and @type='javax.slee.InitialEventSelector' and annotation[@name='javax.slee.annotation.event.InitialEventSelectorMethod' and element/annotation[@name='javax.slee.annotation.event.EventTypeRef' and generate-id(key('eventTypeRefKey',concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value))) = generate-id(key('eventTypeRefKey',concat($event/element[@name='name']/@value,$event/element[@name='vendor']/@value,$event/element[@name='version']/@value)))]]]/@name"/> 
 
+                        <!--
                         <xsl:if test="$iesm">
                             <initial-event-selector-method-name>
                                 <xsl:value-of select="$iesm"/>
                             </initial-event-selector-method-name>
                         </xsl:if>
+                        -->
                     </xsl:if>
 
+                        <!--fix me iesm is always matched -->
+                        <!--
                     <xsl:if test="element[@name='initialEventSelectorMethod' and not(@value='')]"> 
                         <initial-event-selector-method-name>
                             <xsl:value-of select="element[@name='initialEventSelectorMethod']/@value"/>
                         </initial-event-selector-method-name>
                     </xsl:if>
+    -->
 
                     <xsl:if test="element[@name='eventResourceOption' and not(@value='')]"> 
                         <event-resource-option>

@@ -14,7 +14,7 @@ import javax.slee.annotation.LibraryRef;
  */
 @Documented
 @Target(value = {ElementType.TYPE})
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface EventType {
 
     String id() default "";

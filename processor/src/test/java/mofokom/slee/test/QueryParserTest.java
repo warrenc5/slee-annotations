@@ -12,8 +12,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import mofokom.slee.SleeAnnotationProcessor;
 import org.junit.AfterClass;
-import org.junit.Test;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.w3c.dom.Node;
 
 /**
@@ -36,9 +36,18 @@ public class QueryParserTest {
     @Test
     public void testQuery1() throws Exception {
         String query = "( X range-match 1 2 or X less-than#somecollator 0 ) and someParameter#otherCollator has-prefix 44 ";
-        query="x less-than anotherParameter#oneCollator and another has-prefix something";
+        query = "x less-than anotherParameter#oneCollator and another has-prefix something";
         String queryName = "myquery";
-        Node e = new SleeAnnotationProcessor().parse(query, Arrays.asList(new String[] {"x","another"}), 0,Arrays.asList(new String[]{"something","anotherParameter"}));
+        Node e = new SleeAnnotationProcessor().parse(query, Arrays.asList(new String[]{"x", "another"}), 0, Arrays.asList(new String[]{"something", "anotherParameter"}));
+        Transformer transform = TransformerFactory.newInstance().newTransformer();
+        transform.transform(new DOMSource(e), new StreamResult(System.err));
+    }
+
+    @Test
+    public void testQuery2() throws Exception {
+        String query = "x longest-prefix-match prefix";
+        String queryName = "myquery";
+        Node e = new SleeAnnotationProcessor().parse(query, Arrays.asList(new String[]{"x"}), 0, Arrays.asList(new String[]{"prefix"}));
         Transformer transform = TransformerFactory.newInstance().newTransformer();
         transform.transform(new DOMSource(e), new StreamResult(System.err));
     }
