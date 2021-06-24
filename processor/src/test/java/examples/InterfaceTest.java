@@ -4,10 +4,10 @@ package examples;
 import java.util.logging.Logger;
 import javax.slee.SbbContext;
 import javax.slee.facilities.Tracer;
-import lombok.extern.slf4j.Slf4j;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mobicents.slee.annotations.examples.profile.CompleteExampleAnnotatedProfile;
 import org.mobicents.slee.annotations.examples.profile.ExampleProfileCMPInterface;
@@ -27,6 +27,7 @@ public class InterfaceTest {
     }
 
     @Test
+    @Ignore
     public void testProfileImplementsInterface() {
         assertTrue(ExampleProfileCMPInterface.class.isAssignableFrom(CompleteExampleAnnotatedProfile.class));
         Logger.getAnonymousLogger().info("OK");
@@ -38,6 +39,7 @@ public class InterfaceTest {
     }
 
     @Test
+    @Ignore
     public void testSbbSubclassCall() {
         System.setProperty("debug", "true");
         MySubClass mock = spy(MySubClass.class);

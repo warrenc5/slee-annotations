@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package mofokom.slee.test;
 
 import java.io.IOException;
@@ -24,6 +19,7 @@ import mofokom.slee.SleeAnnotationProcessor;
 import org.apache.xml.resolver.CatalogException;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mobicents.slee.annotations.examples.sbb.CMPSbb1;
 
@@ -34,6 +30,7 @@ import org.mobicents.slee.annotations.examples.sbb.CMPSbb1;
 public class TestCMPField {
 
     @Test
+    @Ignore
     public void test() throws IOException, CatalogException, ParserConfigurationException {
 
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();

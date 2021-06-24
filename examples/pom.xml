@@ -2,11 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 	
-    <groupId>org.mobicents.servers.jainslee.api</groupId>
     <artifactId>jain-slee-11-ext</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-	
+	<parent>
+        <groupId>biz.mofokom.slee</groupId>
+        <artifactId>slee-annotations-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+
     <name>JAIN SLEE 1.1 Annotation Examples</name>
+    <description>slee-annotations-examples</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -56,9 +61,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>mobi.mofokom.slee</groupId>
+            <groupId>biz.mofokom.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>xml-resolver</groupId>
@@ -77,15 +82,6 @@
             <version>1.0</version>
             <type>jar</type>
         </dependency>
-        <!--
-                <dependency>
-                    <groupId>biz.mofokom</groupId>
-                    <artifactId>slee-test-framework</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <scope>test</scope>
-                    <type>jar</type>
-                </dependency>
-        -->
         <dependency>
             <groupId>javax.slee</groupId>
             <artifactId>jain-slee</artifactId>
