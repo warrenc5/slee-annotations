@@ -6,7 +6,7 @@
 	<parent>
         <groupId>biz.mofokom.slee</groupId>
         <artifactId>slee-annotations-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
 
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>biz.mofokom.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>xml-resolver</groupId>
@@ -94,7 +94,7 @@
         <connection>scm:svn:https://mobicents.googlecode.com/svn/trunk/servers/jain-slee/api/extensions</connection>
         <developerConnection>scm:svn:https://mobicents.googlecode.com/svn/trunk/servers/jain-slee/api/extensions</developerConnection>
         <url>http://mobicents.googlecode.com/svn/trunk/servers/jain-slee/api/extensions</url>
-      <tag>slee-annotations-parent-1.0.0</tag>
+      <tag>HEAD</tag>
   </scm>
     
     <build>
