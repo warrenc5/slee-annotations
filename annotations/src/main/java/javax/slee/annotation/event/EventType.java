@@ -18,6 +18,7 @@ import javax.slee.annotation.LibraryRef;
 public @interface EventType {
 
     String id() default "";
+
     /*
      *
      * The description element may contain any descriptive text about the parent
@@ -25,7 +26,6 @@ public @interface EventType {
      *
      *
      */
-
     String description() default "";
 
     /**
@@ -70,16 +70,14 @@ public @interface EventType {
      */
     String version();
 
-
     /**
-The event-class-name element contains the fully-qualified name of the event
-type's class or interface.
-
-Used in: event-definition
-
-Example:
-    <event-class-name>javax.slee.ActivityEndEvent</event-class-name>
-    */
-
+     * The event-class-name element contains the fully-qualified name of the
+     * event type's class or interface.
+     *
+     * Used in: event-definition
+     *
+     * Example:
+     * &lt;event-class-name&gt;javax.slee.ActivityEndEvent&lt;/event-class-name&gt;
+     */
     Class eventClass() default Void.class;
 }
