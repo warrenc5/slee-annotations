@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>biz.mofokom.slee</groupId>
     <artifactId>slee-annotations-parent</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>slee-annotation-modules</name>
     <packaging>pom</packaging>
     <description>slee-annotations-parent</description>
