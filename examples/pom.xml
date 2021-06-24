@@ -6,7 +6,7 @@
 	<parent>
         <groupId>biz.mofokom.slee</groupId>
         <artifactId>slee-annotations-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
 
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>biz.mofokom.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>xml-resolver</groupId>
