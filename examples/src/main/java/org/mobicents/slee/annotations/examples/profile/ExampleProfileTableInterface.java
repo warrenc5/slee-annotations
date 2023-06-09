@@ -23,7 +23,7 @@
 package org.mobicents.slee.annotations.examples.profile;
 
 import java.util.Collection;
-import javax.slee.annotation.StaticQuery;
+import mobi.mofokom.javax.slee.annotation.StaticQuery;
 import javax.slee.profile.ProfileLocalObject;
 import javax.slee.profile.ProfileTable;
 

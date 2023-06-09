@@ -7,7 +7,7 @@
   <property name="jars" value="target"/>
   <property name="lib" value="lib"/>
   <property name="processor" value="mofokom.slee.SLEEAnnotationProcessor"/>
-  <property name="processorpath" value="${user.home}/.m2/repository/mofokom/slee-annotation-processor/1.0-SNAPSHOT/slee-annotation-processor-1.0-SNAPSHOT.jar"/>
+  <property name="processorpath" value="${user.home}/.m2/repository/mobi/mofokom/javax/slee/jain-slee-annotation-processor/1.0-SNAPSHOT/jain-slee-annotation-processor-1.0-SNAPSHOT.jar"/>
   <property name="client.home" value="/opt/rhino/client"/>
   <property file="${basedir}/build.properties"/>
   <property name="junit.home" value="/opt/junit4.1"/>

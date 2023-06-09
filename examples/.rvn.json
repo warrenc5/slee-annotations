@@ -6,7 +6,8 @@ config = {
     "plugins": true,
     "!mvnArgs" : "-X",
     "buildCommands": [
-        "mvn -Dmaven.test.skip=true -Pthorntail"
+        "mvnd",
+        "!mvn -Dmaven.test.skip=true -Pthorntail"
     ],
     "!mvnCmd": "mvnDebug",
     "activeFiles": {

@@ -7,12 +7,12 @@
 
     <xsl:template match="/">
         <resource-adaptor-type-jar>
-            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptorType']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorType']"/>
         </resource-adaptor-type-jar>
 
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.ResourceAdaptorType']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorType']">
         <resource-adaptor-type>
 
             <xsl:if test="element[@name='id']/@value">
@@ -33,7 +33,7 @@
                 <xsl:value-of select="element[@name='version']/@value"/> 
             </resource-adaptor-type-version>
 
-            <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='javax.slee.annotation.LibraryRef']"/>
+            <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.LibraryRef']"/>
 
             <xsl:variable name="resourceAdaptorTypeClass" select="../@name"/>
 
@@ -70,7 +70,7 @@
                 </xsl:if>
             </resource-adaptor-type-classes>
             
-            <xsl:apply-templates select="element[@name='events']/annotation[@name='javax.slee.annotation.event.EventTypeRef']"/>
+            <xsl:apply-templates select="element[@name='events']/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']"/>
         </resource-adaptor-type>
     </xsl:template>
 

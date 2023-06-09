@@ -5,19 +5,19 @@
 
     <xsl:import href="resource:common.xslt"/>
 
-    <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
+    <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
     
     <xsl:template match="/">
         <resource-adaptor-jar>
             <description><xsl:text>Resource Adaptor Definitions Auto-Generated</xsl:text><xsl:value-of select="/process/@generatedTime"/></description>
-                <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptor']"/>
-                <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.ResourceAdaptor']/element[@name='securityPermissions']"/>
+                <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptor']"/>
+                <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptor']/element[@name='securityPermissions']"/>
             </resource-adaptor-jar>
 
         </xsl:template>
 
     
-        <xsl:template match="annotation[@name='javax.slee.annotation.ResourceAdaptor']">
+        <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptor']">
             <resource-adaptor>
             <xsl:if test="element[@name='id']/@value">
                     <xsl:attribute name="id">
@@ -38,9 +38,9 @@
                     <xsl:value-of select="element[@name='version']/@value"/> 
                 </resource-adaptor-version>
 
-                <xsl:apply-templates select="element[@name='typeRefs']/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']"/>
-                <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='javax.slee.annotation.LibraryRef']"/>
-                <xsl:apply-templates select="element[@name='profileSpecRefs']/annotation[@name='javax.slee.annotation.ProfileSpecRef']"/>
+                <xsl:apply-templates select="element[@name='typeRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef']"/>
+                <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.LibraryRef']"/>
+                <xsl:apply-templates select="element[@name='profileSpecRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpecRef']"/>
 
                 <xsl:variable name="resourceAdaptorClass" select="../@name"/>
 
@@ -58,9 +58,9 @@
                                 <xsl:value-of select="$usageParametersInterface"/> 
                             </resource-adaptor-usage-parameters-interface-name>
 
-                            <xsl:variable name="set1" select="/process/element[@kind='INTERFACE']/annotation[@name='javax.slee.annotation.UsageParametersInterface']/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter' and generate-id(key('usageKey',concat(@processed-value,../@enclosing)))='']"/>
+                            <xsl:variable name="set1" select="/process/element[@kind='INTERFACE']/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParametersInterface']/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter' and generate-id(key('usageKey',concat(@processed-value,../@enclosing)))='']"/>
 
-                            <xsl:variable name="set2" select="/process/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter']"/>
+                            <xsl:variable name="set2" select="/process/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParameter']"/>
 
                             <xsl:for-each select="$set1 | $set2">
                                 <xsl:sort select="@processed-value" />
@@ -78,9 +78,9 @@
                         </resource-adaptor-usage-parameters-interface>
                     </xsl:if>
                 </resource-adaptor-classes>
-                <xsl:if test="/process/element[@kind='FIELD' and @enclosing=$resourceAdaptorClass]/annotation[@name='javax.slee.annotation.ConfigProperty']">
+                <xsl:if test="/process/element[@kind='FIELD' and @enclosing=$resourceAdaptorClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.ConfigProperty']">
                     <config-property>
-                        <xsl:for-each select="/process/element[@kind='FIELD' and @enclosing=$resourceAdaptorClass]/annotation[@name='javax.slee.annotation.ConfigProperty']">
+                        <xsl:for-each select="/process/element[@kind='FIELD' and @enclosing=$resourceAdaptorClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.ConfigProperty']">
                             <config-property-name>
                                 <xsl:value-of select="../@name"/>
                             </config-property-name>

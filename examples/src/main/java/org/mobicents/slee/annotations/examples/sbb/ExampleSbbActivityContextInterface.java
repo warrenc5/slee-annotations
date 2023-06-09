@@ -21,7 +21,7 @@
  */
 package org.mobicents.slee.annotations.examples.sbb;
 
-import javax.slee.annotation.ActivityContextAttributeAlias;
+import mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias;
 
 
 

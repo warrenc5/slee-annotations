@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>biz.mofokom.slee</groupId>
-    <artifactId>slee-annotations-parent</artifactId>
+    <groupId>mobi.mofokom.javax.slee</groupId>
+    <artifactId>jain-slee-annotations-parent</artifactId>
     <version>1.0.1-SNAPSHOT</version>
-    <name>slee-annotation-modules</name>
+    <name>jain-slee-annotation-modules</name>
     <packaging>pom</packaging>
-    <description>slee-annotations-parent</description>
+    <description>jain-slee-annotations-parent</description>
     <licenses>
         <license>
             <name>The GNU Lesser General Public License, Version 3.0</name>

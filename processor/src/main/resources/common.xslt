@@ -2,7 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:output xalan:indent-amount="2" xmlns:xalan="http://xml.apache.org/xalan" />
 
-    <xsl:template match="element/annotation[@name='javax.slee.annotation.EJBRef']">
+    <xsl:template match="element/annotation[@name='mobi.mofokom.javax.slee.annotation.EJBRef']">
         <ejb-ref>
             <description>
                 <xsl:value-of select="element[@name='description']/@value"/>
@@ -22,7 +22,7 @@
         </ejb-ref>
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.EnvEntry']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.EnvEntry']">
         <env-entry>
             <description>
                 <xsl:value-of select="element[@name='description']/@value"/>
@@ -46,7 +46,7 @@
         </env-entry>
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.event.EventTypeRef']"> 
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']"> 
         <event-type-ref>
             <event-type-name>
                 <xsl:value-of select="element[@name='name']/@value"/>
@@ -60,7 +60,7 @@
         </event-type-ref>
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.LibraryRef']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.LibraryRef']">
         <library-ref>
             <description> 
                 <xsl:value-of select="element[@name='description']/@value"/> 
@@ -77,7 +77,7 @@
         </library-ref>
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.SbbRef']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.SbbRef']">
         <sbb-ref>
             <description> 
                 <xsl:value-of select="element[@name='description']/@value"/> 
@@ -96,7 +96,7 @@
             </sbb-alias>
         </sbb-ref>
     </xsl:template>
-    <xsl:template match="annotation[@name='javax.slee.annotation.ProfileSpecRef']" mode="sbb">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpecRef']" mode="sbb">
         <profile-spec-ref>
             <description> 
                 <xsl:value-of select="element[@name='description']/@value"/> 
@@ -115,7 +115,7 @@
             </profile-spec-alias>
         </profile-spec-ref>
     </xsl:template>
-    <xsl:template match="annotation[@name='javax.slee.annotation.ProfileSpecRef']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpecRef']">
         <profile-spec-ref>
             <description> 
                 <xsl:value-of select="element[@name='description']/@value"/> 
@@ -136,7 +136,7 @@
             -->
         </profile-spec-ref>
     </xsl:template>
-    <xsl:template match="annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef']">
         <resource-adaptor-type-ref>
             <!--  FIXME: only for ra 
             <description> 

@@ -4,7 +4,7 @@
  */
 package org.mobicents.slee.annotations.examples.profile;
 
-import javax.slee.annotation.ProfileCMPField;
+import mobi.mofokom.javax.slee.annotation.ProfileCMPField;
 import javax.slee.profile.Profile;
 
 /**

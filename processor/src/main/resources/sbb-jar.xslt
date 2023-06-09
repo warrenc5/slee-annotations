@@ -4,11 +4,11 @@
 
     <xsl:include href="resource:common.xslt"/>
 
-    <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
+    <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
 
-    <xsl:key name="eventKey" match="/process/element[@kind='METHOD']/annotation[@name='javax.slee.annotation.event.EventHandler']//annotation[@name='javax.slee.annotation.event.EventTypeRef']" use="concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value)"/>
+    <xsl:key name="eventKey" match="/process/element[@kind='METHOD']/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventHandler']//annotation[@name='javax.slee.annotation.event.EventTypeRef']" use="concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value)"/>
 
-    <xsl:key name="eventTypeRefKey" match="annotation[@name='javax.slee.annotation.event.EventTypeRef']" use="concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value)"/>
+    <xsl:key name="eventTypeRefKey" match="annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']" use="concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value)"/>
 
     <xsl:key name="raEntityLink" match="//element[@name='raTypeRef']/annotation" use="concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value)"/>
 
@@ -17,31 +17,31 @@
          
             <description>SBB Definitions Auto-Generated <xsl:value-of select="/process/@generatedTime"/> 
             </description>
-            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb']"/>
-            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Sbb']/element[@name='securityPermissions']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.Sbb']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.Sbb']/element[@name='securityPermissions']"/>
         </sbb-jar>
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.event.EventHandler' 
-or @name='javax.slee.annotation.event.EventFiring'
-or @name='javax.slee.annotation.event.ActivityEndEventHandler'
-or @name='javax.slee.annotation.event.ProfileAddedEventHandler'
-or @name='javax.slee.annotation.event.ProfileRemovedEventHandler'
-or @name='javax.slee.annotation.event.ProfileUpdatedEventHandler'
-or @name='javax.slee.annotation.event.ServiceStartedEventHandler'
-or @name='javax.slee.annotation.event.TimerEventHandler'
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventHandler' 
+or @name='mobi.mofokom.javax.slee.annotation.event.EventFiring'
+or @name='mobi.mofokom.javax.slee.annotation.event.ActivityEndEventHandler'
+or @name='mobi.mofokom.javax.slee.annotation.event.ProfileAddedEventHandler'
+or @name='mobi.mofokom.javax.slee.annotation.event.ProfileRemovedEventHandler'
+or @name='mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler'
+or @name='mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler'
+or @name='mobi.mofokom.javax.slee.annotation.event.TimerEventHandler'
     ]"> 
         <event>
          
-            <xsl:variable name="eventKey" select="generate-id(key('eventKey',concat(.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='name']/@value,.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='vendor']/@value,.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='version']/@value)))"/>
+            <xsl:variable name="eventKey" select="generate-id(key('eventKey',concat(.//annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']/element[@name='name']/@value,.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='vendor']/@value,.//annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']/element[@name='version']/@value)))"/>
 
             <xsl:choose>
-                <xsl:when test="@name='javax.slee.annotation.event.EventFiring'">
+                <xsl:when test="@name='mobi.mofokom.javax.slee.annotation.event.EventFiring'">
                     <xsl:attribute name="event-direction">Fire</xsl:attribute>
                 </xsl:when>
                 <xsl:otherwise> 
                     <xsl:choose>
-                        <xsl:when test="@name='javax.slee.annotation.event.EventHandler' and not($eventKey='')">
+                        <xsl:when test="@name='mobi.mofokom.javax.slee.annotation.event.EventHandler' and not($eventKey='')">
                             <xsl:attribute name="event-direction">FireAndReceive</xsl:attribute>
                         </xsl:when>
                         <xsl:otherwise> 
@@ -64,10 +64,10 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                 <xsl:value-of select="@processed-value"/>
             </event-name>
 
-            <xsl:apply-templates select=".//annotation[@name='javax.slee.annotation.event.EventTypeRef']"/>
+            <xsl:apply-templates select=".//annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']"/>
 
             <xsl:choose>
-                <xsl:when test="not(@name='javax.slee.annotation.event.EventFiring')">
+                <xsl:when test="not(@name='mobi.mofokom.javax.slee.annotation.event.EventFiring')">
                     <xsl:if test="boolean(element[@name='initialEvent']/@value)"> 
                         <xsl:for-each select="element[@name='initialEventSelect']">
                             <initial-event-select>
@@ -78,8 +78,8 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         </xsl:for-each>
                     </xsl:if>
                     <xsl:if test="element[@name='initialEventSelectorMethod' and @value='']">
-                        <xsl:variable name="event" select=".//annotation[@name='javax.slee.annotation.event.EventTypeRef']"/> 
-                        <xsl:variable name="iesm" select="/process/element[@kind='METHOD' and @type='javax.slee.InitialEventSelector' and annotation[@name='javax.slee.annotation.event.InitialEventSelectorMethod' and element/annotation[@name='javax.slee.annotation.event.EventTypeRef' and generate-id(key('eventTypeRefKey',concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value))) = generate-id(key('eventTypeRefKey',concat($event/element[@name='name']/@value,$event/element[@name='vendor']/@value,$event/element[@name='version']/@value)))]]]/@name"/> 
+                        <xsl:variable name="event" select=".//annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']"/> 
+                        <xsl:variable name="iesm" select="/process/element[@kind='METHOD' and @type='javax.slee.InitialEventSelector' and annotation[@name='mobi.mofokom.javax.slee.annotation.event.InitialEventSelectorMethod' and element/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef' and generate-id(key('eventTypeRefKey',concat(element[@name='name']/@value,element[@name='vendor']/@value,element[@name='version']/@value))) = generate-id(key('eventTypeRefKey',concat($event/element[@name='name']/@value,$event/element[@name='vendor']/@value,$event/element[@name='version']/@value)))]]]/@name"/> 
 
                         <!--
                         <xsl:if test="$iesm">
@@ -109,7 +109,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
             </xsl:choose>
         </event>
     </xsl:template>
-    <xsl:template match="annotation[@name='javax.slee.annotation.Sbb']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.Sbb']">
         <xsl:variable name="sbbClass" select="../@name"/>
         <xsl:variable name="sbbACI" select="element[@name='activityContextInterface']/@value"/>
         <sbb>
@@ -144,17 +144,17 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                 </sbb-alias>
             </xsl:if>
 
-            <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='javax.slee.annotation.LibraryRef']"/>
+            <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.LibraryRef']"/>
 
-            <xsl:apply-templates select="element[@name='sbbRefs']/annotation[@name='javax.slee.annotation.SbbRef']"/>
+            <xsl:apply-templates select="element[@name='sbbRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.SbbRef']"/>
 
-            <xsl:apply-templates select="element[@name='profileSpecRefs']/annotation[@name='javax.slee.annotation.ProfileSpecRef']" mode="sbb"/>
+            <xsl:apply-templates select="element[@name='profileSpecRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpecRef']" mode="sbb"/>
 
             <sbb-classes>
          
                 <sbb-abstract-class>
          
-                    <xsl:if test="../annotation[@name='javax.slee.annotation.Reentrant']">
+                    <xsl:if test="../annotation[@name='mobi.mofokom.javax.slee.annotation.Reentrant']">
                         <xsl:attribute name="reentrant">True</xsl:attribute>
                     </xsl:if>
                     <sbb-abstract-class-name> 
@@ -162,7 +162,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         <xsl:value-of select="../@name"/> 
                     </sbb-abstract-class-name>
 
-                    <xsl:for-each select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.CMPField']">
+                    <xsl:for-each select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.CMPField']">
                         <cmp-field>
          
                             <cmp-field-name>
@@ -184,7 +184,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         </cmp-field>
                     </xsl:for-each>
 
-                    <xsl:for-each select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.ChildRelation']">
+                    <xsl:for-each select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.ChildRelation']">
                         <get-child-relation-method>
          
                             <description>
@@ -214,7 +214,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         </get-child-relation-method> 
                     </xsl:for-each>
                     
-                    <xsl:for-each select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.ProfileCMP']">
+                    <xsl:for-each select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileCMP']">
                         <get-profile-cmp-method>
          
                             <description>
@@ -265,9 +265,9 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                             <xsl:value-of select="$usageParametersInterface"/> 
                         </sbb-usage-parameters-interface-name>
 
-                        <xsl:variable name="set1" select="/process/element[@kind='INTERFACE']/annotation[@name='javax.slee.annotation.UsageParametersInterface']/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter' and generate-id(key('usageKey',concat(@processed-value,../@enclosing)))='']"/>
+                        <xsl:variable name="set1" select="/process/element[@kind='INTERFACE']/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParametersInterface']/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter' and generate-id(key('usageKey',concat(@processed-value,../@enclosing)))='']"/>
 
-                        <xsl:variable name="set2" select="/process/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter']"/>
+                        <xsl:variable name="set2" select="/process/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParameter']"/>
 
                         <xsl:for-each select="$set1 | $set2">
                             <xsl:sort select="@processed-value" />
@@ -294,17 +294,17 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                 </address-profile-spec-alias-ref>
             </xsl:if>
 
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.EventFiring' and generate-id(key('eventKey',concat(.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='name']/@value,.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='vendor']/@value,.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='version']/@value)))='']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventFiring' and generate-id(key('eventKey',concat(.//annotation[@name='javax.slee.annotation.event.EventTypeRef']/element[@name='name']/@value,.//annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']/element[@name='vendor']/@value,.//annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventTypeRef']/element[@name='version']/@value)))='']"/>
 
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.EventHandler']"/>
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.ActivityEndEventHandler']"/>
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.TimerEventHandler']"/>
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.ServiceStartedEventHandler']"/>
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.ProfileAddedEventHandler']"/>
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.ProfileUpdatedEventHandler']"/>
-            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.event.ProfileRemovedEventFiring']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventHandler']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.ActivityEndEventHandler']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.TimerEventHandler']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.ProfileAddedEventHandler']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler']"/>
+            <xsl:apply-templates select="/process/element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.event.ProfileRemovedEventFiring']"/>
 
-            <xsl:for-each select="//element[@enclosing=$sbbACI]/annotation[@name='javax.slee.annotation.ActivityContextAttributeAlias' and count(@attribute-name)=0 ]">
+            <xsl:for-each select="//element[@enclosing=$sbbACI]/annotation[@name='mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias' and count(@attribute-name)=0 ]">
                 <activity-context-attribute-alias>
          
                     <description>
@@ -316,7 +316,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                         <xsl:value-of select="@processed-value"/>
                     </attribute-alias-name>
                     <xsl:variable name="aliasName" select="@processed-value"/>
-                    <xsl:for-each select="//element[@enclosing=$sbbACI]/annotation[@name='javax.slee.annotation.ActivityContextAttributeAlias' and @attribute-name=$aliasName]">
+                    <xsl:for-each select="//element[@enclosing=$sbbACI]/annotation[@name='mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias' and @attribute-name=$aliasName]">
                         <sbb-activity-context-attribute-name>
          
                             <xsl:value-of select="@processed-value"/>
@@ -325,13 +325,13 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                 </activity-context-attribute-alias>
             </xsl:for-each>
  
-            <xsl:apply-templates select="//element[@enclosing=$sbbClass]/annotation[@name='javax.slee.annotation.EnvEntry']"/>
-            <xsl:if test="element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding']">
-                <xsl:for-each select="element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeBinding']">
+            <xsl:apply-templates select="//element[@enclosing=$sbbClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.EnvEntry']"/>
+            <xsl:if test="element/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeBinding']">
+                <xsl:for-each select="element/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeBinding']">
                     <resource-adaptor-type-binding>
 
                         <description/>
-                        <xsl:apply-templates select="element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']"/>
+                        <xsl:apply-templates select="element/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef']"/>
                         <xsl:if test="element[@name='aciFactoryName']">
                             <activity-context-interface-factory-name> 
          
@@ -344,7 +344,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                                     <xsl:value-of select="element[@name='raObjectName']/@value"/>
                                     <!--
                                     <xsl:text>slee/resources/</xsl:text>
-                                        <xsl:value-of select="generate-id(key('raEntityLink',concat(element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='name']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='vendor']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='version']/@value)))"/>
+                                        <xsl:value-of select="generate-id(key('raEntityLink',concat(element/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='name']/@value,element/annotation[@name='javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='vendor']/@value,element/annotation[@name='mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef']/element[@name='version']/@value)))"/>
                                         TODO make this automatic-->
                                 </resource-adaptor-object-name>
                                 <resource-adaptor-entity-link>
@@ -355,7 +355,7 @@ or @name='javax.slee.annotation.event.TimerEventHandler'
                     </resource-adaptor-type-binding>
                 </xsl:for-each>
             </xsl:if>
-            <xsl:apply-templates select="element/annotation[@name='javax.slee.annotation.EJBRef']"/>
+            <xsl:apply-templates select="element/annotation[@name='mobi.mofokom.javax.slee.annotation.EJBRef']"/>
         </sbb>
     </xsl:template>
 </xsl:stylesheet>
