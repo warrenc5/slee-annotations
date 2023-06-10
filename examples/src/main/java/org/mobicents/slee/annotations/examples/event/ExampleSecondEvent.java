@@ -24,8 +24,8 @@ package org.mobicents.slee.annotations.examples.event;
 
 import java.util.UUID;
 
-import javax.slee.annotation.event.EventType;
-import javax.slee.annotation.LibraryRef;
+import mobi.mofokom.javax.slee.annotation.event.EventType;
+import mobi.mofokom.javax.slee.annotation.LibraryRef;
 
 @EventType(name=ExampleSecondEvent.EVENT_TYPE_NAME,
 		vendor=ExampleSecondEvent.EVENT_TYPE_VENDOR,

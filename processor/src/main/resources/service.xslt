@@ -7,11 +7,11 @@
         <service-xml>
             <description><xsl:text>Service Auto-Generated </xsl:text><xsl:value-of select="/process/@generatedTime"/></description>
          
-            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.Service']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.Service']"/>
         </service-xml>
     </xsl:template>
     
-    <xsl:template match="annotation[@name='javax.slee.annotation.Service']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.Service']">
         <service>
             <xsl:if test="element[@name='id']/@value">
                     <xsl:attribute name="id">
@@ -36,7 +36,7 @@
                 <xsl:value-of select="element[@name='version']/@value"/> 
             </service-version>
             <xsl:variable name="name" select="element[@name='rootSbb']/@value"/>
-            <xsl:apply-templates select="/process/element[@kind='CLASS' and @name=$name]/annotation[@name='javax.slee.annotation.Sbb']"/>
+            <xsl:apply-templates select="/process/element[@kind='CLASS' and @name=$name]/annotation[@name='mobi.mofokom.javax.slee.annotation.Sbb']"/>
             <default-priority>
          
                 <xsl:value-of select="element[@name='defaultPriority']/@value"/> 
@@ -49,7 +49,7 @@
             </xsl:if>
         </service>
     </xsl:template>
-    <xsl:template match="annotation[@name='javax.slee.annotation.Sbb']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.Sbb']">
         <root-sbb>
             <sbb-name>
                 <xsl:value-of select="element[@name='name']/@value"/>

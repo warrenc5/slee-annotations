@@ -1,8 +1,8 @@
 
 package org.mobicents.slee.annotations.examples;
 
-import javax.slee.annotation.UsageParameter;
-import javax.slee.annotation.UsageParametersInterface;
+import mobi.mofokom.javax.slee.annotation.UsageParameter;
+import mobi.mofokom.javax.slee.annotation.UsageParametersInterface;
 import javax.slee.usage.SampleStatistics;
 
 

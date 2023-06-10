@@ -21,11 +21,11 @@
  */
 package org.mobicents.slee.annotations.examples.profile;
 
-import javax.slee.annotation.ProfileSpec;
-import javax.slee.annotation.EnvEntry;
-import javax.slee.annotation.LibraryRef;
-import javax.slee.annotation.Collator;
-import javax.slee.annotation.Reentrant;
+import mobi.mofokom.javax.slee.annotation.ProfileSpec;
+import mobi.mofokom.javax.slee.annotation.EnvEntry;
+import mobi.mofokom.javax.slee.annotation.LibraryRef;
+import mobi.mofokom.javax.slee.annotation.Collator;
+import mobi.mofokom.javax.slee.annotation.Reentrant;
 import java.util.Collection;
 import javax.annotation.Resource;
 import javax.slee.CreateException;

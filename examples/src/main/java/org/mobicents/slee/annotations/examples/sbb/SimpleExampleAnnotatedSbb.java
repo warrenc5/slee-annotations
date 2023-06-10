@@ -29,11 +29,11 @@ import javax.slee.facilities.TimerOptions;
 import javax.slee.facilities.Tracer;
 import javax.slee.serviceactivity.ServiceStartedEvent;
 
-import javax.slee.annotation.CMPField;
-import javax.slee.annotation.Sbb;
-import javax.slee.annotation.Service;
-import javax.slee.annotation.event.ServiceStartedEventHandler;
-import javax.slee.annotation.event.TimerEventHandler;
+import mobi.mofokom.javax.slee.annotation.CMPField;
+import mobi.mofokom.javax.slee.annotation.Sbb;
+import mobi.mofokom.javax.slee.annotation.Service;
+import mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler;
+import mobi.mofokom.javax.slee.annotation.event.TimerEventHandler;
 import javax.slee.facilities.*;
 import javax.slee.nullactivity.NullActivity;
 import javax.slee.nullactivity.NullActivityContextInterfaceFactory;

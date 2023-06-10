@@ -10,11 +10,11 @@
                 <xsl:text>Event Definitions Auto-Generated </xsl:text>
                 <xsl:value-of select="process/@generatedTime"/>
             </description>
-            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.event.EventType']/element[@name='libraryRefs']/annotation[@name='javax.slee.annotation.LibraryRef']"/>
-            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='javax.slee.annotation.event.EventType']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventType']/element[@name='libraryRefs']/annotation[@name='javax.slee.annotation.LibraryRef']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS']/annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventType']"/>
         </event-jar>
     </xsl:template>
-    <xsl:template match="annotation[@name='javax.slee.annotation.event.EventType']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.event.EventType']">
         <event-definition>
             <xsl:if test="element[@name='id']/@value">
                 <xsl:attribute name="id">

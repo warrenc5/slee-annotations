@@ -5,7 +5,7 @@
          prefer="public">
 
 <rewriteSystem id="slee" systemIdStartString="http://java.sun.com/dtd"
-               rewritePrefix="resource:dtd"/>
+               rewritePrefix="resource:dtd"/> <!-- NOTE: warning about MalformedURL is not a problem -->
 
 <public publicId="-//Sun Microsystems, Inc.//DTD JAIN SLEE Deployable Unit 1.0//EN"
         uri="http://java.sun.com/dtd/slee-deployable-unit_1_0.dtd"/>

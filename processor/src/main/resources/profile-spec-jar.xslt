@@ -4,7 +4,7 @@
 
     <xsl:include href="resource:common.xslt"/>
 
-    <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
+    <xsl:key name="usageKey" match="/process/element[@kind='METHOD']/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParameter']" use="concat(@processed-value,../@enclosing)"/>
     <xsl:template match="/">
 
         <profile-spec-jar>
@@ -13,12 +13,12 @@
                 <xsl:value-of select="/process/@generatedTime"/>
             </description>
          
-            <xsl:apply-templates select="node()/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='javax.slee.annotation.ProfileSpec']"/>
-            <xsl:apply-templates select="node()/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='javax.slee.annotation.ProfileSpec']/element[@name='securityPermissions']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpec']"/>
+            <xsl:apply-templates select="node()/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpec']/element[@name='securityPermissions']"/>
         </profile-spec-jar>
     </xsl:template>
 
-    <xsl:template match="annotation[@name='javax.slee.annotation.ProfileSpec']">
+    <xsl:template match="annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpec']">
         <xsl:variable name="profileSpecClass" select="@value"/>
         <xsl:variable name="profileTableInterface" select="element[@name='tableInterface']/@value"/>
         <xsl:variable name="cmpInterface" select="element[@name='cmpInterface']/@value"/>
@@ -50,10 +50,10 @@
                 <xsl:value-of select="element[@name='version']/@value"/>
             </profile-spec-version>
             
-            <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='javax.slee.annotation.LibraryRef']"/>
+            <xsl:apply-templates select="element[@name='libraryRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.LibraryRef']"/>
 
-            <xsl:apply-templates select="element[@name='profileSpecRefs']/annotation[@name='javax.slee.annotation.ProfileSpecRef']"/>
-            <xsl:for-each select="element/annotation[@name='javax.slee.annotation.Collator']">
+            <xsl:apply-templates select="element[@name='profileSpecRefs']/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileSpecRef']"/>
+            <xsl:for-each select="element/annotation[@name='mobi.mofokom.javax.slee.annotation.Collator']">
                 <collator>
                     <xsl:attribute name="strength">
                         <xsl:value-of select="element[@name='strength']/@value"/>
@@ -89,7 +89,7 @@
                     <profile-cmp-interface-name>
                         <xsl:value-of select="$cmpInterface"/>
                     </profile-cmp-interface-name>
-                    <xsl:for-each select="/process/element[@kind='METHOD' and @enclosing=$cmpInterface]/annotation[@name='javax.slee.annotation.ProfileCMPField']">
+                    <xsl:for-each select="/process/element[@kind='METHOD' and @enclosing=$cmpInterface]/annotation[@name='mobi.mofokom.javax.slee.annotation.ProfileCMPField']">
                         <cmp-field>
                             <xsl:attribute name="unique">
                                 <xsl:value-of select="element[@name='unique']/@value"/>
@@ -128,7 +128,7 @@
 
                 <xsl:if test="element[@name='abstractClass' and not(@value='javax.slee.profile.Profile')]">
                     <profile-abstract-class>
-                        <xsl:if test="../annotation[@name='javax.slee.annotation.Reentrant']">
+                        <xsl:if test="../annotation[@name='mobi.mofokom.javax.slee.annotation.Reentrant']">
                             <xsl:attribute name="reentrant">True</xsl:attribute>
                         </xsl:if>
                         <profile-abstract-class-name>
@@ -151,9 +151,9 @@
                             <xsl:value-of select="$usageParametersInterface"/> 
                         </profile-usage-parameters-interface-name>
 
-                        <xsl:variable name="set1" select="/process/element[@kind='INTERFACE']/annotation[@name='javax.slee.annotation.UsageParametersInterface']/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter' and generate-id(key('usageKey',concat(@processed-value,../@enclosing)))='']"/>
+                        <xsl:variable name="set1" select="/process/element[@kind='INTERFACE']/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParametersInterface']/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter' and generate-id(key('usageKey',concat(@processed-value,../@enclosing)))='']"/>
 
-                        <xsl:variable name="set2" select="/process/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='javax.slee.annotation.UsageParameter']"/>
+                        <xsl:variable name="set2" select="/process/element[@kind='METHOD' and @enclosing=$usageParametersInterface]/annotation[@name='mobi.mofokom.javax.slee.annotation.UsageParameter']"/>
 
                         <xsl:for-each select="$set1 | $set2">
                             <xsl:sort select="@processed-value" />
@@ -172,7 +172,7 @@
                 </xsl:if>
             </profile-classes>
 
-            <xsl:apply-templates select="//element[@enclosing=$profileSpecClass]/annotation[@name='javax.slee.annotation.EnvEntry']"/>
+            <xsl:apply-templates select="//element[@enclosing=$profileSpecClass]/annotation[@name='mobi.mofokom.javax.slee.annotation.EnvEntry']"/>
 
             <xsl:for-each select="/process/element[@enclosing=$profileSpecClass or @enclosing=$profileTableInterface]//query">
                 <xsl:copy-of select="."/>
