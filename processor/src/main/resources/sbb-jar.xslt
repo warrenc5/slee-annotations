@@ -60,7 +60,6 @@ or @name='mobi.mofokom.javax.slee.annotation.event.TimerEventHandler'
                 </xsl:otherwise>
             </xsl:choose>
             <event-name>
-         
                 <xsl:value-of select="@processed-value"/>
             </event-name>
 

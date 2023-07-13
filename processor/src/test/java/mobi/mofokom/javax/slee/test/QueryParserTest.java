@@ -10,7 +10,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import mobi.mofokom.javax.slee.SleeAnnotationProcessor;
+import mobi.mofokom.slee.SleeAnnotationProcessor;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

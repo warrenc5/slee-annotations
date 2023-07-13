@@ -1,9 +1,11 @@
-//TODO debug param system property
-//TODO allow @Resource on abstract methods - create field and return 
-//TODO call super if the method is there
-//TODO warn if alarm method does not return string
+//DONE: debug param system property
+//TODO: allow @Resource on abstract methods - create field and return 
+//TODO: implement synchronization strategy
+//TODO: call super if the method is there
+//TODO: warn if alarm method does not return string
 //TODO: replace Classname strings with class.getName()
-package mobi.mofokom.javax.slee;
+//TODO: aspect for sbb to implement all superinterfaces of sbblocalobject class
+package mobi.mofokom.slee;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -15,6 +17,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import static java.util.logging.Level.SEVERE;
@@ -24,6 +30,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import javax.annotation.processing.*;
@@ -36,6 +43,7 @@ import static javax.lang.model.type.TypeKind.NONE;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.ElementKindVisitor6;
+import javax.slee.SbbLocalObject;
 import mobi.mofokom.javax.slee.annotation.Collator;
 import mobi.mofokom.javax.slee.annotation.ProfileCMPField;
 import mobi.mofokom.javax.slee.annotation.ProfileSpec;
@@ -208,7 +216,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             public Source resolve(String href, String base) throws TransformerException {
                 log.info("resolve " + href);
                 if (href.startsWith("resource:")) {
-                    return new StreamSource(resolveResource(href.substring(9)).getByteStream(),href);
+                    return new StreamSource(resolveResource(href.substring(9)).getByteStream(), href);
                 }
 
                 return super.resolve(href, base);
@@ -254,7 +262,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         log.info("process, over: " + roundEnv.processingOver());
         this.roundEnv = roundEnv;
         if (options.containsKey("skip")) {
-            return true;
+            log.warning("skipping because skip option");
+            return false;
+        }
+        if (options.containsKey("eclipselink.canonicalmodel.use_static_factory")) {
+            log.warning("skipping because eclipselink option");
+            return false;
         }
         /*
         if (true != false) {
@@ -406,11 +419,16 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 query = o.toString();
             }
 
-            if (o instanceof AnnotationMirror) {
+            if (o instanceof AnnotationMirror) { //TODO: refactor this block to recursive method
                 n.appendChild(createNode(e.getKey(), (AnnotationMirror) o));
             } else if (o instanceof List) {
+                //log.info("--------------  " + e.getKey().toString() + " ____ " + name);
                 for (Object m : (List) o) {
+                    //log.info("+++++++  " + m.toString() + " " + m.getClass());
                     if (m instanceof AnnotationMirror) {
+                        if (name.equals(mobi.mofokom.javax.slee.annotation.SbbRef.class.getName())) {
+                            Thread.dumpStack();
+                        }
                         if (name.equals(mobi.mofokom.javax.slee.annotation.event.EventType.class.getName())) {
                             SleeAnnotationProcessor.this.log.fine(m.toString());
                             if (eventTypeLibraryRefs.contains(m.toString()))
@@ -422,10 +440,17 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                             n.appendChild(createNode(e.getKey(), (AnnotationMirror) m));
                         }
                     } else if (m instanceof AnnotationValue) {
-                        org.w3c.dom.Element n2 = doc.createElement("value");
                         Object av = ((AnnotationValue) m).getValue();
-                        n2.setAttribute("name", av.toString());
-                        n.appendChild(n2);
+                        //log.info("%%%%%%%%%%%%%% " + av + " " + av.getClass());
+
+                        if (av instanceof AnnotationMirror) {
+                            n.appendChild(createNode(e.getKey(), (AnnotationMirror) av));
+                        } else {
+
+                            org.w3c.dom.Element n2 = doc.createElement("value");
+                            n2.setAttribute("name", av.toString());
+                            n.appendChild(n2);
+                        }
                     }
                 }
             } else if (o instanceof Boolean) {
@@ -516,9 +541,30 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.Sbb.class.getName())) {
             base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.Sbb.class.getName());
+            for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : a.getElementValues().entrySet()) {
+                if (entry.getKey().getSimpleName().toString().equals("localInterface")) {
+                    String liCn = entry.getValue().getValue().toString();
+                    TypeElement li = super.processingEnv.getElementUtils().getTypeElement(liCn);
+                    String collect = li.getInterfaces().stream()
+                            .map(t -> ((DeclaredType) t))
+                            .map(dt -> ((TypeElement) dt.asElement()).getQualifiedName().toString())
+                            .filter(n -> !n.startsWith(SbbLocalObject.class.getName()))
+                            .collect(joining(","));
+                    if (!collect.isEmpty()) {
+                        ((org.w3c.dom.Element) node).setAttribute("local-interfaces", collect);
+                    }
+                }
+                if (entry.getKey().getSimpleName().toString().equals("sbbRefs")) {
+                    log.info(entry.getValue().toString() + " " + entry.getValue().getValue().getClass());
+                    Thread.dumpStack();
+                }
+            }
 
         }
 
+        if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.SbbRef.class.getName())) {
+            Thread.dumpStack();
+        }
         if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName())) {
             if (e2.getKind().isClass()) {
                 base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.profile.Profile.class.getName());
@@ -536,6 +582,10 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             this.testForMissingMethods((org.w3c.dom.Element) node, e2, a, base);
             List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
             log.info("interfaces " + interfaces.toString());
+        }
+
+        if (isEventHandler(name)) {
+            ((org.w3c.dom.Element) node).setAttribute("processed-value", formatEventHandler(e2.getSimpleName().toString()));
         }
 
         if (name.equals(mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName())) {
@@ -734,33 +784,84 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             return false;
         }
 
-        FileObject resource;
-        Filer filer = super.processingEnv.getFiler();
-        resource = filer.createResource(StandardLocation.SOURCE_OUTPUT, filePath, fileName, null);
-
-        log.info("creating resource " + resource.toUri().toString() + " with " + transformFile);
-
-        OutputStream out = null;
-
-        PipedInputStream pis = null;
-        if (transformFile.equals("aspect.xslt")) {
-            out = new PipedOutputStream(pis = new PipedInputStream(100000));//FIXME: hardcoded buffer);//resource.openOutputStream();
-
-        } else {
-            out = resource.openOutputStream();
+        if (transformFile == null) {
+            log.info("no transform file");
+            return false;
         }
 
+        FileObject resource;
+        Filer filer = super.processingEnv.getFiler();
+
+        Source source = null;
+        Result result = null;
+
+        resource = filer.createResource(StandardLocation.SOURCE_OUTPUT, filePath, fileName, null);
+
         long lastModified = resource.getLastModified();
-        StreamResult result = new StreamResult(out);
-        result.setSystemId(resource.toUri().toString());
+        log.info("creating resource " + resource.toUri().toString() + " with " + transformFile);
+        source = new DOMSource(doc, resource.toUri().toString());
 
+        if (transformFile.equals("aspect.xslt")) {
+            final PipedInputStream pis = new PipedInputStream(500000);
+            final OutputStream out = new PipedOutputStream(pis); //FIXME: hardcoded buffer);
+            result = new StreamResult(out);
+            result.setSystemId(resource.toUri().toString());
+            doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+            out.flush();
+            out.close();
+            resource = null;
+            Callable t = () -> {
 
-        Transformer t = doTransform(new DOMSource(doc, "annotations document"), transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+                doSplitAspects(new InputStreamReader(pis));
+                return true;
+            };
+            Future f = Executors.newSingleThreadExecutor().submit(t);
+            try {
+                f.get(5, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                Logger.getLogger(SleeAnnotationProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (transformFile.equals("annotations.xml")) {
+            log.info("creating resource " + resource.toUri().toString() + " with " + transformFile);
 
-        out.flush();
-        out.close();
+            final OutputStream out = resource.openOutputStream();
 
-        if (!transformFile.equals("aspect.xslt")) {
+            result = new StreamResult(out);
+            result.setSystemId(resource.toUri().toString());
+            doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+            out.flush();
+            out.close();
+            checkModifiedResource(resource, lastModified);
+
+        } else { // slee service & *-jar.xml files
+
+            final PipedInputStream pis = new PipedInputStream(500000);
+            final OutputStream out = new PipedOutputStream(pis); //FIXME: hardcoded buffer);
+            result = new StreamResult(out);
+            result.setSystemId(resource.toUri().toString());
+
+            Transformer t = doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+            out.flush();
+            out.close();
+
+            source = new StreamSource(pis, resource.toUri().toString());
+
+            OutputStream out2 = resource.openOutputStream();
+            result = new StreamResult(out2);
+            result.setSystemId(resource.toUri().toString());
+
+            doTransform(source, "id.xslt", result, t.getOutputProperty(OutputKeys.DOCTYPE_PUBLIC), t.getOutputProperty(OutputKeys.DOCTYPE_SYSTEM));
+            out2.flush();
+            out2.close();
+
+            checkModifiedResource(resource, lastModified);
+        }
+
+        return true;
+    }
+
+    private void checkModifiedResource(FileObject resource, long lastModified) {
+        if (resource != null) {
             if (resource.getLastModified() == 0) {
                 log.warning(resource.toUri() + " not created");
             } else if (lastModified != resource.getLastModified()) {
@@ -769,25 +870,6 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 log.info(resource.toUri() + " created");
             }
         }
-
-        if (transformFile != null && !transformFile.startsWith("annotations") && !transformFile.startsWith("aspect")) {
-            DOMSource source = null;
-
-            log.log(Level.INFO, "validating {0}", resource.toUri().toString());
-            source = new DOMSource(db.parse(resource.toUri().toString()),resource.toUri().toString());
-
-            out = resource.openOutputStream();
-            //new FileOutputStream(new File(resource.toUri().getPath()));
-            result = new StreamResult(out);
-            result.setSystemId(resource.toUri().toString());
-            doTransform(source, "id.xslt", result, t.getOutputProperty(OutputKeys.DOCTYPE_PUBLIC), t.getOutputProperty(OutputKeys.DOCTYPE_SYSTEM));
-
-            out.flush();
-            out.close();
-        } else if (transformFile.startsWith("aspect")) {
-            doSplitAspects(new InputStreamReader(pis));
-        }
-        return true;
     }
 
     public void doSplitAspects(Reader reader) throws IOException {
@@ -813,7 +895,8 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 }
 
                 FileObject outResource = getFiler().createResource(StandardLocation.SOURCE_OUTPUT, matcher.group(1), matcher.group(2), null);
-                log.info("writing " + matcher.group(1) + " " + matcher.group(2));
+                long lastModified = outResource.getLastModified();
+                log.info("writing " + matcher.group(1) + " " + matcher.group(2) + " to " + outResource.toUri());
                 aspects.add(outResource.toUri());
                 writer = new BufferedWriter(outResource.openWriter());
             } else if (writer != null) {
@@ -821,7 +904,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 writer.newLine();
             }
         }
-        log.log(Level.INFO, "creating " + aspects.toString());
+        log.log(Level.INFO, "created " + aspects.toString());
         if (writer != null) {
             writer.flush();
             writer.close();
@@ -1305,34 +1388,34 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         XPath xpath = factory.newXPath();
         DOMSource domDoc = new DOMSource(doc.getDocumentElement().getFirstChild(), "annotations.xml");
 
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='"+mobi.mofokom.javax.slee.annotation.event.EventType.class.getName()+"'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.event.EventType.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
             processOutput(doc, "event-jar.xslt", "META-INF/event-jar.xml", "");
         } else {
             log.info("no events for event-jar.xml");
         }
 
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='"+mobi.mofokom.javax.slee.annotation.Service.class.getName()+"'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.Service.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
             processOutput(doc, "service.xslt", "service.xml", "");
         } else {
             log.info("no services for service-jar.xml");
         }
 
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='"+mobi.mofokom.javax.slee.annotation.ResourceAdaptor.class.getName()+"'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.ResourceAdaptor.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
             processOutput(doc, "resource-adaptor-jar.xslt", "META-INF/resource-adaptor-jar.xml", "");
         } else {
             log.info("no resource-adaptors for resource-adaptors-jar.xml");
         }
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='"+mobi.mofokom.javax.slee.annotation.ResourceAdaptorType.class.getName()+"'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.ResourceAdaptorType.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
             processOutput(doc, "resource-adaptor-type-jar.xslt", "META-INF/resource-adaptor-type-jar.xml", "");
         } else {
             log.info("no resource-adaptor-types for resource-adaptor-type-jar.xml");
         }
-        if (xpath.compile("count(/process/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='"+mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName()+"'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        if (xpath.compile("count(/process/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
             processOutput(doc, "profile-spec-jar.xslt", "META-INF/profile-spec-jar.xml", "");
         } else {
             log.info("no profiles for profile-jar.xml");
         }
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='"+mobi.mofokom.javax.slee.annotation.Sbb.class.getName()+"'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.Sbb.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
             processOutput(doc, "sbb-jar.xslt", "META-INF/sbb-jar.xml", "");
         } else {
             log.info("no sbbs for sbb-jar.xml");
@@ -1430,6 +1513,21 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private String kebabCase(String snakeCase) {
         return snakeCase.toLowerCase().replaceAll("_", "-");
+    }
+
+    private boolean isEventHandler(String c) {
+
+        return Arrays.asList(
+                mobi.mofokom.javax.slee.annotation.event.EventHandler.class.getName(),
+                mobi.mofokom.javax.slee.annotation.event.ProfileAddedEventHandler.class.getName(),
+                mobi.mofokom.javax.slee.annotation.event.ProfileRemovedEventHandler.class.getName(),
+                mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler.class.getName(),
+                mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler.class.getName(),
+                mobi.mofokom.javax.slee.annotation.event.TimerEventHandler.class.getName()).contains(c);
+    }
+
+    private String formatEventHandler(String methodName) {
+        return methodName.replaceFirst("^on", "");
     }
 
 }

@@ -13,7 +13,7 @@ import javax.annotation.processing.Filer;
 import javax.tools.FileObject;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.StandardLocation;
-import mobi.mofokom.javax.slee.SleeAnnotationProcessor;
+import mobi.mofokom.slee.SleeAnnotationProcessor;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;

@@ -73,5 +73,7 @@ public class InterfaceTest {
         public Tracer someTracer() {
             return null;
         }
+
+        
     }
 }

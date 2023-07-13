@@ -47,7 +47,7 @@ import org.mobicents.slee.annotations.examples.sbb.SimpleExampleSbbLocalObject;
  * @author Eduardo Martins
  *
  */
-@Sbb(name = "SimpleExampleAnnotatedSbb", vendor = "ISV1", version = "1.0", alias = "SimpleSbb", localInterface = SimpleExampleSbbLocalObject.class)
+@Sbb(name = "SimpleExampleAnnotatedSbb", vendor = "ISV1", version = "1.0", alias = "SimpleSbb", localInterface = NotExtendsSbbLocalObject.class)
 
 public abstract class NoInterfaceSbb {
 
@@ -63,4 +63,6 @@ public abstract class NoInterfaceSbb {
     @Resource(name="Bullshit")
     public abstract Tracer someTracer();
 
+    public void accept(Object o){
+    }
 }

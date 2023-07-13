@@ -174,8 +174,6 @@
         <xsl:value-of select="../@name"/>
         <xsl:text>.__alarmFacility;
         </xsl:text>
-        
-
 
         <xsl:apply-templates select="." mode="method-intercept-pointcut">
             <xsl:with-param name="arg-type" select="'javax.slee.SbbContext'"/>
@@ -724,6 +722,10 @@
                 </xsl:choose>
                 <xsl:text>UsageParameterSet();
                     }
+                    return object.</xsl:text>
+                    <xsl:value-of select="../@name"/>
+                    <xsl:text>;</xsl:text>
+                <xsl:text>
                 </xsl:text>
             </xsl:when>
 
@@ -820,6 +822,7 @@
                 <xsl:text>UsageParameterSet();</xsl:text>
 
                 <xsl:apply-templates select="." mode="get-field-pointcut"/>
+
             </xsl:when>
 
             <xsl:when test="element[@name ='name' and not(@value ='')] and //element[@name = $enclosing and annotation[(@name='mobi.mofokom.javax.slee.annotation.Sbb' or @name='javax.slee.annotation.ProfileSpec') and element[@name ='usageParametersInterface' and @value=$type]]]">
@@ -1024,8 +1027,12 @@
                 <xsl:text>,</xsl:text>
             </xsl:if>
         </xsl:for-each>
+        <!-- TODO: move local-interfaces into classtypes -->
+        <xsl:if test="../@local-interfaces" >
+            <xsl:text>,</xsl:text>
+            <xsl:value-of select="../@local-interfaces"/>
+        </xsl:if>
         <xsl:text>;</xsl:text>
-        
     </xsl:template>
 
     <!--METHODS -->
@@ -1239,6 +1246,8 @@
             <xsl:text> " + object.getClass().toString());</xsl:text>
         </xsl:if>
         <xsl:text>
+
+
         </xsl:text>
 
         <xsl:apply-templates select="." mode="get-field-inject" >
