@@ -5,6 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 
 /**
  * The query element declares a static query. It contains an optional
@@ -38,6 +39,7 @@ import java.lang.annotation.ElementType;
 @Documented
 @Target(value = {ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface StaticQuery {
 
     String id() default "";

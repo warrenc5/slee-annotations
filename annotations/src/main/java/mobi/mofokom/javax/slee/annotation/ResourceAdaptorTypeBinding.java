@@ -1,5 +1,11 @@
 package mobi.mofokom.javax.slee.annotation;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * The resource-adaptor-type-binding element declares bindings between an SBB
  * and external resources. It contains an optional description, a mandatory
@@ -11,6 +17,9 @@ package mobi.mofokom.javax.slee.annotation;
  * @author wozza
  * @author martins
  */
+@Documented
+@Target(value = {ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ResourceAdaptorTypeBinding {
 
     /**

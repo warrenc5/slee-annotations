@@ -3,6 +3,7 @@ package mobi.mofokom.javax.slee.annotation.event;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -16,6 +17,7 @@ import mobi.mofokom.javax.slee.annotation.event.EventHandler.InitialEventSelect;
 @Documented
 @Target(value = { ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface ProfileUpdatedEventHandler {
 
     /**

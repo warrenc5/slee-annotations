@@ -1,5 +1,11 @@
 package mobi.mofokom.javax.slee.annotation;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * The ejb-ref element allows an SBB to reference an Enterprise Java Bean. It
  * contains an optional description, the JNDI name where the home interface of
@@ -10,6 +16,9 @@ package mobi.mofokom.javax.slee.annotation;
  * @author wozza
  * @author martins
  */
+@Documented
+@Target(value={ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
 public @interface EJBRef {
 
     /**
