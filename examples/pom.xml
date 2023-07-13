@@ -4,7 +4,7 @@
 	
     <artifactId>jain-slee-annotations-examples</artifactId>
     <parent>
-        <groupId>mobi.mofokom.javax.slee</groupId>
+        <groupId>mobi.mofokom.slee</groupId>
         <artifactId>jain-slee-annotations-parent</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
@@ -275,7 +275,7 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>mobi.mofokom.javax.slee</groupId>
+                    <groupId>mobi.mofokom.slee</groupId>
                     <artifactId>jain-slee-annotations-processor</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -309,7 +309,7 @@
                             <staleMillis>0</staleMillis>
                             <proc>none</proc>
                             <annotationProcessors>
-                                <annotationProcessor>mobi.mofokom.javax.slee.SleeAnnotationProcessor</annotationProcessor>
+                                <annotationProcessor>mobi.mofokom.slee.SleeAnnotationProcessor</annotationProcessor>
                             </annotationProcessors>
                             <compilerArgs>
                                 <arg>-Anobinary=${slee.annotation.no-binary}</arg>
@@ -372,7 +372,7 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>mobi.mofokom.javax.slee</groupId>
+                    <groupId>mobi.mofokom.slee</groupId>
                     <artifactId>jain-slee-annotations-processor</artifactId>
                     <version>${project.version}</version>
                 </dependency>
