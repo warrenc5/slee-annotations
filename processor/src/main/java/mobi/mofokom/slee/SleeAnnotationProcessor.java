@@ -427,7 +427,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     //log.info("+++++++  " + m.toString() + " " + m.getClass());
                     if (m instanceof AnnotationMirror) {
                         if (name.equals(mobi.mofokom.javax.slee.annotation.SbbRef.class.getName())) {
-                            Thread.dumpStack();
+                            //Thread.dumpStack();
                         }
                         if (name.equals(mobi.mofokom.javax.slee.annotation.event.EventType.class.getName())) {
                             SleeAnnotationProcessor.this.log.fine(m.toString());
@@ -556,14 +556,14 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 }
                 if (entry.getKey().getSimpleName().toString().equals("sbbRefs")) {
                     log.info(entry.getValue().toString() + " " + entry.getValue().getValue().getClass());
-                    Thread.dumpStack();
+                    //Thread.dumpStack();
                 }
             }
 
         }
 
         if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.SbbRef.class.getName())) {
-            Thread.dumpStack();
+            //Thread.dumpStack();
         }
         if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName())) {
             if (e2.getKind().isClass()) {
