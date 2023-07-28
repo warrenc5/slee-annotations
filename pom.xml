@@ -38,7 +38,7 @@
      
     <scm>
         <connection>scm:git:https://github.com/warrenc5/slee-annotations.git</connection>
-        <developerConnection>scm:git:https://github.com/warrenc5/slee-annotations.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:warrenc5/slee-annotations.git</developerConnection>
         <url>https://github.com/warrenc5/slee-annotations</url>
         <tag>HEAD</tag>
     </scm>
