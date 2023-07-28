@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>mobi.mofokom.slee</groupId>
     <artifactId>jain-slee-annotations-parent</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <name>jain-slee-annotation-modules</name>
     <packaging>pom</packaging>
     <description>jain-slee-annotations-parent</description>
