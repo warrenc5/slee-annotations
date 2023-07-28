@@ -6,7 +6,7 @@
     <parent>
         <groupId>mobi.mofokom.slee</groupId>
         <artifactId>jain-slee-annotations-parent</artifactId>
-        <version>1.0.3-SNAPSHOT</version>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -227,7 +227,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration />
+                <configuration></configuration>
             </plugin>
 
             <!--
