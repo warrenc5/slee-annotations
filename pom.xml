@@ -7,6 +7,12 @@
     <name>jain-slee-annotation-modules</name>
     <packaging>pom</packaging>
     <description>jain-slee-annotations-parent</description>
+    <parent>
+        <groupId>mobi.mofokom</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0.1</version>
+    </parent>
+    <url>https://github.com/warrenc5/slee-annotations</url>
     <licenses>
         <license>
             <name>The GNU Lesser General Public License, Version 3.0</name>
@@ -24,17 +30,6 @@
         <module>processor</module>
         <module>examples</module>
     </modules>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-     
     <scm>
         <connection>scm:git:https://github.com/warrenc5/slee-annotations.git</connection>
         <developerConnection>scm:git:git@github.com:warrenc5/slee-annotations.git</developerConnection>
