@@ -5,6 +5,7 @@
 //TODO: warn if alarm method does not return string
 //TODO: replace Classname strings with class.getName()
 //TODO: aspect for sbb to implement all superinterfaces of sbblocalobject class
+//TODO: support multiple services
 package mobi.mofokom.slee;
 
 import java.io.*;
@@ -23,8 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -777,7 +776,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         return false;
     }
 
-    private boolean processOutput(Document doc, String transformFile, String fileName, String filePath) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, ParserConfigurationException, SAXException {
+    private boolean processOutput(Document doc, String transformFile, String fileName, String filePath) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, ParserConfigurationException, SAXException, TransformerException {
 
         if (doc.getDocumentElement().getChildNodes().getLength() == 0) {
             log.info("nothing to output");
@@ -841,6 +840,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             result.setSystemId(resource.toUri().toString());
 
             Transformer t = doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+
             out.flush();
             out.close();
 
@@ -921,29 +921,13 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         } else {
             tf = TransformerFactory.newInstance();
         }
-        tf.setErrorListener(new ErrorListener() {
-            public void warning(TransformerException exception) throws TransformerException {
-                log.log(Level.WARNING, message(exception));
-            }
-
-            public void error(TransformerException exception) throws TransformerException {
-                log.log(Level.SEVERE, message(exception));
-            }
-
-            public void fatalError(TransformerException exception) throws TransformerException {
-                log.log(Level.SEVERE, message(exception));
-            }
-
-            private String message(TransformerException exception) {
-                return String.format("%1$s - %2$s", (exception.getLocator() == null) ? "<unknown system id>" : exception.getLocator().getSystemId(), exception.getMessageAndLocation());
-            }
-        });
+        tf.setErrorListener(new CollectAndThrowErrorListener());
 
         tf.setURIResolver(cr);
         log.info("Initialized " + transformerFactoryClass);
     }
 
-    private Transformer doTransform(Source source, String transformFile, Result result, String publicId, String systemId) {
+    private Transformer doTransform(Source source, String transformFile, Result result, String publicId, String systemId) throws TransformerException {
         Transformer transform = null;
         Templates template = null;
 
@@ -984,6 +968,8 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 transform = tf.newTransformer(streamSource);
             }
 
+            transform.setErrorListener(new CollectAndThrowErrorListener());
+
             if (systemId != null) {
                 transform.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, systemId);
             }
@@ -996,29 +982,17 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             transform.setURIResolver(cr);
             transform.setParameter("slee_debug", Boolean.valueOf(options.get("debug")));
 
-            transform.setErrorListener(new ErrorListener() {
-                @Override
-                public void warning(TransformerException exception) throws TransformerException {
-                    log.log(WARNING, exception.getMessageAndLocation(), exception);
-                }
-
-                @Override
-                public void error(TransformerException exception) throws TransformerException {
-                    log.log(SEVERE, exception.getMessageAndLocation(), exception);
-                }
-
-                @Override
-                public void fatalError(TransformerException exception) throws TransformerException {
-                    log.log(SEVERE, exception.getMessageAndLocation(), exception);
-                }
-            });
-
             DOMResult d = null;
             log.info("transforming source " + source.getSystemId() + " to result " + result.getSystemId());
             transform.transform(source, result);
 
         } catch (Exception ex) {
             log.log(Level.WARNING, ex.getMessage(), ex);
+            ((CollectAndThrowErrorListener) tf.getErrorListener()).checkAndThrow();
+
+            if (transform != null) {
+                ((CollectAndThrowErrorListener) transform.getErrorListener()).checkAndThrow();
+            }
         }
         return transform;
     }
@@ -1382,7 +1356,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private void addMethods(Element e2, TypeElement base) {
     }
 
-    private void generateDescriptors() throws XPathExpressionException, InstantiationException, IllegalAccessException, IOException, ParserConfigurationException, SAXException, ClassNotFoundException {
+    private void generateDescriptors() throws XPathExpressionException, InstantiationException, IllegalAccessException, IOException, ParserConfigurationException, SAXException, ClassNotFoundException, TransformerException {
 
         XPathFactory factory = XPathFactory.newInstance();
         XPath xpath = factory.newXPath();
@@ -1528,6 +1502,41 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private String formatEventHandler(String methodName) {
         return methodName.replaceFirst("^on", "");
+    }
+
+    private static class CollectAndThrowErrorListener implements ErrorListener {
+
+        List<TransformerException> exceptions = new ArrayList<>();
+
+        public CollectAndThrowErrorListener() {
+        }
+
+        public void warning(TransformerException exception) throws TransformerException {
+            log.log(Level.WARNING, message(exception));
+        }
+
+        public void error(TransformerException exception) throws TransformerException {
+            log.log(Level.SEVERE, message(exception));
+            exceptions.add(exception);
+        }
+
+        public void fatalError(TransformerException exception) throws TransformerException {
+            log.log(Level.SEVERE, message(exception));
+            exceptions.add(exception);
+        }
+
+        private String message(TransformerException exception) {
+            return String.format("%1$s - %2$s", (exception.getLocator() == null) ? "<unknown system id>" : exception.getLocator().getSystemId(), exception.getMessageAndLocation() + " - cause: " + (exception.getCause() == null ? null : exception.getCause().getMessage()));
+        }
+
+        private void checkAndThrow() throws TransformerException {
+
+            try {
+                throw exceptions.iterator().next();
+            } catch (NoSuchElementException x) {
+            }
+
+        }
     }
 
 }
