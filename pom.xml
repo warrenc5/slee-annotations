@@ -25,6 +25,9 @@
             <name>Warren Crossing</name>
         </developer>
     </developers>
+    <properties>
+      <doclint>none</doclint>
+    </properties>
     <modules>
         <module>annotations</module>
         <module>processor</module>
