@@ -1,3 +1,5 @@
+//TODO: add comment to generated -jar.xml files with generation date info
+//TODO: add xslt to generate annotations and scan for deployment descriptors.
 //DONE: debug param system property
 //TODO: allow @Resource on abstract methods - create field and return 
 //TODO: implement synchronization strategy
@@ -6,6 +8,7 @@
 //TODO: replace Classname strings with class.getName()
 //TODO: aspect for sbb to implement all superinterfaces of sbblocalobject class
 //TODO: support multiple services
+//TODO: use service-xml from deployable units located on classpath
 package mobi.mofokom.slee;
 
 import java.io.*;
@@ -79,22 +82,22 @@ import org.xml.sax.*;
 @SupportedOptions({"transformerFactoryClass", "nofail", "nobinary"})
 @SupportedAnnotationTypes({
     "javax.annotation.Resource",
-    "mobi.mofokom.mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias",
+    "mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias",
     "mobi.mofokom.javax.slee.annotation.CMPField",
     "mobi.mofokom.javax.slee.annotation.ChildRelation",
     "mobi.mofokom.javax.slee.annotation.ClearAlarm",
     "mobi.mofokom.javax.slee.annotation.ConfigProperty",
-    "mobi.mofokom.javax.slee.annotation.Collation",
+    "mobi.mofokom.javax.slee.annotation.Collator",
     "mobi.mofokom.javax.slee.annotation.EnvEntry",
     "mobi.mofokom.javax.slee.annotation.EJBRef",
     "mobi.mofokom.javax.slee.annotation.LibraryRef",
     "mobi.mofokom.javax.slee.annotation.ProfileCMP",
     "mobi.mofokom.javax.slee.annotation.ProfileCMPField",
     "mobi.mofokom.javax.slee.annotation.ProfileSpec",
-    "mobi.mofokom.javax.slee.annotation.ProfileSpecCollator",
+    //"mobi.mofokom.javax.slee.annotation.ProfileSpecCollator",
     "mobi.mofokom.javax.slee.annotation.ProfileSpecRef",
     "mobi.mofokom.javax.slee.annotation.RaiseAlarm",
-    "mobi.mofokom.javax.slee.annotation.Reentarant",
+    "mobi.mofokom.javax.slee.annotation.Reentrant",
     "mobi.mofokom.javax.slee.annotation.ResourceAdaptor",
     "mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef",
     "mobi.mofokom.javax.slee.annotation.ResourceAdaptorType",
@@ -103,7 +106,7 @@ import org.xml.sax.*;
     "mobi.mofokom.javax.slee.annotation.Sbb",
     "mobi.mofokom.javax.slee.annotation.SbbActivityContextFactory",
     "mobi.mofokom.javax.slee.annotation.SbbRef",
-    "mobi.mofokom.javax.slee.annotation.SbbResourceAdaptorInterface",
+    //"mobi.mofokom.javax.slee.annotation.SbbResourceAdaptorInterface",
     "mobi.mofokom.javax.slee.annotation.Service",
     "mobi.mofokom.javax.slee.annotation.SerivecConfigProperties",
     "mobi.mofokom.javax.slee.annotation.StaticQuery",
@@ -121,6 +124,7 @@ import org.xml.sax.*;
     "mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler",
     "mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler",
     "mobi.mofokom.javax.slee.annotation.event.TimerEventHandler"})
+
 public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private org.w3c.dom.Element rootNode;
@@ -133,6 +137,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private boolean binary;
     private Map<String, String> pubmap = new HashMap<String, String>();
     private Map<String, String> sysmap = new HashMap<String, String>();
+    private static HashMap<String, String> rsysmap = new HashMap<>();
     private Map<String, String> options;
     private boolean ajCompile;
     private List<URI> aspects;
@@ -141,6 +146,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private TransformerFactory tf = null;
     private List<Name> roots;
     private boolean claimed;
+    private boolean mixedMode = true;
+
+    private XPathFactory factory = XPathFactory.newInstance();
+    private XPath xpath = factory.newXPath();
+
+    private DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
     public SleeAnnotationProcessor() throws IOException, CatalogException, ParserConfigurationException, ParserConfigurationException {
         LogManager.getLogManager().readConfiguration();
@@ -247,12 +258,13 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         cr.getCatalog().parseCatalog("application/xml", this.getClass().getClassLoader().getResourceAsStream("slee-catalog.xml"));
     }
 
-    private String transformerFactoryClass;
-
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         options = processingEnv.getOptions();
+        if (options.containsKey("mixed")) {
+            this.mixedMode = Boolean.valueOf(options.get("mixed"));
+        }
         log.info(this.getClass().getName() + " processing: options: " + options.keySet().toString());
     }
 
@@ -281,6 +293,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 claimed = processGenerateAnnotations(annotations, roundEnv);
                 log.info("claimed: " + claimed);
             } else {
+                processExistingDescriptors(roundEnv);
                 return processAspectsAndDescriptors(annotations, roundEnv);
             }
         } catch (Throwable t) {
@@ -801,7 +814,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         source = new DOMSource(doc, resource.toUri().toString());
 
         if (transformFile.equals("aspect.xslt")) {
-            final PipedInputStream pis = new PipedInputStream(500000);
+            final PipedInputStream pis = new PipedInputStream(RESULT_BUFFER_SIZE);
             final OutputStream out = new PipedOutputStream(pis); //FIXME: hardcoded buffer);
             result = new StreamResult(out);
             result.setSystemId(resource.toUri().toString());
@@ -834,11 +847,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         } else { // slee service & *-jar.xml files
 
-            final PipedInputStream pis = new PipedInputStream(500000);
+            final PipedInputStream pis = new PipedInputStream(RESULT_BUFFER_SIZE);
             final OutputStream out = new PipedOutputStream(pis); //FIXME: hardcoded buffer);
             result = new StreamResult(out);
             result.setSystemId(resource.toUri().toString());
 
+            //TODO: check source directory for existing -jar.xml file and merge in to new
             Transformer t = doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
 
             out.flush();
@@ -859,6 +873,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         return true;
     }
+    public static final int RESULT_BUFFER_SIZE = 500000;
 
     private void checkModifiedResource(FileObject resource, long lastModified) {
         if (resource != null) {
@@ -1358,8 +1373,6 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private void generateDescriptors() throws XPathExpressionException, InstantiationException, IllegalAccessException, IOException, ParserConfigurationException, SAXException, ClassNotFoundException, TransformerException {
 
-        XPathFactory factory = XPathFactory.newInstance();
-        XPath xpath = factory.newXPath();
         DOMSource domDoc = new DOMSource(doc.getDocumentElement().getFirstChild(), "annotations.xml");
 
         if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.event.EventType.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
@@ -1504,7 +1517,103 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         return methodName.replaceFirst("^on", "");
     }
 
-    private static class CollectAndThrowErrorListener implements ErrorListener {
+    public void processExistingDescriptors(RoundEnvironment roundEnv) throws SAXException, ParserConfigurationException, FileNotFoundException, IOException, TransformerConfigurationException, TransformerException {
+        // Load xslt-base.xml using JAXP
+        dbf.setNamespaceAware(true);
+        rsysmap.put("http://java.sun.com/dtd/slee-event-jar_1_1.dtd", "event-jar-aj.xslt");
+        rsysmap.put("http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd", "profile-spec-jar-aj.xslt");
+        rsysmap.put("http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd", "resource-adaptor-type-jar-aj.xslt");
+        rsysmap.put("http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd", "resource-adaptor-jar-aj.xslt");
+        rsysmap.put("http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd", "sbb-jar-aj.xslt");
+        rsysmap.put("http://java.sun.com/dtd/slee-service_1_1.dtd", "service-aj.xslt");
+        rsysmap.put("http://java.sun.com/dtd/slee-deployable-unit_1_1.dtd", "deployable-unit");
+
+        for (String s : new String[]{
+            "META-INF/deployable-unit.xml",
+            "META-INF/event-jar.xml",
+            //"META-INF/library-jar.xml",
+            "META-INF/profile-spec-jar.xml",
+            "META-INF/resource-adaptor-jar.xml",
+            "META-INF/resource-adaptor-type-jar.xml",
+            "META-INF/sbb-jar.xml",}) {
+
+            try {
+                processExistingResource(s);
+            } catch (RuntimeException x) {
+                x.printStackTrace();
+            }
+        }
+    }
+
+    ClassLoader resourceClassLoader = Thread.currentThread().getContextClassLoader();
+
+    private void processExistingResource(String s) {
+
+        List<URL> resources = resourceClassLoader.resources(s).collect(toList());
+
+        if (resources.isEmpty()) {
+            log.warning("no " + s + " files found on classpath.");
+            return;
+        } else {
+            log.info(resources.toString());
+        }
+        for (URL resource : resources) {
+            try {
+                log.info(resource.toExternalForm());
+                InputStream in = resource.openStream();
+
+                InputSource insource = new InputSource(in);
+                DocumentBuilder builder = dbf.newDocumentBuilder();
+                Document doc = builder.parse(insource);
+                String sys = doc.getDoctype().getSystemId();
+
+                if (sys == null) {
+                    throw new IllegalArgumentException("no system id on " + s);
+                }
+
+                log.info(sys + " " + rsysmap.get(sys));
+                String transformFile = rsysmap.get(sys);
+                if ("deployable-unit".equals(transformFile)) {
+                    //TODO: locate service-xml elements and process those
+                    NodeList ret = (NodeList) xpath.compile("/deployable-unit/service-xml").evaluate(doc.getDocumentElement(), XPathConstants.NODESET);
+                    if (ret != null) {
+                        for (Node n : new NodeListIterator(ret)) {
+                            log.info(n.getLocalName() + " " + n.getTextContent());
+                            processExistingResource(n.getTextContent().trim());
+                        }
+                    }
+                    continue;
+                }
+
+                String outputFile = "target/generated-sources/aj/" + transformFile.replace(".xslt", ".aj");
+                URL xsltBase = SleeAnnotationProcessor.class.getClassLoader().getResource("aj/" + transformFile);
+
+                if (xsltBase == null) {
+                    throw new FileNotFoundException(transformFile);
+                }
+
+                InputStream xsltBaseStream = xsltBase.openStream();
+
+                InputSource is = new InputSource(in);
+                TransformerFactory transformerFactory = TransformerFactory.newInstance("org.apache.xalan.processor.TransformerFactoryImpl", null);
+                Templates template = transformerFactory.newTemplates(new StreamSource(xsltBaseStream));
+                Transformer transformer = template.newTransformer();
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                transformer.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
+                transformer.setErrorListener(new SleeAnnotationProcessor.CollectAndThrowErrorListener());
+                File f = new File(outputFile);
+                f.getParentFile().mkdirs();
+                Result result = new StreamResult(f);
+                Source source = new DOMSource(doc);
+                transformer.transform(source, result);
+                log.info(outputFile);
+            } catch (Exception x) {
+                log.warning(x.getClass().getName() + " " + x.getMessage());
+            }
+        }
+    }
+
+    public static class CollectAndThrowErrorListener implements ErrorListener {
 
         List<TransformerException> exceptions = new ArrayList<>();
 
@@ -1536,6 +1645,33 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             } catch (NoSuchElementException x) {
             }
 
+        }
+    }
+
+    private static class NodeListIterator implements Iterable<Node> {
+
+        private NodeList nl;
+
+        public NodeListIterator(NodeList nl) {
+            this.nl = nl;
+        }
+
+        @Override
+        public Iterator<Node> iterator() {
+            return new Iterator() {
+
+                int i = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return i < nl.getLength();
+                }
+
+                @Override
+                public Object next() {
+                    return nl.item(i++);
+                }
+            };
         }
     }
 

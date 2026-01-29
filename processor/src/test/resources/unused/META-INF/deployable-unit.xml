@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE deployable-unit PUBLIC
+        "-//Sun Microsystems, Inc.//DTD JAIN SLEE Deployable Unit 1.1//EN"
+        "http://java.sun.com/dtd/slee-deployable-unit_1_1.dtd">
+<deployable-unit>
+  <description/>
+  <jar>${pom.artifactId}-${pom.version}-library.jar</jar>
+  <jar>${pom.artifactId}-${pom.version}-event.jar</jar>
+  <jar>${pom.artifactId}-${pom.version}-profile.jar</jar>
+  <jar>${pom.artifactId}-${pom.version}-ra-type.jar</jar>
+  <jar>${pom.artifactId}-${pom.version}-ra.jar</jar>
+  <!--
+  <jar>${pom.artifactId}-${pom.version}-sbb.jar</jar>
+  <service-xml>service.xml</service-xml>
+  -->
+</deployable-unit>

@@ -2,7 +2,7 @@ package mobi.mofokom.javax.slee.test;
 
 
 import java.text.MessageFormat;
-import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.slf4j.Slf4j;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;

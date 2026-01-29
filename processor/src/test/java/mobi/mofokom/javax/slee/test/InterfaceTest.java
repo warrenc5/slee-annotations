@@ -13,7 +13,7 @@ import org.mobicents.slee.annotations.examples.profile.ExampleProfileCMPInterfac
 import org.mobicents.slee.annotations.examples.profile.SimpleExampleProfileCMPInterface;
 import mobi.mofokom.javax.slee.annotations.examples.sbb.NoInterfaceSbb;
 import org.junit.Ignore;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;

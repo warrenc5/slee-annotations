@@ -9,7 +9,7 @@
     <parent>
         <groupId>mobi.mofokom.slee</groupId>
         <artifactId>jain-slee-annotations-parent</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0.6-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -47,6 +47,8 @@
 	
     <properties>
         <siteRepo>http://www.mofokom.mobi/maven/${repo}-public</siteRepo>
+        <maven.compiler.source>9</maven.compiler.source>
+        <maven.compiler.target>9</maven.compiler.target>
     </properties>
 
     <build>
@@ -63,8 +65,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <fork>true</fork>
+                    <compilerArgs>
+                        --add-reads=mobi.mofokom.JainSleeAnnotations=ALL-UNNAMED
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

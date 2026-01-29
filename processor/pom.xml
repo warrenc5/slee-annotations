@@ -6,13 +6,16 @@
     <parent>
         <groupId>mobi.mofokom.slee</groupId>
         <artifactId>jain-slee-annotations-parent</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0.6-SNAPSHOT</version>
     </parent>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>9</maven.compiler.target>
+        <version.lombok>1.18.38</version.lombok> 
         <version.aspectj>1.9.19</version.aspectj> 
+        <version.mockito>5.18.0</version.mockito> 
+
     </properties>
 
     <dependencies>
@@ -69,16 +72,18 @@
             <version>1.2</version>
             <scope>compile</scope>
         </dependency>
+        <!--
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.28</version>
+            <version>${version.lombok}</version>
             <scope>test</scope>
         </dependency>
+    -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>2.0.2-beta</version>
+            <artifactId>mockito-core</artifactId>
+            <version>${version.mockito}</version>
             <scope>test</scope>
         </dependency>
         
@@ -98,7 +103,7 @@
             <groupId>javax.annotation</groupId>
             <artifactId>jsr250-api</artifactId>
             <version>1.0</version>
-            <scope>compile</scope>
+            <scope>runtime</scope>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -117,20 +122,32 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>3.6.3</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
             <version>3.6.4</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dev.aspectj</groupId>
             <artifactId>aspectj-maven-plugin</artifactId>
             <version>1.13.M3</version>
+            <scope>compile</scope>
         </dependency>
 
+        <dependency>
+        <!-- git@github.com:ccodere/DTDParser.git -->
+            <groupId>org.xmlmiddleware</groupId>
+            <artifactId>DTDParser</artifactId>
+            <version>2.1.0</version>
+            <!--
+            <scope>system</scope>
+            <systemPath>${basedir}/../../DTDParser/target/DTDParser-2.1.0.jar</systemPath>
+            -->
+        </dependency>
     </dependencies>
     <build>
         <defaultGoal>install</defaultGoal>
@@ -142,6 +159,12 @@
            
         </resources>
         <testResources>
+            <testResource>
+                <directory>${basedir}/target/generated-test-sources/</directory>
+            </testResource>
+            <testResource>
+                <directory>${basedir}/src/test/resources</directory>
+            </testResource>
             <testResource>
                 <directory>${basedir}/src/test/aspect</directory>
             </testResource>
@@ -208,6 +231,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
                 <executions>
                     <execution>
                         <id>default-jar</id>
@@ -227,6 +251,7 @@
                 </executions>
             </plugin>
             <plugin>
+                <!--get deps for runtime container classpath -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.1.1</version>
@@ -235,10 +260,24 @@
                         <id>copy-deps</id>
                         <phase>install</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>copy</goal>
                         </goals>
                         <configuration>
                             <includeScope>runtime</includeScope>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>mobi.mofokom.javax.slee</groupId>
+                                    <artifactId>jain-slee-annotations</artifactId>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.aspectj</groupId>
+                                    <artifactId>aspectjrt</artifactId>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>javax.annotation</groupId>
+                                    <artifactId>jsr250-api</artifactId>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
@@ -246,8 +285,28 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration />
+                <version>3.5.1</version>
             </plugin>
+            <!--
+        <plugin>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok-maven-plugin</artifactId>
+                    <version>1.18.20.0</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>delombok</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <encoding>UTF-8</encoding>
+                        <addOutputDirectory>true</addOutputDirectory>
+                        <sourceDirectory>src/main/java</sourceDirectory>
+                    </configuration>
+                </plugin>
+            -->
 
             <!--
                 <plugin>
@@ -301,7 +360,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -309,8 +368,18 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
+                            <source>${maven.compiler.source}</source>
+                            <fork>true</fork>
+                            <![CDATA[
+                            <compilerArgs>
+                                --add-reads=mobi.mofokom.JainSleeAnnotationsProcessor=ALL-UNNAMED --system /home/wozza/.sdkman/candidates/java/current/jmods/
+                            </compilerArgs>
+                            ]]>
                             <proc>none</proc>
                             <useIncrementalCompilation>false</useIncrementalCompilation>
+                            <excludes>
+                                <exclude>module-info.java</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                     <execution>
@@ -320,7 +389,7 @@
                             <goal>testCompile</goal>
                         </goals>
                         <configuration>
-                            <skip>true</skip>
+                            <skip>true</skip><!--use aspectj compiler instead-->
                             <proc>none</proc>
                             <annotationProcessorPaths>
                                 <!--
@@ -333,7 +402,8 @@
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
-                                    <version>1.18.12</version>
+                                    <version>${version.lombok}</version>
+                                    
                                 </path>
                             </annotationProcessorPaths>
                             <!--
@@ -352,15 +422,15 @@
             </plugin>
             <plugin>
                 <!--
-                <groupId>org.codehaus.mojo</groupId>
                 <groupId>com.nickwongdev</groupId>
                 <version>1.12.6</version>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
                 <version>1.14.0</version>
                 -->
                 <groupId>dev.aspectj</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.13.M3</version>
+                <version>1.14.1</version>
                 <executions>
                     <execution>
                         <id>test-compile</id>
@@ -394,7 +464,8 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.4</version>
+                <!--<version>3.6.4</version>-->
+                <version>3.9.0</version>
                 <executions>
                     <execution>
                         <id>generate</id>
@@ -411,4 +482,5 @@
             </plugin>
         </plugins>
     </build>
+    
 </project>

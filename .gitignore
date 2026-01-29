@@ -1,2 +1,6 @@
+.idea
 target
 broken
+*.versionsBackup
+feature-pack
+nb-configuration.xml
