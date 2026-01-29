@@ -29,7 +29,9 @@
         <module>annotations</module>
         <module>processor</module>
         <module>examples</module>
+        <!--
         <module>feature-pack</module>
+        -->
     </modules>
     <scm>
         <connection>scm:git:https://github.com/warrenc5/slee-annotations.git</connection>
