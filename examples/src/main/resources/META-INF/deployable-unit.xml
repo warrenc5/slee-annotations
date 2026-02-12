@@ -9,8 +9,6 @@
   <jar>${pom.artifactId}-${pom.version}-profile.jar</jar>
   <jar>${pom.artifactId}-${pom.version}-ra-type.jar</jar>
   <jar>${pom.artifactId}-${pom.version}-ra.jar</jar>
-  <!--
   <jar>${pom.artifactId}-${pom.version}-sbb.jar</jar>
   <service-xml>service.xml</service-xml>
-  -->
 </deployable-unit>

@@ -134,7 +134,7 @@ proceed();
         * 
         */
             
-//&& && @target(javax.annotation.Resource) {
+//&& && @target(jakarta.annotation.Resource) {
        //((org.mobicents.slee.annotations.examples.sbb.SimpleExampleAnnotatedSbb)thisJoinPoint.getTarget()).initializeTracer();
        //sbb.initializeTracer();
         

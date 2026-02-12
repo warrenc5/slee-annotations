@@ -1,14 +1,19 @@
-
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
-	
+
     <artifactId>jain-slee-annotations-examples</artifactId>
+
     <parent>
-        <groupId>mobi.mofokom.slee</groupId>
+        <groupId>mobi.mofokom.jakarta.slee</groupId>
         <artifactId>jain-slee-annotations-parent</artifactId>
         <version>1.0.7-SNAPSHOT</version>
     </parent>
 
+    <packaging>pom</packaging>
 
     <name>JAIN SLEE 1.1 Annotation Examples</name>
     <description>jain-slee-annotations-examples</description>
@@ -17,47 +22,19 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <slee.annotation.use-stylesheet-file>true</slee.annotation.use-stylesheet-file>
+        <version.aspectjrt>1.9.21.M1</version.aspectjrt>
         <!--
                 <aspectj-library>nick</aspectj-library>
         -->
         <aspectj-library>codehaus</aspectj-library>
+        <directory.annotations>${basedir}/target/generated-sources/aspectj-maven-plugin</directory.annotations>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>javax.slee</groupId>
-                <artifactId>jainslee-api</artifactId>
-                <version>1.1</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.resource</groupId>
-                        <artifactId>connector</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javax.transaction</groupId>
-                        <artifactId>jta</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>javax.slee</groupId>
-            <artifactId>jainslee-api</artifactId>
+            <groupId>mobi.mofokom.jakarta.slee</groupId>
+            <artifactId>jain-slee</artifactId>
             <version>1.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.resource</groupId>
-                    <artifactId>connector</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.transaction</groupId>
-                    <artifactId>jta</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
-             
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -65,10 +42,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>mobi.mofokom.javax.slee</groupId>
+            <groupId>mobi.mofokom.jakarta.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>xml-resolver</groupId>
             <artifactId>xml-resolver</artifactId>
@@ -78,25 +56,25 @@
             <groupId>javax.ejb</groupId>
             <artifactId>ejb-api</artifactId>
             <version>3.0</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>jsr250-api</artifactId>
             <version>1.0</version>
-            <type>jar</type>
+        </dependency>
+        -->
+        <dependency>
+            <groupId>jakarta.ejb</groupId>
+            <artifactId>jakarta.ejb-api</artifactId>
+            <version>4.0.0</version>
         </dependency>
     </dependencies>
-	
+
     <profiles>
         <profile>
             <id>assemble</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>aspectj-library</name>
-                    <value>nick</value>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
 
             <build>
@@ -104,7 +82,10 @@
                 <resources>
                     <resource>
                         <filtering>true</filtering>
-                        <directory>${basedir}/target/generated-sources/annotations</directory>
+                        <directory>${directory.annotations}</directory>
+                        <excludes>
+                            <exclude>**/*.aj</exclude>
+                        </excludes>
                     </resource>
                     <resource>
                         <filtering>true</filtering>
@@ -114,7 +95,25 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.4.0</version>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <goals>
+                                    <goal>resources</goal>
+                                </goals>
+                                <phase>process-classes</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.0</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -139,7 +138,7 @@
                                     <attach>true</attach>
                                 </configuration>
                             </execution>
-                          
+
                             <execution>
                                 <id>ra-type</id>
                                 <goals>
@@ -251,7 +250,7 @@
                                 </goals>
                                 <configuration>
                                     <attach>true</attach>
-                                    <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+                                    <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
                                     <updateOnly>true</updateOnly>
                                     <descriptors>
                                         <descriptor>${project.build.directory}/../src/main/assemble/assembly.xml</descriptor>
@@ -275,7 +274,7 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>mobi.mofokom.slee</groupId>
+                    <groupId>${project.groupId}</groupId>
                     <artifactId>jain-slee-annotations-processor</artifactId>
                     <version>${project.version}</version>
                 </dependency>
@@ -283,7 +282,7 @@
                 <dependency>
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjrt</artifactId>
-                    <version>1.9.5</version>
+                    <version>${version.aspectjrt}</version>
                 </dependency>
             </dependencies>
 
@@ -298,7 +297,7 @@
                                 <id>default-compile</id>
                                 <phase>compile</phase>
                                 <goals>
-                                    <goal>compile</goal> 
+                                    <goal>compile</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -318,14 +317,14 @@
                             </compilerArgs>
                             <useIncrementalCompilation>false</useIncrementalCompilation>
                         </configuration>
-                    </plugin>      
+                    </plugin>
                     <plugin>
                         <groupId>com.nickwongdev</groupId>
                         <!--
                           <groupId>org.codehaus.mojo</groupId>
                         -->
                         <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.12.6</version>
+                        <version>1.14</version>
                         <executions>
                             <execution>
                                 <id>compile</id>
@@ -348,53 +347,38 @@
                             -->
                             <XnoInline>true</XnoInline>
                             <additionalCompilerArgs>-Anobinary=false -Adebug -Anofail</additionalCompilerArgs>
-                            <!--
-        <aspectDirectory>target/generated-sources/aspectj-maven-plugin</aspectDirectory>
-                            -->
-                            <aspectDirectory>target/generated-sources/annotations</aspectDirectory>
+                            <aspectDirectory>${directory.annotations}</aspectDirectory>
                         </configuration>
                     </plugin>
-                    
-                </plugins>		
+
+                </plugins>
             </build>
         </profile>
         <profile>
             <id>aspectj-codehaus</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
-                <!--
-        <property>
-            <name>aspectj-library</name>
-            <value>codehaus</value>
-        </property>
-                -->
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>aspectj-library</name>
+                    <value>codehaus</value>
+                </property>
             </activation>
 
             <dependencies>
                 <dependency>
-                    <groupId>mobi.mofokom.slee</groupId>
+                    <groupId>${project.groupId}</groupId>
                     <artifactId>jain-slee-annotations-processor</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-
                 <dependency>
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjrt</artifactId>
-                    <version>1.9.7</version>
+                    <version>${version.aspectjrt}</version>
                 </dependency>
             </dependencies>
-  
+
             <build>
-                <resources>
-                    <resource>
-                        <filtering>true</filtering>
-                        <directory>${basedir}/target/generated-sources/annotations</directory>
-                    </resource>
-                    <resource>
-                        <filtering>true</filtering>
-                        <directory>${basedir}/src/main/resources</directory>
-                    </resource>
-                </resources>
+
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -405,9 +389,13 @@
                         </configuration>
                     </plugin>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
+                    <!--
+                    <groupId>org.codehaus.mojo</groupId>
+                    -->
+
+                        <groupId>dev.aspectj</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.14.0</version>
+                        <version>1.14.1</version>
                         <executions>
                             <execution>
                                 <id>default-compile</id>
@@ -419,19 +407,28 @@
                         </executions>
                         <configuration>
                             <forceAjcCompile>true</forceAjcCompile>
-                            <source>1.8</source>
-                            <target>1.8</target>
-                            <complianceLevel>1.8</complianceLevel>
+                            <source>17</source>
+                            <target>17</target>
+                            <complianceLevel>17</complianceLevel>
                             <showWeaveInfo>true</showWeaveInfo>
                             <verbose>true</verbose>
                             <XnoInline>true</XnoInline>
+                            <XnotReweavable>true</XnotReweavable>
                             <Xreweavable>false</Xreweavable>
+                            <XserializableAspects>true</XserializableAspects>
                             <additionalCompilerArgs>-Anobinary=false -Adebug -Anofail</additionalCompilerArgs>
-                            <XterminateAfterCompilation>true</XterminateAfterCompilation>
+                            <XterminateAfterCompilation>false</XterminateAfterCompilation>
+                            <aspectDirectory>${directory.annotations}</aspectDirectory>
                         </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.aspectj</groupId>
+                                <artifactId>aspectjtools</artifactId>
+                                <version>${version.aspectjrt}</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
-                
             </build>
         </profile>
     </profiles>
@@ -472,5 +469,5 @@
             <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
-    
+
 </project>

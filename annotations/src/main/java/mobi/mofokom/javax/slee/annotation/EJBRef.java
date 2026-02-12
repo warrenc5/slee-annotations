@@ -51,7 +51,7 @@ public @interface EJBRef {
      *
      * @return
      */
-    Class<? extends javax.ejb.EJBHome> home() default javax.ejb.EJBHome.class;
+    Class<? extends jakarta.ejb.EJBHome> home() default jakarta.ejb.EJBHome.class;
 
     /**
      * The home element contains the fully-qualified name of a referenced
@@ -59,7 +59,7 @@ public @interface EJBRef {
      *
      * @return
      */
-    Class<? extends javax.ejb.EJBObject> remote() default javax.ejb.EJBObject.class;
+    Class<? extends jakarta.ejb.EJBObject> remote() default jakarta.ejb.EJBObject.class;
 
     /**
      *

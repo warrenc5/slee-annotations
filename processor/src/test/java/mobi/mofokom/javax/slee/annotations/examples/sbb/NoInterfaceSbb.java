@@ -21,7 +21,7 @@
  */
 package mobi.mofokom.javax.slee.annotations.examples.sbb;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.slee.SbbContext;
 import javax.slee.facilities.Tracer;
 import mobi.mofokom.javax.slee.annotation.Sbb;

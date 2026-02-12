@@ -1,27 +1,30 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jain-slee-annotations-processor</artifactId>
     <name>JAIN SLEE 1.1 Annotation Processor</name>
 
     <parent>
-        <groupId>mobi.mofokom.slee</groupId>
+        <groupId>mobi.mofokom.jakarta.slee</groupId>
         <artifactId>jain-slee-annotations-parent</artifactId>
         <version>1.0.7-SNAPSHOT</version>
     </parent>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>9</maven.compiler.target>
-        <version.lombok>1.18.38</version.lombok> 
-        <version.aspectj>1.9.19</version.aspectj> 
-        <version.mockito>5.18.0</version.mockito> 
-
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <version.lombok>1.18.38</version.lombok>
+        <version.aspectj>1.9.21.M1</version.aspectj>
+        <version.mockito>5.18.0</version.mockito>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>javax.slee</groupId>
-            <artifactId>jainslee-api</artifactId>
+            <groupId>mobi.mofokom.jakarta.slee</groupId>
+            <artifactId>jain-slee</artifactId>
             <version>1.1</version>
             <scope>compile</scope>
             <exclusions>
@@ -54,11 +57,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>mobi.mofokom.javax.slee</groupId>
+            <groupId>mobi.mofokom.jakarta.slee</groupId>
             <artifactId>jain-slee-annotations</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!--
         <dependency>
             <groupId>javax.ejb</groupId>
             <artifactId>ejb-api</artifactId>
@@ -66,6 +70,7 @@
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
+    -->
         <dependency>
             <groupId>xml-resolver</groupId>
             <artifactId>xml-resolver</artifactId>
@@ -73,20 +78,20 @@
             <scope>compile</scope>
         </dependency>
         <!--
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${version.lombok}</version>
-            <scope>test</scope>
-        </dependency>
-    -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${version.lombok}</version>
+                <scope>test</scope>
+            </dependency>
+        -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${version.mockito}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
@@ -100,10 +105,10 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>jsr250-api</artifactId>
-            <version>1.0</version>
-            <scope>runtime</scope>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.1</version>
+            <scope>compile</scope>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -112,17 +117,20 @@
             <version>2.0.7</version>
             <scope>test</scope>
         </dependency>
+        <!--
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jain-slee-annotations-examples</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
+        -->
+        <!--
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>3.6.3</version>
-            <!--<scope>provided</scope>-->
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -137,9 +145,10 @@
             <version>1.13.M3</version>
             <scope>compile</scope>
         </dependency>
+        -->
 
         <dependency>
-        <!-- git@github.com:ccodere/DTDParser.git -->
+            <!-- git@github.com:ccodere/DTDParser.git -->
             <groupId>org.xmlmiddleware</groupId>
             <artifactId>DTDParser</artifactId>
             <version>2.1.0</version>
@@ -156,7 +165,7 @@
                 <filtering>true</filtering>
                 <directory>${basedir}/src/main/resources</directory>
             </resource>
-           
+
         </resources>
         <testResources>
             <testResource>
@@ -231,7 +240,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.2</version>
                 <executions>
                     <execution>
                         <id>default-jar</id>
@@ -240,8 +248,8 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <attach>true</attach>
                             <!--
+                            <attach>true</attach>
             <excludes>
                 <exclude>**/*.xslt</exclude>
             </excludes>
@@ -263,10 +271,11 @@
                             <goal>copy</goal>
                         </goals>
                         <configuration>
+                            <skip>true</skip>
                             <includeScope>runtime</includeScope>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>mobi.mofokom.javax.slee</groupId>
+                                    <groupId>${project.groupId}</groupId>
                                     <artifactId>jain-slee-annotations</artifactId>
                                 </artifactItem>
                                 <artifactItem>
@@ -274,8 +283,8 @@
                                     <artifactId>aspectjrt</artifactId>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>javax.annotation</groupId>
-                                    <artifactId>jsr250-api</artifactId>
+                                    <groupId>jakarta.annotation</groupId>
+                                    <artifactId>jakarta.annotation-api</artifactId>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -360,7 +369,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -369,17 +377,20 @@
                         </goals>
                         <configuration>
                             <source>${maven.compiler.source}</source>
-                            <fork>true</fork>
+                            <release>${maven.compiler.source}</release>
                             <![CDATA[
+                            <fork>true</fork>
                             <compilerArgs>
                                 --add-reads=mobi.mofokom.JainSleeAnnotationsProcessor=ALL-UNNAMED --system /home/wozza/.sdkman/candidates/java/current/jmods/
                             </compilerArgs>
                             ]]>
                             <proc>none</proc>
                             <useIncrementalCompilation>false</useIncrementalCompilation>
+                            <!--
                             <excludes>
                                 <exclude>module-info.java</exclude>
                             </excludes>
+                            -->
                         </configuration>
                     </execution>
                     <execution>
@@ -391,19 +402,21 @@
                         <configuration>
                             <skip>true</skip><!--use aspectj compiler instead-->
                             <proc>none</proc>
+                            <source>${maven.compiler.source}</source>
+                            <release>${maven.compiler.source}</release>
                             <annotationProcessorPaths>
                                 <!--
                 <path>
                     <groupId>${project.groupId}</groupId>
                     <artifactId>${project.artifactId}</artifactId>
                     <version>${project.version}</version>
-                </path>    
+                </path>
                                 -->
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
                                     <version>${version.lombok}</version>
-                                    
+
                                 </path>
                             </annotationProcessorPaths>
                             <!--
@@ -444,6 +457,7 @@
                     <forceAjcCompile>true</forceAjcCompile>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <skip>true</skip>
                     <complianceLevel>1.8</complianceLevel>
                     <showWeaveInfo>false</showWeaveInfo>
                     <verbose>false</verbose>
@@ -475,6 +489,7 @@
                             <goal>descriptor</goal>
                         </goals>
                         <configuration>
+                            <skip>true</skip>
                             <packagingTypes>jar</packagingTypes>
                         </configuration>
                     </execution>
@@ -482,5 +497,5 @@
             </plugin>
         </plugins>
     </build>
-    
+
 </project>

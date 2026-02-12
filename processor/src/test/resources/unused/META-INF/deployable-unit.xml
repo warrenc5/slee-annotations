@@ -4,13 +4,11 @@
         "http://java.sun.com/dtd/slee-deployable-unit_1_1.dtd">
 <deployable-unit>
   <description/>
-  <jar>${pom.artifactId}-${pom.version}-library.jar</jar>
-  <jar>${pom.artifactId}-${pom.version}-event.jar</jar>
-  <jar>${pom.artifactId}-${pom.version}-profile.jar</jar>
-  <jar>${pom.artifactId}-${pom.version}-ra-type.jar</jar>
-  <jar>${pom.artifactId}-${pom.version}-ra.jar</jar>
-  <!--
-  <jar>${pom.artifactId}-${pom.version}-sbb.jar</jar>
+  <jar>some-library.jar</jar>
+  <jar>some-event.jar</jar>
+  <jar>some-profile.jar</jar>
+  <jar>some-ra-type.jar</jar>
+  <jar>some-ra.jar</jar>
+  <jar>some-sbb.jar</jar>
   <service-xml>service.xml</service-xml>
-  -->
 </deployable-unit>

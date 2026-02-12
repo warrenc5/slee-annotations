@@ -1,6 +1,6 @@
-module mobi.mofokom.JainSleeAnnotations {
+module mobi.mofokom.jakarta.jainslee.annotations {
     exports mobi.mofokom.javax.slee.annotation;
     exports mobi.mofokom.javax.slee.annotation.event;
-    requires jainslee.api;
-    requires ejb.api;
+    requires mobi.mofokom.jakarta.jainslee;
+    requires jakarta.ejb;
 }

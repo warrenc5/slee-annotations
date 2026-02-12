@@ -35,7 +35,7 @@
         <fileSet>
             <outputDirectory></outputDirectory>
             <directory>
-                target/generated-sources/annotations/
+                ${directory.annotations}
             </directory>
             <includes>
                 <include>service.xml</include>

@@ -1,7 +1,7 @@
 //TODO: add comment to generated -jar.xml files with generation date info
 //TODO: add xslt to generate annotations and scan for deployment descriptors.
 //DONE: debug param system property
-//TODO: allow @Resource on abstract methods - create field and return 
+//TODO: allow @Resource on abstract methods - create field and return
 //TODO: implement synchronization strategy
 //TODO: call super if the method is there
 //TODO: warn if alarm method does not return string
@@ -10,6 +10,12 @@
 //TODO: support multiple services
 //TODO: use service-xml from deployable units located on classpath
 package mobi.mofokom.slee;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static javax.lang.model.element.ElementKind.METHOD;
+import static javax.lang.model.type.TypeKind.NONE;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -32,23 +38,15 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import static javax.lang.model.element.ElementKind.METHOD;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.PrimitiveType;
-import static javax.lang.model.type.TypeKind.NONE;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.ElementKindVisitor6;
 import javax.slee.SbbLocalObject;
-import mobi.mofokom.javax.slee.annotation.Collator;
-import mobi.mofokom.javax.slee.annotation.ProfileCMPField;
-import mobi.mofokom.javax.slee.annotation.ProfileSpec;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import javax.xml.parsers.DocumentBuilder;
@@ -63,6 +61,9 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import mobi.mofokom.javax.slee.annotation.Collator;
+import mobi.mofokom.javax.slee.annotation.ProfileCMPField;
+import mobi.mofokom.javax.slee.annotation.ProfileSpec;
 import org.apache.xml.resolver.CatalogException;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
@@ -79,60 +80,107 @@ import org.xml.sax.*;
  * @author wozza
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedOptions({"transformerFactoryClass", "nofail", "nobinary"})
-@SupportedAnnotationTypes({
-    "javax.annotation.Resource",
-    "mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias",
-    "mobi.mofokom.javax.slee.annotation.CMPField",
-    "mobi.mofokom.javax.slee.annotation.ChildRelation",
-    "mobi.mofokom.javax.slee.annotation.ClearAlarm",
-    "mobi.mofokom.javax.slee.annotation.ConfigProperty",
-    "mobi.mofokom.javax.slee.annotation.Collator",
-    "mobi.mofokom.javax.slee.annotation.EnvEntry",
-    "mobi.mofokom.javax.slee.annotation.EJBRef",
-    "mobi.mofokom.javax.slee.annotation.LibraryRef",
-    "mobi.mofokom.javax.slee.annotation.ProfileCMP",
-    "mobi.mofokom.javax.slee.annotation.ProfileCMPField",
-    "mobi.mofokom.javax.slee.annotation.ProfileSpec",
-    //"mobi.mofokom.javax.slee.annotation.ProfileSpecCollator",
-    "mobi.mofokom.javax.slee.annotation.ProfileSpecRef",
-    "mobi.mofokom.javax.slee.annotation.RaiseAlarm",
-    "mobi.mofokom.javax.slee.annotation.Reentrant",
-    "mobi.mofokom.javax.slee.annotation.ResourceAdaptor",
-    "mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef",
-    "mobi.mofokom.javax.slee.annotation.ResourceAdaptorType",
-    "mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeBinding",
-    "mobi.mofokom.javax.slee.annotation.Rollback",
-    "mobi.mofokom.javax.slee.annotation.Sbb",
-    "mobi.mofokom.javax.slee.annotation.SbbActivityContextFactory",
-    "mobi.mofokom.javax.slee.annotation.SbbRef",
-    //"mobi.mofokom.javax.slee.annotation.SbbResourceAdaptorInterface",
-    "mobi.mofokom.javax.slee.annotation.Service",
-    "mobi.mofokom.javax.slee.annotation.SerivecConfigProperties",
-    "mobi.mofokom.javax.slee.annotation.StaticQuery",
-    "mobi.mofokom.javax.slee.annotation.UsageParameter",
-    "mobi.mofokom.javax.slee.annotation.UsageParametersInterface",
-    "mobi.mofokom.javax.slee.annotation.event.ActivityEndEventHandler",
-    "mobi.mofokom.javax.slee.annotation.event.EventFiring",
-    "mobi.mofokom.javax.slee.annotation.event.EventHandler",
-    "mobi.mofokom.javax.slee.annotation.event.EventType",
-    "mobi.mofokom.javax.slee.annotation.event.EventTypeRef",
-    "mobi.mofokom.javax.slee.annotation.event.InitialEventSelect",
-    "mobi.mofokom.javax.slee.annotation.event.InitialEventSelectorMethod",
-    "mobi.mofokom.javax.slee.annotation.event.ProfileAddedEventHandler",
-    "mobi.mofokom.javax.slee.annotation.event.ProfileRemovedEventHandler",
-    "mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler",
-    "mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler",
-    "mobi.mofokom.javax.slee.annotation.event.TimerEventHandler"})
-
+@SupportedOptions({ "transformerFactoryClass", "nofail", "nobinary" })
+@SupportedAnnotationTypes(
+    {
+        "javax.annotation.Resource",
+        "jakarta.annotation.Resource",
+        "mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias",
+        "mobi.mofokom.javax.slee.annotation.CMPField",
+        "mobi.mofokom.javax.slee.annotation.ChildRelation",
+        "mobi.mofokom.javax.slee.annotation.ClearAlarm",
+        "mobi.mofokom.javax.slee.annotation.ConfigProperty",
+        "mobi.mofokom.javax.slee.annotation.Collator",
+        "mobi.mofokom.javax.slee.annotation.EnvEntry",
+        "mobi.mofokom.javax.slee.annotation.EJBRef",
+        "mobi.mofokom.javax.slee.annotation.LibraryRef",
+        "mobi.mofokom.javax.slee.annotation.ProfileCMP",
+        "mobi.mofokom.javax.slee.annotation.ProfileCMPField",
+        "mobi.mofokom.javax.slee.annotation.ProfileSpec",
+        //"mobi.mofokom.javax.slee.annotation.ProfileSpecCollator",
+        "mobi.mofokom.javax.slee.annotation.ProfileSpecRef",
+        "mobi.mofokom.javax.slee.annotation.RaiseAlarm",
+        "mobi.mofokom.javax.slee.annotation.Reentrant",
+        "mobi.mofokom.javax.slee.annotation.ResourceAdaptor",
+        "mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeRef",
+        "mobi.mofokom.javax.slee.annotation.ResourceAdaptorType",
+        "mobi.mofokom.javax.slee.annotation.ResourceAdaptorTypeBinding",
+        "mobi.mofokom.javax.slee.annotation.Rollback",
+        "mobi.mofokom.javax.slee.annotation.Sbb",
+        "mobi.mofokom.javax.slee.annotation.SbbActivityContextFactory",
+        "mobi.mofokom.javax.slee.annotation.SbbRef",
+        //"mobi.mofokom.javax.slee.annotation.SbbResourceAdaptorInterface",
+        "mobi.mofokom.javax.slee.annotation.Service",
+        "mobi.mofokom.javax.slee.annotation.SerivecConfigProperties",
+        "mobi.mofokom.javax.slee.annotation.StaticQuery",
+        "mobi.mofokom.javax.slee.annotation.UsageParameter",
+        "mobi.mofokom.javax.slee.annotation.UsageParametersInterface",
+        "mobi.mofokom.javax.slee.annotation.event.ActivityEndEventHandler",
+        "mobi.mofokom.javax.slee.annotation.event.EventFiring",
+        "mobi.mofokom.javax.slee.annotation.event.EventHandler",
+        "mobi.mofokom.javax.slee.annotation.event.EventType",
+        "mobi.mofokom.javax.slee.annotation.event.EventTypeRef",
+        "mobi.mofokom.javax.slee.annotation.event.InitialEventSelect",
+        "mobi.mofokom.javax.slee.annotation.event.InitialEventSelectorMethod",
+        "mobi.mofokom.javax.slee.annotation.event.ProfileAddedEventHandler",
+        "mobi.mofokom.javax.slee.annotation.event.ProfileRemovedEventHandler",
+        "mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler",
+        "mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler",
+        "mobi.mofokom.javax.slee.annotation.event.TimerEventHandler",
+        "org.mobicents.slee.annotations.ActivityContextAttributeAlias",
+        "org.mobicents.slee.annotations.ActivityEndEventHandler",
+        "org.mobicents.slee.annotations.CMPField",
+        "org.mobicents.slee.annotations.ConfigPropertiesField",
+        "org.mobicents.slee.annotations.ConfigProperty",
+        "org.mobicents.slee.annotations.EventFiring",
+        "org.mobicents.slee.annotations.EventHandler",
+        "org.mobicents.slee.annotations.EventType",
+        "org.mobicents.slee.annotations.EventTypeRef",
+        "org.mobicents.slee.annotations.GetChildRelation",
+        "org.mobicents.slee.annotations.GetProfileCMP",
+        "org.mobicents.slee.annotations.InitialEventSelectorMethod",
+        "org.mobicents.slee.annotations.LibraryRef",
+        "org.mobicents.slee.annotations.ProfileAbstractClass",
+        "org.mobicents.slee.annotations.ProfileAddedEventHandler",
+        "org.mobicents.slee.annotations.ProfileCMPField",
+        "org.mobicents.slee.annotations.ProfileContextExtField",
+        "org.mobicents.slee.annotations.ProfileRemovedEventHandler",
+        "org.mobicents.slee.annotations.ProfileSpecCollator",
+        "org.mobicents.slee.annotations.ProfileSpec",
+        "org.mobicents.slee.annotations.ProfileSpecRef",
+        "org.mobicents.slee.annotations.ProfileUpdatedEventHandler",
+        "org.mobicents.slee.annotations.Reentrant",
+        "org.mobicents.slee.annotations.ResourceAdaptorContextField",
+        "org.mobicents.slee.annotations.ResourceAdaptor",
+        "org.mobicents.slee.annotations.ResourceAdaptorType",
+        "org.mobicents.slee.annotations.ResourceAdaptorTypeRef",
+        "org.mobicents.slee.annotations.SbbActivityContextFactory",
+        "org.mobicents.slee.annotations.SbbContextExtField",
+        "org.mobicents.slee.annotations.Sbb",
+        "org.mobicents.slee.annotations.SbbRef",
+        "org.mobicents.slee.annotations.SbbResourceAdaptorInterface",
+        "org.mobicents.slee.annotations.ServiceConfigProperties",
+        "org.mobicents.slee.annotations.Service",
+        "org.mobicents.slee.annotations.ServiceStartedEventHandler",
+        "org.mobicents.slee.annotations.TimerEventHandler",
+        "org.mobicents.slee.annotations.TracerField",
+        "org.mobicents.slee.annotations.UsageParameter",
+        "org.mobicents.slee.annotations.UsageParametersInterface",
+    }
+)
 public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private org.w3c.dom.Element rootNode;
     private RoundEnvironment roundEnv;
     private DocumentBuilder db;
-    public static Logger log = Logger.getLogger(SleeAnnotationProcessor.class.getName());
+    public static Logger log = Logger.getLogger(
+        SleeAnnotationProcessor.class.getName()
+    );
     private Document doc;
-    private Map<String, Set<String>> processedAnnotation = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> processedAnnotation = new HashMap<
+        String,
+        Set<String>
+    >();
     private Set<String> processedElement = new HashSet<String>();
     private boolean binary;
     private Map<String, String> pubmap = new HashMap<String, String>();
@@ -153,58 +201,113 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     private DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-    public SleeAnnotationProcessor() throws IOException, CatalogException, ParserConfigurationException, ParserConfigurationException {
+    public SleeAnnotationProcessor()
+        throws IOException, CatalogException, ParserConfigurationException, ParserConfigurationException {
         LogManager.getLogManager().readConfiguration();
-        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+        Thread.currentThread().setContextClassLoader(
+            this.getClass().getClassLoader()
+        );
     }
 
     private void createDocument() throws ParserConfigurationException {
-        doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        doc = DocumentBuilderFactory.newInstance()
+            .newDocumentBuilder()
+            .newDocument();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setValidating(true);
         db = dbf.newDocumentBuilder();
         db.setEntityResolver(cr);
-        db.setErrorHandler(new ErrorHandler() {
+        db.setErrorHandler(
+            new ErrorHandler() {
+                @Override
+                public void warning(SAXParseException exception)
+                    throws SAXException {
+                    log(exception);
+                }
 
-            @Override
-            public void warning(SAXParseException exception) throws SAXException {
-                log(exception);
-            }
+                @Override
+                public void error(SAXParseException exception)
+                    throws SAXException {
+                    log(exception);
+                }
 
-            @Override
-            public void error(SAXParseException exception) throws SAXException {
-                log(exception);
-            }
+                @Override
+                public void fatalError(SAXParseException exception)
+                    throws SAXException {
+                    log(exception);
+                }
 
-            @Override
-            public void fatalError(SAXParseException exception) throws SAXException {
-                log(exception);
+                private void log(SAXParseException exception) {
+                    log.warning(
+                        exception.getPublicId() +
+                            " " +
+                            exception.getSystemId() +
+                            " @" +
+                            exception.getLineNumber() +
+                            ":" +
+                            exception.getColumnNumber() +
+                            " " +
+                            exception.getMessage()
+                    );
+                }
             }
-
-            private void log(SAXParseException exception) {
-                log.warning(exception.getPublicId() + " " + exception.getSystemId() + " @" + exception.getLineNumber() + ":" + exception.getColumnNumber() + " " + exception.getMessage());
-            }
-        });
+        );
 
         rootNode = doc.createElement("process");
         rootNode.setAttribute("generatedTime", new Date().toString());
         doc.appendChild(rootNode);
     }
 
-    private void configureCatalogResolver() throws IOException, CatalogException {
-
-        pubmap.put("event-jar.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Event 1.1//EN");
-        sysmap.put("event-jar.xslt", "http://java.sun.com/dtd/slee-event-jar_1_1.dtd");
-        pubmap.put("profile-spec-jar.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Profile Specification 1.1//EN");
-        sysmap.put("profile-spec-jar.xslt", "http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd");
-        pubmap.put("resource-adaptor-type-jar.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor Type 1.1//EN");
-        sysmap.put("resource-adaptor-type-jar.xslt", "http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd");
-        pubmap.put("resource-adaptor-jar.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor 1.1//EN");
-        sysmap.put("resource-adaptor-jar.xslt", "http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd");
-        pubmap.put("sbb-jar.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE SBB 1.1//EN");
-        sysmap.put("sbb-jar.xslt", "http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd");
-        pubmap.put("service.xslt", "-//Sun Microsystems, Inc.//DTD JAIN SLEE Service 1.1//EN");
-        sysmap.put("service.xslt", "http://java.sun.com/dtd/slee-service_1_1.dtd");
+    private void configureCatalogResolver()
+        throws IOException, CatalogException {
+        pubmap.put(
+            "event-jar.xslt",
+            "-//Sun Microsystems, Inc.//DTD JAIN SLEE Event 1.1//EN"
+        );
+        sysmap.put(
+            "event-jar.xslt",
+            "http://java.sun.com/dtd/slee-event-jar_1_1.dtd"
+        );
+        pubmap.put(
+            "profile-spec-jar.xslt",
+            "-//Sun Microsystems, Inc.//DTD JAIN SLEE Profile Specification 1.1//EN"
+        );
+        sysmap.put(
+            "profile-spec-jar.xslt",
+            "http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd"
+        );
+        pubmap.put(
+            "resource-adaptor-type-jar.xslt",
+            "-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor Type 1.1//EN"
+        );
+        sysmap.put(
+            "resource-adaptor-type-jar.xslt",
+            "http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd"
+        );
+        pubmap.put(
+            "resource-adaptor-jar.xslt",
+            "-//Sun Microsystems, Inc.//DTD JAIN SLEE Resource Adaptor 1.1//EN"
+        );
+        sysmap.put(
+            "resource-adaptor-jar.xslt",
+            "http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd"
+        );
+        pubmap.put(
+            "sbb-jar.xslt",
+            "-//Sun Microsystems, Inc.//DTD JAIN SLEE SBB 1.1//EN"
+        );
+        sysmap.put(
+            "sbb-jar.xslt",
+            "http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd"
+        );
+        pubmap.put(
+            "service.xslt",
+            "-//Sun Microsystems, Inc.//DTD JAIN SLEE Service 1.1//EN"
+        );
+        sysmap.put(
+            "service.xslt",
+            "http://java.sun.com/dtd/slee-service_1_1.dtd"
+        );
 
         CatalogManager m = new CatalogManager();
         m.setIgnoreMissingProperties(true);
@@ -212,10 +315,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         m.setVerbosity(0);
 
         cr = new CatalogResolver(m) {
-
             @Override
             public InputSource resolveEntity(String publicId, String systemId) {
-                String resolvedEntity = super.getResolvedEntity(publicId, systemId);
+                String resolvedEntity = super.getResolvedEntity(
+                    publicId,
+                    systemId
+                );
                 log.info("locating " + resolvedEntity);
                 if (resolvedEntity.startsWith("resource:")) {
                     return resolveResource(resolvedEntity.substring(9));
@@ -223,18 +328,23 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 return super.resolveEntity(publicId, systemId);
             }
 
-            public Source resolve(String href, String base) throws TransformerException {
+            public Source resolve(String href, String base)
+                throws TransformerException {
                 log.info("resolve " + href);
                 if (href.startsWith("resource:")) {
-                    return new StreamSource(resolveResource(href.substring(9)).getByteStream(), href);
+                    return new StreamSource(
+                        resolveResource(href.substring(9)).getByteStream(),
+                        href
+                    );
                 }
 
                 return super.resolve(href, base);
             }
 
             private InputSource resolveResource(String location) {
-
-                URL resource = Thread.currentThread().getContextClassLoader().getResource(location);
+                URL resource = Thread.currentThread()
+                    .getContextClassLoader()
+                    .getResource(location);
                 if (resource == null) {
                     log.warning(location + " not found");
                 }
@@ -244,7 +354,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 try {
                     r = resource.openStream();
                 } catch (IOException ex) {
-                    log.log(Level.WARNING, location + " " + ex.getMessage(), ex);
+                    log.log(
+                        Level.WARNING,
+                        location + " " + ex.getMessage(),
+                        ex
+                    );
                 }
                 InputSource inputSource = new InputSource(r);
                 inputSource.setPublicId(location);
@@ -255,7 +369,14 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         cr.validating = true;
 
-        cr.getCatalog().parseCatalog("application/xml", this.getClass().getClassLoader().getResourceAsStream("slee-catalog.xml"));
+        cr
+            .getCatalog()
+            .parseCatalog(
+                "application/xml",
+                this.getClass()
+                    .getClassLoader()
+                    .getResourceAsStream("slee-catalog.xml")
+            );
     }
 
     @Override
@@ -265,30 +386,36 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         if (options.containsKey("mixed")) {
             this.mixedMode = Boolean.valueOf(options.get("mixed"));
         }
-        log.info(this.getClass().getName() + " processing: options: " + options.keySet().toString());
+        log.info(
+            this.getClass().getName() +
+                " processing: options: " +
+                options.keySet().toString()
+        );
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    public boolean process(
+        Set<? extends TypeElement> annotations,
+        RoundEnvironment roundEnv
+    ) {
         log.info("process, over: " + roundEnv.processingOver());
         this.roundEnv = roundEnv;
+
         if (options.containsKey("skip")) {
             log.warning("skipping because skip option");
             return false;
         }
-        if (options.containsKey("eclipselink.canonicalmodel.use_static_factory")) {
+
+        if (
+            options.containsKey("eclipselink.canonicalmodel.use_static_factory")
+        ) {
             log.warning("skipping because eclipselink option");
             return false;
         }
-        /*
-        if (true != false) {
-            return false;
-        }*/
 
         Instant then = Instant.now();
         claimed = false;
         try {
-
             if (!roundEnv.processingOver()) {
                 claimed = processGenerateAnnotations(annotations, roundEnv);
                 log.info("claimed: " + claimed);
@@ -304,15 +431,26 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 throw new RuntimeException(t);
             }
         } finally {
-            log.info("Finished " + Duration.between(then, Instant.now()).toMillis() + "ms.");
+            log.info(
+                "Finished " +
+                    Duration.between(then, Instant.now()).toMillis() +
+                    "ms."
+            );
         }
         return true;
     }
 
-    public boolean processAspectsAndDescriptors(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception {
-
+    public boolean processAspectsAndDescriptors(
+        Set<? extends TypeElement> annotations,
+        RoundEnvironment roundEnv
+    ) throws Exception {
         this.configureTransformer(options.get("transformerFactoryClass"));
-        boolean didStuff = processOutput(doc, "annotations.xslt", "annotations.xml", "");
+        boolean didStuff = processOutput(
+            doc,
+            "annotations.xslt",
+            "annotations.xml",
+            ""
+        );
         if (!didStuff) {
             return didStuff;
         }
@@ -332,11 +470,30 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    public boolean processGenerateAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception {
-        roots = roundEnv.getRootElements().stream().map(r -> r.getSimpleName()).collect(toList());
+    public boolean processGenerateAnnotations(
+        Set<? extends TypeElement> annotations,
+        RoundEnvironment roundEnv
+    ) throws Exception {
+        roots = roundEnv
+            .getRootElements()
+            .stream()
+            .map(r -> r.getSimpleName())
+            .collect(toList());
         log.info("root elements :" + roots.toString());
         if (roots.isEmpty()) {
             log.info("nothing to do");
+            return false;
+        }
+
+        if (options.containsKey("skip")) {
+            log.warning("skipping because skip option");
+            return false;
+        }
+
+        if (
+            options.containsKey("eclipselink.canonicalmodel.use_static_factory")
+        ) {
+            log.warning("skipping because eclipselink option");
             return false;
         }
 
@@ -346,12 +503,17 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         Filer filer = this.processingEnv.getFiler();
         boolean hasStuff = false;
         for (TypeElement e : annotations) {
-            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(e);
+            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(
+                e
+            );
             for (Element e2 : elements) {
                 if (processed(e2)) {
                     continue;
                 }
-                List<? extends AnnotationMirror> annotationMirrors = super.processingEnv.getElementUtils().getAllAnnotationMirrors(e2);
+                List<? extends AnnotationMirror> annotationMirrors =
+                    super.processingEnv
+                        .getElementUtils()
+                        .getAllAnnotationMirrors(e2);
                 hasStuff = true;
                 Node elementNode = rootNode.appendChild(createNode(e2));
                 for (AnnotationMirror a : annotationMirrors) {
@@ -360,7 +522,12 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     }
                     elementNode.appendChild(createNode(e2, a));
                     //testForMissingMethods((org.w3c.dom.Element) elementNode, e2, a,base);
-                    if (a.getAnnotationType().toString().equals(mobi.mofokom.javax.slee.annotation.ResourceAdaptorType.class.getName())) {
+                    if (
+                        isIn(
+                            a.getAnnotationType().toString(),
+                            ANN_RESOURCE_ADAPTOR_TYPE
+                        )
+                    ) {
                         doResourceAdaptorACI(e2, a);
                     }
                 }
@@ -371,11 +538,13 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private org.w3c.dom.Element createNode(Element e2, TypeElement type) {
-
         final org.w3c.dom.Element node = doc.createElement("classtype");
 
         node.setAttribute("name", type.getQualifiedName().toString());
-        node.setAttribute("interface", ((Boolean) type.getKind().isInterface()).toString());
+        node.setAttribute(
+            "interface",
+            ((Boolean) type.getKind().isInterface()).toString()
+        );
         node.setAttribute("enclosing", e2.toString());
         node.setAttribute("simple-name", e2.getSimpleName().toString());
         return node;
@@ -385,43 +554,64 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         final org.w3c.dom.Element node = doc.createElement("element");
 
         node.setAttribute("kind", e.getKind().toString());
-        e.accept(new ElementKindVisitor6<Node, Element>() {
+        e.accept(
+            new ElementKindVisitor6<Node, Element>() {
+                @Override
+                public Node visitType(TypeElement e, Element p) {
+                    node.setAttribute("name", e.toString().trim());
+                    String className = e.getQualifiedName().toString();
+                    node.setAttribute("enclosing", className);
+                    return null;
+                }
 
-            @Override
-            public Node visitType(TypeElement e, Element p) {
-                node.setAttribute("name", e.toString().trim());
-                String className = e.getQualifiedName().toString();
-                node.setAttribute("enclosing", className);
-                return null;
-            }
+                @Override
+                public Node visitVariableAsField(VariableElement e, Element p) {
+                    node.setAttribute(
+                        "name",
+                        e.getSimpleName().toString().trim()
+                    );
+                    node.setAttribute(
+                        "enclosing",
+                        e.getEnclosingElement().toString()
+                    );
+                    node.setAttribute("type", e.asType().toString());
+                    return null;
+                }
 
-            @Override
-            public Node visitVariableAsField(VariableElement e, Element p) {
-                node.setAttribute("name", e.getSimpleName().toString().trim());
-                node.setAttribute("enclosing", e.getEnclosingElement().toString());
-                node.setAttribute("type", e.asType().toString());
-                return null;
-            }
-
-            @Override
-            public Node visitExecutable(ExecutableElement e, Element p) {
-                node.setAttribute("name", e.getSimpleName().toString().trim());
-                node.setAttribute("enclosing", e.getEnclosingElement().toString());
-                node.setAttribute("type", e.getReturnType().toString());
-                return null;
-            }
-        }, e);
+                @Override
+                public Node visitExecutable(ExecutableElement e, Element p) {
+                    node.setAttribute(
+                        "name",
+                        e.getSimpleName().toString().trim()
+                    );
+                    node.setAttribute(
+                        "enclosing",
+                        e.getEnclosingElement().toString()
+                    );
+                    node.setAttribute("type", e.getReturnType().toString());
+                    return null;
+                }
+            },
+            e
+        );
         return node;
     }
+
     private List<String> eventTypeLibraryRefs = new ArrayList<String>();
 
-    private Node createNode(Element e2, AnnotationMirror a) throws ClassNotFoundException, NoSuchMethodException {
+    private Node createNode(Element e2, AnnotationMirror a)
+        throws ClassNotFoundException, NoSuchMethodException {
         org.w3c.dom.Element node = doc.createElement("annotation");
         String name = a.getAnnotationType().asElement().asType().toString();
         node.setAttribute("name", name.trim());
         String query = null;
 
-        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : this.processingEnv.getElementUtils().getElementValuesWithDefaults(a).entrySet()) {
+        for (Entry<
+            ? extends ExecutableElement,
+            ? extends AnnotationValue
+        > e : this.processingEnv.getElementUtils()
+            .getElementValuesWithDefaults(a)
+            .entrySet()) {
             Node n = createNode(e.getKey());
             node.appendChild(n);
             //&& o.getClass().getComponentType().isAssignableFrom(AnnotationMirror.class))
@@ -431,34 +621,40 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 query = o.toString();
             }
 
-            if (o instanceof AnnotationMirror) { //TODO: refactor this block to recursive method
+            if (o instanceof AnnotationMirror) {
+                //TODO: refactor this block to recursive method
                 n.appendChild(createNode(e.getKey(), (AnnotationMirror) o));
             } else if (o instanceof List) {
                 //log.info("--------------  " + e.getKey().toString() + " ____ " + name);
                 for (Object m : (List) o) {
                     //log.info("+++++++  " + m.toString() + " " + m.getClass());
                     if (m instanceof AnnotationMirror) {
-                        if (name.equals(mobi.mofokom.javax.slee.annotation.SbbRef.class.getName())) {
+                        if (isIn(name, ANN_SBB_REF)) {
                             //Thread.dumpStack();
                         }
-                        if (name.equals(mobi.mofokom.javax.slee.annotation.event.EventType.class.getName())) {
+                        if (isIn(name, ANN_EVENT_TYPE)) {
                             SleeAnnotationProcessor.this.log.fine(m.toString());
-                            if (eventTypeLibraryRefs.contains(m.toString()))
-                                ; else {
+                            if (eventTypeLibraryRefs.contains(m.toString()));
+                            else {
                                 eventTypeLibraryRefs.add(m.toString());
-                                n.appendChild(createNode(e.getKey(), (AnnotationMirror) m));
+                                n.appendChild(
+                                    createNode(e.getKey(), (AnnotationMirror) m)
+                                );
                             }
                         } else {
-                            n.appendChild(createNode(e.getKey(), (AnnotationMirror) m));
+                            n.appendChild(
+                                createNode(e.getKey(), (AnnotationMirror) m)
+                            );
                         }
                     } else if (m instanceof AnnotationValue) {
                         Object av = ((AnnotationValue) m).getValue();
                         //log.info("%%%%%%%%%%%%%% " + av + " " + av.getClass());
 
                         if (av instanceof AnnotationMirror) {
-                            n.appendChild(createNode(e.getKey(), (AnnotationMirror) av));
+                            n.appendChild(
+                                createNode(e.getKey(), (AnnotationMirror) av)
+                            );
                         } else {
-
                             org.w3c.dom.Element n2 = doc.createElement("value");
                             n2.setAttribute("name", av.toString());
                             n.appendChild(n2);
@@ -466,168 +662,340 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     }
                 }
             } else if (o instanceof Boolean) {
-                ((org.w3c.dom.Element) n).setAttribute("value", o.toString().substring(0, 1).toUpperCase() + o.toString().substring(1));
-
-            } else if (e.getKey().asType().toString().endsWith(Collator.Strength.class
-                    .getSimpleName().toString())
-                    | e.getKey().asType().toString().endsWith(Collator.Decomposition.class
-                            .getSimpleName().toString())) {
-                ((org.w3c.dom.Element) n).setAttribute("value", o.toString().charAt(0) + o.toString().toLowerCase().substring(1));
-                ((org.w3c.dom.Element) n).setAttribute("type", e.getKey().asType().toString());
-            } else if (e.getKey().asType().toString().endsWith(ProfileCMPField.QueryOperator.class.getSimpleName())) {
-                ((org.w3c.dom.Element) n).setAttribute("processed-value", kebabCase(o.toString()));
+                ((org.w3c.dom.Element) n).setAttribute(
+                    "value",
+                    o.toString().substring(0, 1).toUpperCase() +
+                        o.toString().substring(1)
+                );
+            } else if (
+                e
+                    .getKey()
+                    .asType()
+                    .toString()
+                    .endsWith(
+                        Collator.Strength.class.getSimpleName().toString()
+                    ) |
+                e
+                    .getKey()
+                    .asType()
+                    .toString()
+                    .endsWith(
+                        Collator.Decomposition.class.getSimpleName().toString()
+                    )
+            ) {
+                ((org.w3c.dom.Element) n).setAttribute(
+                    "value",
+                    o.toString().charAt(0) +
+                        o.toString().toLowerCase().substring(1)
+                );
+                ((org.w3c.dom.Element) n).setAttribute(
+                    "type",
+                    e.getKey().asType().toString()
+                );
+            } else if (
+                e
+                    .getKey()
+                    .asType()
+                    .toString()
+                    .endsWith(
+                        ProfileCMPField.QueryOperator.class.getSimpleName()
+                    )
+            ) {
+                ((org.w3c.dom.Element) n).setAttribute(
+                    "processed-value",
+                    kebabCase(o.toString())
+                );
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString());
             } else {
                 ((org.w3c.dom.Element) n).setAttribute("value", o.toString());
             }
             if (e.getKey().getDefaultValue() != null) {
-                ((org.w3c.dom.Element) n).setAttribute("default", e.getKey().getDefaultValue().toString());
+                ((org.w3c.dom.Element) n).setAttribute(
+                    "default",
+                    e.getKey().getDefaultValue().toString()
+                );
             }
-
         }
 
-        //PROCESSED ELEMENTS 
+        //PROCESSED ELEMENTS
         processPackage(node, a, e2);
 
-        if (name.equals(mobi.mofokom.javax.slee.annotation.EnvEntry.class.getName())) {
+        if (isIn(name, ANN_ENV_ENTRY)) {
             //TODO handle final or value
-            if (!((VariableElement) e2).getModifiers().contains(Modifier.FINAL)) {
+            if (
+                !((VariableElement) e2).getModifiers().contains(Modifier.FINAL)
+            ) {
                 log.warning("env entry " + e2.getSimpleName() + " not final");
             }
 
             Object constantValue = ((VariableElement) e2).getConstantValue();
 
             if (constantValue != null) {
-                ((org.w3c.dom.Element) node).setAttribute("processed-value", constantValue.toString());
+                ((org.w3c.dom.Element) node).setAttribute(
+                    "processed-value",
+                    constantValue.toString()
+                );
             }
         }
-        if (name.equals(javax.annotation.Resource.class.getName())) {
+        if (isIn(name, ANN_RESOURCE)) {
             getResourceName(node, a, e2);
         }
 
-        if (name.equals(mobi.mofokom.javax.slee.annotation.ActivityContextAttributeAlias.class.getName())) {
-            ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get"));
+        if (isIn(name, ANN_ACTIVITY_CONTEXT_ATTRIBUTE_ALIAS)) {
+            ((org.w3c.dom.Element) node).setAttribute(
+                "processed-value",
+                deBeanifyCamelCase(e2.getSimpleName().toString(), "get")
+            );
             //attribute name
-            for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : a.getElementValues().entrySet()) {
-                if (entry.getKey().getSimpleName().toString().equals("attributeName")) {
-                    ((org.w3c.dom.Element) node).setAttribute("attribute-name", deBeanifyCamelCase(entry.getValue().getValue().toString(), "get"));
+            for (Entry<
+                ? extends ExecutableElement,
+                ? extends AnnotationValue
+            > entry : a.getElementValues().entrySet()) {
+                if (
+                    entry
+                        .getKey()
+                        .getSimpleName()
+                        .toString()
+                        .equals("attributeName")
+                ) {
+                    ((org.w3c.dom.Element) node).setAttribute(
+                        "attribute-name",
+                        deBeanifyCamelCase(
+                            entry.getValue().getValue().toString(),
+                            "get"
+                        )
+                    );
                 }
-
             }
         }
-        if (name.equals(mobi.mofokom.javax.slee.annotation.ChildRelation.class.getName())) {
+        if (isIn(name, ANN_CHILD_RELATION)) {
             if (e2.getKind().isField()) {
-                ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString().replaceAll("ChildRelation$", "")));
+                ((org.w3c.dom.Element) node).setAttribute(
+                    "processed-value",
+                    BeanifySentenceCase(
+                        e2
+                            .getSimpleName()
+                            .toString()
+                            .replaceAll("ChildRelation$", "")
+                    )
+                );
             }
         }
-        if (name.equals(mobi.mofokom.javax.slee.annotation.CMPField.class.getName())) {
+        if (isIn(name, ANN_CMP_FIELD)) {
             if (e2.getKind().isField()) {
-                ((org.w3c.dom.Element) node).setAttribute("processed-value", BeanifySentenceCase(e2.getSimpleName().toString()));
+                ((org.w3c.dom.Element) node).setAttribute(
+                    "processed-value",
+                    BeanifySentenceCase(e2.getSimpleName().toString())
+                );
             } else {
                 String mname = e2.getSimpleName().toString();
 
-                ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), mname.substring(0, 3)));
+                ((org.w3c.dom.Element) node).setAttribute(
+                    "processed-value",
+                    deBeanifyCamelCase(
+                        e2.getSimpleName().toString(),
+                        mname.substring(0, 3)
+                    )
+                );
             }
         }
-        if (name.equals(mobi.mofokom.javax.slee.annotation.ProfileCMPField.class.getName())) {
-            ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifyCamelCase(e2.getSimpleName().toString(), "get", "set"));
+        if (isIn(name, ANN_PROFILE_CMP_FIELD)) {
+            ((org.w3c.dom.Element) node).setAttribute(
+                "processed-value",
+                deBeanifyCamelCase(e2.getSimpleName().toString(), "get", "set")
+            );
         }
-        if (name.equals(mobi.mofokom.javax.slee.annotation.UsageParameter.class.getName())) {
-            if (e2.getSimpleName().toString().startsWith("increment") || e2.getSimpleName().toString().startsWith("sample")) {
-                ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
+        if (isIn(name, ANN_USAGE_PARAMETER)) {
+            if (
+                e2.getSimpleName().toString().startsWith("increment") ||
+                e2.getSimpleName().toString().startsWith("sample")
+            ) {
+                ((org.w3c.dom.Element) node).setAttribute(
+                    "processed-value",
+                    formatUsageParameter(e2.getSimpleName().toString())
+                );
             }
         }
-        if (name.equals(mobi.mofokom.javax.slee.annotation.UsageParametersInterface.class.getName())) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
-        {
+        if (
+            isIn(name, ANN_USAGE_PARAMETERS_INTERFACE) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        ) {
             //TODO add counter methods for usageparameter annotated methods.
             calculateUsageParameterSet(e2, a, (org.w3c.dom.Element) node);
         }
 
-        if (name.equals(mobi.mofokom.javax.slee.annotation.event.EventFiring.class.getName()) || name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$")) //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
-        {
-
+        if (
+            isIn(name, ANN_EVENT_FIRING) ||
+            name.matches("^javax\\.slee\\.annotation\\.event\\..*EventHandler$") //TODO CALCULATE ALL UsageParameters on super interfaces not annotated with the above annotation.
+        ) {
             //addModifiers(e2, node);
-            ((org.w3c.dom.Element) node).setAttribute("processed-value", deBeanifySentenceCase(e2.getSimpleName().toString(), "on", "fire"));
+            ((org.w3c.dom.Element) node).setAttribute(
+                "processed-value",
+                deBeanifySentenceCase(
+                    e2.getSimpleName().toString(),
+                    "on",
+                    "fire"
+                )
+            );
         }
         TypeElement base = null;
 
-        if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.Sbb.class.getName())) {
-            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.Sbb.class.getName());
-            for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : a.getElementValues().entrySet()) {
-                if (entry.getKey().getSimpleName().toString().equals("localInterface")) {
+        if (isIn(a.getAnnotationType().asElement().toString(), ANN_SBB)) {
+            base = super.processingEnv
+                .getElementUtils()
+                .getTypeElement(javax.slee.Sbb.class.getName());
+            for (Entry<
+                ? extends ExecutableElement,
+                ? extends AnnotationValue
+            > entry : a.getElementValues().entrySet()) {
+                if (
+                    entry
+                        .getKey()
+                        .getSimpleName()
+                        .toString()
+                        .equals("localInterface")
+                ) {
                     String liCn = entry.getValue().getValue().toString();
-                    TypeElement li = super.processingEnv.getElementUtils().getTypeElement(liCn);
-                    String collect = li.getInterfaces().stream()
-                            .map(t -> ((DeclaredType) t))
-                            .map(dt -> ((TypeElement) dt.asElement()).getQualifiedName().toString())
-                            .filter(n -> !n.startsWith(SbbLocalObject.class.getName()))
-                            .collect(joining(","));
+                    TypeElement li = super.processingEnv
+                        .getElementUtils()
+                        .getTypeElement(liCn);
+                    String collect = li
+                        .getInterfaces()
+                        .stream()
+                        .map(t -> ((DeclaredType) t))
+                        .map(dt ->
+                            (
+                                (TypeElement) dt.asElement()
+                            ).getQualifiedName().toString()
+                        )
+                        .filter(n ->
+                            !n.startsWith(SbbLocalObject.class.getName())
+                        )
+                        .collect(joining(","));
                     if (!collect.isEmpty()) {
-                        ((org.w3c.dom.Element) node).setAttribute("local-interfaces", collect);
+                        ((org.w3c.dom.Element) node).setAttribute(
+                            "local-interfaces",
+                            collect
+                        );
                     }
                 }
-                if (entry.getKey().getSimpleName().toString().equals("sbbRefs")) {
-                    log.info(entry.getValue().toString() + " " + entry.getValue().getValue().getClass());
+                if (
+                    entry.getKey().getSimpleName().toString().equals("sbbRefs")
+                ) {
+                    log.info(
+                        entry.getValue().toString() +
+                            " " +
+                            entry.getValue().getValue().getClass()
+                    );
                     //Thread.dumpStack();
                 }
             }
-
         }
 
-        if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.SbbRef.class.getName())) {
+        if (isIn(a.getAnnotationType().asElement().toString(), ANN_SBB_REF)) {
             //Thread.dumpStack();
         }
-        if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName())) {
+        if (
+            isIn(a.getAnnotationType().asElement().toString(), ANN_PROFILE_SPEC)
+        ) {
             if (e2.getKind().isClass()) {
-                base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.profile.Profile.class.getName());
+                base = super.processingEnv
+                    .getElementUtils()
+                    .getTypeElement(javax.slee.profile.Profile.class.getName());
             } else {
                 //TODO don't implement if only has interface i.e. no profile abstract class section 3.3.4
             }
         }
 
-        if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.ResourceAdaptor.class.getName())) {
-            base = super.processingEnv.getElementUtils().getTypeElement(javax.slee.resource.ResourceAdaptor.class.getName());
+        if (
+            isIn(
+                a.getAnnotationType().asElement().toString(),
+                ANN_RESOURCE_ADAPTOR
+            )
+        ) {
+            base = super.processingEnv
+                .getElementUtils()
+                .getTypeElement(
+                    javax.slee.resource.ResourceAdaptor.class.getName()
+                );
         }
 
         if (base != null) {
             this.addMissingInterfaces(node, e2, base);
             this.testForMissingMethods((org.w3c.dom.Element) node, e2, a, base);
-            List<? extends TypeMirror> interfaces = ((TypeElement) e2).getInterfaces();
+            List<? extends TypeMirror> interfaces = (
+                (TypeElement) e2
+            ).getInterfaces();
             log.info("interfaces " + interfaces.toString());
         }
 
         if (isEventHandler(name)) {
-            ((org.w3c.dom.Element) node).setAttribute("processed-value", formatEventHandler(e2.getSimpleName().toString()));
+            ((org.w3c.dom.Element) node).setAttribute(
+                "processed-value",
+                formatEventHandler(e2.getSimpleName().toString())
+            );
         }
 
-        if (name.equals(mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName())) {
-            ((org.w3c.dom.Element) node).setAttribute("processed-value", formatUsageParameter(e2.getSimpleName().toString()));
+        if (isIn(name, ANN_PROFILE_SPEC)) {
+            ((org.w3c.dom.Element) node).setAttribute(
+                "processed-value",
+                formatUsageParameter(e2.getSimpleName().toString())
+            );
 
-            Optional<String> cmpInterface = this.getElementValue(a, "cmpInterface");
+            Optional<String> cmpInterface = this.getElementValue(
+                a,
+                "cmpInterface"
+            );
             if (cmpInterface.isPresent()) {
-                if (!hasImplements((TypeElement) e2, this.getTypeElement(cmpInterface.get()).getQualifiedName().toString())) {
-                    this.addMissingInterfaces(node, e2, base = this.getTypeElement(cmpInterface.get()));
+                if (
+                    !hasImplements(
+                        (TypeElement) e2,
+                        this.getTypeElement(cmpInterface.get())
+                            .getQualifiedName()
+                            .toString()
+                    )
+                ) {
+                    this.addMissingInterfaces(
+                        node,
+                        e2,
+                        base = this.getTypeElement(cmpInterface.get())
+                    );
                     //this.testForMissingMethods((org.w3c.dom.Element) node, e2, a, base);
                 }
             }
 
             cmpInterface = this.getElementValue(a, "managementInterface");
             if (cmpInterface.isPresent()) {
-                if (!hasImplements((TypeElement) e2, this.getTypeElement(cmpInterface.get()).getQualifiedName().toString())) {
-                    this.addMissingInterfaces(node, e2, this.getTypeElement(cmpInterface.get()));
+                if (
+                    !hasImplements(
+                        (TypeElement) e2,
+                        this.getTypeElement(cmpInterface.get())
+                            .getQualifiedName()
+                            .toString()
+                    )
+                ) {
+                    this.addMissingInterfaces(
+                        node,
+                        e2,
+                        this.getTypeElement(cmpInterface.get())
+                    );
                 }
             }
         }
 
-        if (name.equals(mobi.mofokom.javax.slee.annotation.StaticQuery.class.getName())) {
-            List<? extends VariableElement> parameters = ((ExecutableElement) e2).getParameters();
+        if (isIn(name, ANN_STATIC_QUERY)) {
+            List<? extends VariableElement> parameters = (
+                (ExecutableElement) e2
+            ).getParameters();
 
             String queryName = e2.getSimpleName().toString();
-            List<String> attributeNames = getAllAttributeNames((TypeElement) e2.getEnclosingElement());
+            List<String> attributeNames = getAllAttributeNames(
+                (TypeElement) e2.getEnclosingElement()
+            );
             log.fine(attributeNames.toString());
             //new ArrayList<String>();
             List<String> parameterNames = new ArrayList<String>();
-            org.w3c.dom.Element n = null, oNode = node;
+            org.w3c.dom.Element n = null,
+                oNode = node;
             node.appendChild(node = doc.createElement("query"));
             node.setAttribute("name", deBeanifyCamelCase(queryName, "query"));
 
@@ -637,12 +1005,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 n.setAttribute("name", v.getSimpleName().toString());
                 node.appendChild(n);
                 parameterNames.add(v.getSimpleName().toString());
-
             }
             try {
-                node.appendChild(parse(query,
-                        attributeNames, 0,
-                        parameterNames));
+                node.appendChild(
+                    parse(query, attributeNames, 0, parameterNames)
+                );
             } catch (Exception x) {
                 log.warning(x.getMessage() + " " + query);
                 node = oNode;
@@ -657,7 +1024,6 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         String name = v.getValue().toString();
         node.setAttribute("value", name);
         return node;
-
     }
 
     private Node createNode(Element e2, Method m) {
@@ -675,7 +1041,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     @SuppressWarnings("All")
-    private void addMissingInterfaces(final org.w3c.dom.Element n1, final Element e2, TypeElement... a) throws ClassNotFoundException, NoSuchMethodException {
+    private void addMissingInterfaces(
+        final org.w3c.dom.Element n1,
+        final Element e2,
+        TypeElement... a
+    ) throws ClassNotFoundException, NoSuchMethodException {
         org.w3c.dom.Element node = doc.createElement("classtypes");
         NodeList nl = null;
         if ((nl = n1.getElementsByTagName("classtypes")).getLength() > 0) {
@@ -697,84 +1067,150 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     @SuppressWarnings("All")
-    private void testForMissingMethods(final org.w3c.dom.Element n1, final Element e2, AnnotationMirror a, TypeElement base) throws ClassNotFoundException, NoSuchMethodException {
+    private void testForMissingMethods(
+        final org.w3c.dom.Element n1,
+        final Element e2,
+        AnnotationMirror a,
+        TypeElement base
+    ) throws ClassNotFoundException, NoSuchMethodException {
         final org.w3c.dom.Element node = doc.createElement("methods");
         node.setAttribute("enclosing", e2.toString());
 
         Predicate<? super Element> selector = ie -> {
-            return ie.getKind().equals(METHOD)
-                    && !ie.getModifiers().contains(Modifier.NATIVE)
-                    && !ie.getModifiers().contains(Modifier.ABSTRACT)
-                    && !Object.class.getName().equals(ie.getEnclosingElement().toString());
+            return (
+                ie.getKind().equals(METHOD) &&
+                !ie.getModifiers().contains(Modifier.NATIVE) &&
+                !ie.getModifiers().contains(Modifier.ABSTRACT) &&
+                !Object.class.getName().equals(
+                    ie.getEnclosingElement().toString()
+                )
+            );
         };
 
         Predicate<? super Element> selector2 = ie -> {
-            return ie.getKind().equals(METHOD)
-                    && !ie.getModifiers().contains(Modifier.NATIVE)
-                    && !Object.class.getName().equals(ie.getEnclosingElement().toString());
+            return (
+                ie.getKind().equals(METHOD) &&
+                !ie.getModifiers().contains(Modifier.NATIVE) &&
+                !Object.class.getName().equals(
+                    ie.getEnclosingElement().toString()
+                )
+            );
         };
 
-        e2.accept(new ElementKindVisitor6<Void, TypeElement>() {
+        e2.accept(
+            new ElementKindVisitor6<Void, TypeElement>() {
+                @Override
+                public Void visitTypeAsClass(TypeElement e, TypeElement p) {
+                    final List<? extends Element> ex = processingEnv
+                        .getElementUtils()
+                        .getAllMembers((TypeElement) e)
+                        .stream()
+                        .filter(selector)
+                        .collect(toList());
 
-            @Override
-            public Void visitTypeAsClass(TypeElement e, TypeElement p) {
+                    p.accept(
+                        new ElementKindVisitor6<Void, Void>() {
+                            @Override
+                            public Void visitTypeAsInterface(
+                                TypeElement e,
+                                Void p
+                            ) {
+                                List<? extends Element> elements = processingEnv
+                                    .getElementUtils()
+                                    .getAllMembers((TypeElement) e);
 
-                final List<? extends Element> ex = processingEnv.getElementUtils().getAllMembers((TypeElement) e).stream().filter(selector).collect(toList());
+                                for (final Element ee : elements) {
+                                    if (!selector2.test(ee)) {
+                                        continue;
+                                    }
+                                    //log.info("]]]]]]]]]]]]]]]]]] " +ee.toString() + "[[[[[[[[[[[[{" +  ee.getEnclosingElement().toString());
 
-                p.accept(new ElementKindVisitor6<Void, Void>() {
+                                    if (
+                                        !ex
+                                            .stream()
+                                            .anyMatch(ee2 -> {
+                                                //log.info(ee2.getKind() + " ............. " + ee.toString());
 
-                    @Override
-                    public Void visitTypeAsInterface(TypeElement e, Void p) {
-                        List<? extends Element> elements = processingEnv.getElementUtils().getAllMembers((TypeElement) e);
+                                                if (
+                                                    !ee
+                                                        .getSimpleName()
+                                                        .equals(
+                                                            ee2.getSimpleName()
+                                                        )
+                                                ) {
+                                                    return false;
+                                                }
 
-                        for (final Element ee : elements) {
-                            if (!selector2.test(ee)) {
-                                continue;
-                            }
-                            //log.info("]]]]]]]]]]]]]]]]]] " +ee.toString() + "[[[[[[[[[[[[{" +  ee.getEnclosingElement().toString());
-
-                            if (!ex.stream().anyMatch(ee2 -> {
-                                //log.info(ee2.getKind() + " ............. " + ee.toString());
-
-                                if (!ee.getSimpleName().equals(ee2.getSimpleName())) {
-                                    return false;
-                                }
-
-                                List<? extends VariableElement> ee2p = ((ExecutableElement) ee2).getParameters();
-                                List<? extends VariableElement> eep = ((ExecutableElement) ee).getParameters();
-                                if (ee2p.size() != eep.size()) {
-                                    return false;
-                                }
-                                for (int i = 0; i < eep.size(); i++) {
-
-                                    if (!toName(eep.get(i).asType())
-                                            .equals(toName(ee2p.get(i).asType()))) {
-                                        return false;
+                                                List<
+                                                    ? extends VariableElement
+                                                > ee2p = (
+                                                    (ExecutableElement) ee2
+                                                ).getParameters();
+                                                List<
+                                                    ? extends VariableElement
+                                                > eep = (
+                                                    (ExecutableElement) ee
+                                                ).getParameters();
+                                                if (ee2p.size() != eep.size()) {
+                                                    return false;
+                                                }
+                                                for (
+                                                    int i = 0;
+                                                    i < eep.size();
+                                                    i++
+                                                ) {
+                                                    if (
+                                                        !toName(
+                                                            eep.get(i).asType()
+                                                        ).equals(
+                                                            toName(
+                                                                ee2p
+                                                                    .get(i)
+                                                                    .asType()
+                                                            )
+                                                        )
+                                                    ) {
+                                                        return false;
+                                                    }
+                                                }
+                                                return true;
+                                            })
+                                    ) {
+                                        Node n = createNode(
+                                            (TypeElement) e2,
+                                            (ExecutableElement) ee
+                                        );
+                                        node.appendChild(n);
+                                        //log.info(ee.toString() + " MISSING");
                                     }
                                 }
-                                return true;
 
-                            })) {
-                                Node n = createNode((TypeElement) e2, (ExecutableElement) ee);
-                                node.appendChild(n);
-                                //log.info(ee.toString() + " MISSING");
+                                return null;
                             }
-                        }
+                        },
+                        null
+                    );
 
-                        return null;
-                    }
-                }, null);
-
-                return null;
-            }
-        }, base);
+                    return null;
+                }
+            },
+            base
+        );
 
         addModifiers(e2, n1);
         n1.appendChild(node);
     }
 
-    private boolean hasImplements(TypeElement e2, String name) throws ClassNotFoundException, NoSuchMethodException {
-        log.fine("hasImplements " + e2.toString() + " " + name + " " + e2.getInterfaces());
+    private boolean hasImplements(TypeElement e2, String name)
+        throws ClassNotFoundException, NoSuchMethodException {
+        log.fine(
+            "hasImplements " +
+                e2.toString() +
+                " " +
+                name +
+                " " +
+                e2.getInterfaces()
+        );
         for (TypeMirror i : e2.getInterfaces()) {
             if (i.toString().equals(name)) {
                 return true;
@@ -782,15 +1218,22 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
 
         if (!e2.getSuperclass().getKind().equals(NONE)) {
-            TypeElement e3 = (TypeElement) ((DeclaredType) e2.getSuperclass()).asElement();
+            TypeElement e3 = (TypeElement) (
+                (DeclaredType) e2.getSuperclass()
+            ).asElement();
             return hasImplements(e3, name);
         }
 
         return false;
     }
 
-    private boolean processOutput(Document doc, String transformFile, String fileName, String filePath) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, ParserConfigurationException, SAXException, TransformerException {
-
+    private boolean processOutput(
+        Document doc,
+        String transformFile,
+        String fileName,
+        String filePath
+    )
+        throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException, ParserConfigurationException, SAXException, TransformerException {
         if (doc.getDocumentElement().getChildNodes().getLength() == 0) {
             log.info("nothing to output");
             return false;
@@ -807,23 +1250,40 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         Source source = null;
         Result result = null;
 
-        resource = filer.createResource(StandardLocation.SOURCE_OUTPUT, filePath, fileName, null);
+        resource = filer.createResource(
+            StandardLocation.SOURCE_OUTPUT,
+            filePath,
+            fileName,
+            null
+        );
 
         long lastModified = resource.getLastModified();
-        log.info("creating resource " + resource.toUri().toString() + " with " + transformFile);
+        log.info(
+            "creating resource " +
+                resource.toUri().toString() +
+                " with " +
+                transformFile
+        );
         source = new DOMSource(doc, resource.toUri().toString());
 
         if (transformFile.equals("aspect.xslt")) {
-            final PipedInputStream pis = new PipedInputStream(RESULT_BUFFER_SIZE);
+            final PipedInputStream pis = new PipedInputStream(
+                RESULT_BUFFER_SIZE
+            );
             final OutputStream out = new PipedOutputStream(pis); //FIXME: hardcoded buffer);
             result = new StreamResult(out);
             result.setSystemId(resource.toUri().toString());
-            doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+            doTransform(
+                source,
+                transformFile,
+                result,
+                pubmap.get(transformFile),
+                sysmap.get(transformFile)
+            );
             out.flush();
             out.close();
             resource = null;
             Callable t = () -> {
-
                 doSplitAspects(new InputStreamReader(pis));
                 return true;
             };
@@ -831,29 +1291,52 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             try {
                 f.get(5, TimeUnit.SECONDS);
             } catch (Exception ex) {
-                Logger.getLogger(SleeAnnotationProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(SleeAnnotationProcessor.class.getName()).log(
+                    Level.SEVERE,
+                    null,
+                    ex
+                );
             }
         } else if (transformFile.equals("annotations.xml")) {
-            log.info("creating resource " + resource.toUri().toString() + " with " + transformFile);
+            log.info(
+                "creating resource " +
+                    resource.toUri().toString() +
+                    " with " +
+                    transformFile
+            );
 
             final OutputStream out = resource.openOutputStream();
 
             result = new StreamResult(out);
             result.setSystemId(resource.toUri().toString());
-            doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+            doTransform(
+                source,
+                transformFile,
+                result,
+                pubmap.get(transformFile),
+                sysmap.get(transformFile)
+            );
             out.flush();
             out.close();
             checkModifiedResource(resource, lastModified);
+        } else {
+            // slee service & *-jar.xml files
 
-        } else { // slee service & *-jar.xml files
-
-            final PipedInputStream pis = new PipedInputStream(RESULT_BUFFER_SIZE);
+            final PipedInputStream pis = new PipedInputStream(
+                RESULT_BUFFER_SIZE
+            );
             final OutputStream out = new PipedOutputStream(pis); //FIXME: hardcoded buffer);
             result = new StreamResult(out);
             result.setSystemId(resource.toUri().toString());
 
             //TODO: check source directory for existing -jar.xml file and merge in to new
-            Transformer t = doTransform(source, transformFile, result, pubmap.get(transformFile), sysmap.get(transformFile));
+            Transformer t = doTransform(
+                source,
+                transformFile,
+                result,
+                pubmap.get(transformFile),
+                sysmap.get(transformFile)
+            );
 
             out.flush();
             out.close();
@@ -864,7 +1347,13 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             result = new StreamResult(out2);
             result.setSystemId(resource.toUri().toString());
 
-            doTransform(source, "id.xslt", result, t.getOutputProperty(OutputKeys.DOCTYPE_PUBLIC), t.getOutputProperty(OutputKeys.DOCTYPE_SYSTEM));
+            doTransform(
+                source,
+                "id.xslt",
+                result,
+                t.getOutputProperty(OutputKeys.DOCTYPE_PUBLIC),
+                t.getOutputProperty(OutputKeys.DOCTYPE_SYSTEM)
+            );
             out2.flush();
             out2.close();
 
@@ -873,6 +1362,7 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         return true;
     }
+
     public static final int RESULT_BUFFER_SIZE = 500000;
 
     private void checkModifiedResource(FileObject resource, long lastModified) {
@@ -897,10 +1387,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         Pattern p = Pattern.compile("file:(.*)/(.*.aj)");
 
-        while (scanner.hasNext()
-                && ((s2 = scanner.findInLine(p)) != null
-                || (s2 = scanner.nextLine()) != null)) {
-
+        while (
+            scanner.hasNext() &&
+            ((s2 = scanner.findInLine(p)) != null ||
+                (s2 = scanner.nextLine()) != null)
+        ) {
             Matcher matcher = p.matcher(s2);
 
             if (matcher.matches()) {
@@ -909,9 +1400,21 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     writer.close();
                 }
 
-                FileObject outResource = getFiler().createResource(StandardLocation.SOURCE_OUTPUT, matcher.group(1), matcher.group(2), null);
+                FileObject outResource = getFiler().createResource(
+                    StandardLocation.SOURCE_OUTPUT,
+                    matcher.group(1),
+                    matcher.group(2),
+                    null
+                );
                 long lastModified = outResource.getLastModified();
-                log.info("writing " + matcher.group(1) + " " + matcher.group(2) + " to " + outResource.toUri());
+                log.info(
+                    "writing " +
+                        matcher.group(1) +
+                        " " +
+                        matcher.group(2) +
+                        " to " +
+                        outResource.toUri()
+                );
                 aspects.add(outResource.toUri());
                 writer = new BufferedWriter(outResource.openWriter());
             } else if (writer != null) {
@@ -928,11 +1431,15 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
     public void configureTransformer(String transformerFactoryClass) {
         if (transformerFactoryClass == null) {
-            transformerFactoryClass = "org.apache.xalan.xsltc.trax.TransformerFactoryImpl";
+            transformerFactoryClass =
+                "org.apache.xalan.xsltc.trax.TransformerFactoryImpl";
         }
 
         if (transformerFactoryClass != null) {
-            tf = TransformerFactory.newInstance(transformerFactoryClass, getClass().getClassLoader());
+            tf = TransformerFactory.newInstance(
+                transformerFactoryClass,
+                getClass().getClassLoader()
+            );
         } else {
             tf = TransformerFactory.newInstance();
         }
@@ -942,21 +1449,39 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         log.info("Initialized " + transformerFactoryClass);
     }
 
-    private Transformer doTransform(Source source, String transformFile, Result result, String publicId, String systemId) throws TransformerException {
+    private Transformer doTransform(
+        Source source,
+        String transformFile,
+        Result result,
+        String publicId,
+        String systemId
+    ) throws TransformerException {
         Transformer transform = null;
         Templates template = null;
 
-        String binaryTranslet = transformFile.replace('-', '_').substring(0, transformFile.length() - 5);
+        String binaryTranslet = transformFile
+            .replace('-', '_')
+            .substring(0, transformFile.length() - 5);
 
         if (Boolean.valueOf(options.get("nobinary"))) {
             log.warning("falling back to non-binary transforms only");
             binary = false;
         } else {
             try {
-                binary = null != Class.forName(SleeAnnotationProcessor.class.getPackage().getName() + ".translet." + binaryTranslet);
+                binary =
+                    null !=
+                    Class.forName(
+                        SleeAnnotationProcessor.class.getPackage().getName() +
+                            ".translet." +
+                            binaryTranslet
+                    );
                 log.warning("binary transforms for " + transformFile);
             } catch (ClassNotFoundException x) {
-                log.warning(x.getMessage() + " non-binary transforms only for " + transformFile);
+                log.warning(
+                    x.getMessage() +
+                        " non-binary transforms only for " +
+                        transformFile
+                );
             }
         }
 
@@ -970,66 +1495,115 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                     binary = false;
                     log.warning(x.getMessage());
                 }
-                transformFile = transformFile.replace('-', '_').substring(0, transformFile.length() - 5);
+                transformFile = transformFile
+                    .replace('-', '_')
+                    .substring(0, transformFile.length() - 5);
                 tf.setAttribute("translet-name", transformFile);
-                tf.setAttribute("package-name", SleeAnnotationProcessor.class.getPackage().getName() + ".translet");
+                tf.setAttribute(
+                    "package-name",
+                    SleeAnnotationProcessor.class.getPackage().getName() +
+                        ".translet"
+                );
 
                 template = tf.newTemplates(null);
                 transform = template.newTransformer();
             } else {
-
-                InputStream transformStream = this.getClass().getClassLoader().getResourceAsStream(transformFile);
-                StreamSource streamSource = new StreamSource(transformStream, transformFile);
+                InputStream transformStream = this.getClass()
+                    .getClassLoader()
+                    .getResourceAsStream(transformFile);
+                StreamSource streamSource = new StreamSource(
+                    transformStream,
+                    transformFile
+                );
                 transform = tf.newTransformer(streamSource);
             }
 
             transform.setErrorListener(new CollectAndThrowErrorListener());
 
             if (systemId != null) {
-                transform.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, systemId);
+                transform.setOutputProperty(
+                    OutputKeys.DOCTYPE_SYSTEM,
+                    systemId
+                );
             }
             if (publicId != null) {
-                transform.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, publicId);
+                transform.setOutputProperty(
+                    OutputKeys.DOCTYPE_PUBLIC,
+                    publicId
+                );
             }
 
             transform.setOutputProperty(OutputKeys.INDENT, "yes");
-            transform.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
+            transform.setOutputProperty(
+                "{http://xml.apache.org/xalan}indent-amount",
+                "2"
+            );
             transform.setURIResolver(cr);
-            transform.setParameter("slee_debug", Boolean.valueOf(options.get("debug")));
+            transform.setParameter(
+                "slee_debug",
+                Boolean.valueOf(options.get("debug"))
+            );
 
             DOMResult d = null;
-            log.info("transforming source " + source.getSystemId() + " to result " + result.getSystemId());
+            log.info(
+                "transforming source " +
+                    source.getSystemId() +
+                    " to result " +
+                    result.getSystemId()
+            );
             transform.transform(source, result);
-
         } catch (Exception ex) {
             log.log(Level.WARNING, ex.getMessage(), ex);
-            ((CollectAndThrowErrorListener) tf.getErrorListener()).checkAndThrow();
+            (
+                (CollectAndThrowErrorListener) tf.getErrorListener()
+            ).checkAndThrow();
 
             if (transform != null) {
-                ((CollectAndThrowErrorListener) transform.getErrorListener()).checkAndThrow();
+                (
+                    (CollectAndThrowErrorListener) transform.getErrorListener()
+                ).checkAndThrow();
             }
         }
         return transform;
     }
 
     private boolean processed(Element e2, AnnotationMirror a) {
-        if (processedAnnotation.containsKey(e2.getEnclosingElement().toString() + e2.toString())) {
-            if (processedAnnotation.get(e2.getEnclosingElement().toString() + e2.toString()).contains(a.getAnnotationType().toString())) {
+        if (
+            processedAnnotation.containsKey(
+                e2.getEnclosingElement().toString() + e2.toString()
+            )
+        ) {
+            if (
+                processedAnnotation
+                    .get(e2.getEnclosingElement().toString() + e2.toString())
+                    .contains(a.getAnnotationType().toString())
+            ) {
                 return true;
             } else {
-                processedAnnotation.get(e2.getEnclosingElement().toString() + e2.toString()).add(a.getAnnotationType().toString());
+                processedAnnotation
+                    .get(e2.getEnclosingElement().toString() + e2.toString())
+                    .add(a.getAnnotationType().toString());
             }
         } else {
-            processedAnnotation.put(e2.getEnclosingElement().toString() + e2.toString(), new HashSet<String>());
+            processedAnnotation.put(
+                e2.getEnclosingElement().toString() + e2.toString(),
+                new HashSet<String>()
+            );
         }
         return false;
     }
 
     private boolean processed(Element e2) {
-        if (processedElement.contains(e2.getEnclosingElement().toString() + e2.toString())) {
+        if (
+            processedElement.contains(
+                e2.getEnclosingElement().toString() + e2.toString()
+            )
+        ) {
             return true;
         }
-        processedElement.add(e2.getEnclosingElement().toString() + e2.toString());
+        processedElement.add(
+            e2.getEnclosingElement().toString() + e2.toString()
+        );
         return false;
     }
 
@@ -1062,56 +1636,98 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     private List<String> getAllAttributeNames(final TypeElement e2) {
         final List<String> attributes = new ArrayList<String>();
         //find profile having this table interface
-        Optional<TypeElement> cmp = roundEnv.getElementsAnnotatedWith(ProfileSpec.class)
-                .stream()
-                .filter(
-                        e -> e.getAnnotationMirrors().stream().anyMatch(a -> {
-                            Optional<String> tableInterface = this.getElementValue(a, "tableInterface");
-                            if (!tableInterface.isPresent()) {
-                                return false;
-                            }
-                            return e2.getQualifiedName().toString().equals(tableInterface.get());
-                        })
-                ).flatMap(
-                        e -> e.getAnnotationMirrors().stream()
-                                .map(a -> this.getElementValue(a, "cmpInterface"))
-                                .filter(o -> o.isPresent()).collect(toList()).stream()
+        Optional<TypeElement> cmp = roundEnv
+            .getElementsAnnotatedWith(ProfileSpec.class)
+            .stream()
+            .filter(e ->
+                e
+                    .getAnnotationMirrors()
+                    .stream()
+                    .anyMatch(a -> {
+                        Optional<String> tableInterface = this.getElementValue(
+                            a,
+                            "tableInterface"
+                        );
+                        if (!tableInterface.isPresent()) {
+                            return false;
+                        }
+                        return e2
+                            .getQualifiedName()
+                            .toString()
+                            .equals(tableInterface.get());
+                    })
+            )
+            .flatMap(
+                e ->
+                    e
+                        .getAnnotationMirrors()
+                        .stream()
+                        .map(a -> this.getElementValue(a, "cmpInterface"))
+                        .filter(o -> o.isPresent())
+                        .collect(toList())
+                        .stream()
                 //FIXME use optional.stream
-                )
-                .map(n -> getTypeElement(n.get()))
-                .findAny();
+            )
+            .map(n -> getTypeElement(n.get()))
+            .findAny();
 
         TypeElement e3 = cmp.get();
         TypeMirror m;
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProfileCMPField.class)
-                .stream().
-                filter(
-                        t -> ((TypeElement) t.getEnclosingElement()).getQualifiedName().toString().equals(e3.getQualifiedName().toString())
-                        || e3.getInterfaces().contains(((TypeElement) t.getEnclosingElement()).asType())
-                )
-                .collect(toSet());
+        Set<? extends Element> elements = roundEnv
+            .getElementsAnnotatedWith(ProfileCMPField.class)
+            .stream()
+            .filter(
+                t ->
+                    ((TypeElement) t.getEnclosingElement()).getQualifiedName()
+                        .toString()
+                        .equals(e3.getQualifiedName().toString()) ||
+                    e3
+                        .getInterfaces()
+                        .contains(
+                            ((TypeElement) t.getEnclosingElement()).asType()
+                        )
+            )
+            .collect(toSet());
 
         for (Element e : elements) {
-            e.accept(new ElementKindVisitor6<Void, Element>() {
+            e.accept(
+                new ElementKindVisitor6<Void, Element>() {
+                    @Override
+                    public Void visitExecutableAsMethod(
+                        ExecutableElement e,
+                        Element p
+                    ) {
+                        attributes.add(
+                            deBeanifySentenceCase(
+                                e.getSimpleName().toString(),
+                                "get",
+                                "set"
+                            )
+                        );
+                        return null;
+                    }
 
-                @Override
-                public Void visitExecutableAsMethod(ExecutableElement e, Element p) {
-                    attributes.add(deBeanifySentenceCase(e.getSimpleName().toString(), "get", "set"));
-                    return null;
-                }
-
-                @Override
-                public Void visitVariableAsField(VariableElement e, Element p) {
-                    attributes.add(e.getSimpleName().toString());
-                    return null;
-                }
-            }, e3);
+                    @Override
+                    public Void visitVariableAsField(
+                        VariableElement e,
+                        Element p
+                    ) {
+                        attributes.add(e.getSimpleName().toString());
+                        return null;
+                    }
+                },
+                e3
+            );
         }
         return attributes;
     }
 
-    public org.w3c.dom.Node parse(String query, List<String> attributes, int iiii, List<String> parameters) throws Exception {
-
+    public org.w3c.dom.Node parse(
+        String query,
+        List<String> attributes,
+        int iiii,
+        List<String> parameters
+    ) throws Exception {
         if (doc == null) {
             this.createDocument();
         }
@@ -1120,9 +1736,20 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         org.w3c.dom.Element tn = doc.createElement("tmp");
 
         StringTokenizer st = new StringTokenizer(query, " #()", true);
-        List<String> ops = Arrays.asList(new String[]{"equals", "not-equals", "less-than", "less-than-or-equals", "greater-than", "greater-than-or-equals"});
-        List<String> cons = Arrays.asList(new String[]{"and", "or", "not"});
-        List<String> fun = Arrays.asList(new String[]{"range-match", "longest-prefix-match", "has-prefix"});
+        List<String> ops = Arrays.asList(
+            new String[] {
+                "equals",
+                "not-equals",
+                "less-than",
+                "less-than-or-equals",
+                "greater-than",
+                "greater-than-or-equals",
+            }
+        );
+        List<String> cons = Arrays.asList(new String[] { "and", "or", "not" });
+        List<String> fun = Arrays.asList(
+            new String[] { "range-match", "longest-prefix-match", "has-prefix" }
+        );
         boolean collator = false;
 
         for (int i = 0; i < attributes.size(); i++) {
@@ -1140,7 +1767,10 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             } else if (attributes.contains(t.toLowerCase())) {
                 tn.setAttribute("attribute-name", t);
             } else if (parameters.contains(t)) {
-                tn.setAttribute(calculatePrefix((org.w3c.dom.Element) cn) + "parameter", t);
+                tn.setAttribute(
+                    calculatePrefix((org.w3c.dom.Element) cn) + "parameter",
+                    t
+                );
             } else if (ops.contains(t)) {
                 cn.appendChild(cn = doc.createElement("compare"));
                 copyTempAttrs((org.w3c.dom.Element) cn, tn);
@@ -1149,7 +1779,9 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 copyTempAttrs((org.w3c.dom.Element) cn, tn);
                 //log.fine(cn.getParentNode().getNodeName());
                 org.w3c.dom.Element qn;
-                Node on = cn.getParentNode().replaceChild(qn = doc.createElement(t), cn);
+                Node on = cn
+                    .getParentNode()
+                    .replaceChild(qn = doc.createElement(t), cn);
                 qn.appendChild(on);
                 cn = qn;
             } else if (fun.contains(t)) {
@@ -1159,16 +1791,21 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             } else if (t.equals(")")) {
                 cn = (org.w3c.dom.Element) cn.getParentNode();
             } else if (t.equals(" ")) {
-            } else //constant
+            }
+            //constant
             //FIX BUG HERE WHEN NO ATTRIBUTENAMES
-            {
+            else {
                 if (cn instanceof org.w3c.dom.Element) {
-                    ((org.w3c.dom.Element) cn).setAttribute(calculatePrefix((org.w3c.dom.Element) cn) + "value", t);
+                    ((org.w3c.dom.Element) cn).setAttribute(
+                        calculatePrefix((org.w3c.dom.Element) cn) + "value",
+                        t
+                    );
                 } else {
-                    throw new Exception("no attribute-name attribute on query (missing CMP parameter?)");
+                    throw new Exception(
+                        "no attribute-name attribute on query (missing CMP parameter?)"
+                    );
                 }
             }
-
         }
 
         copyTempAttrs((org.w3c.dom.Element) cn, tn);
@@ -1177,11 +1814,17 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private String calculatePrefix(org.w3c.dom.Element cn) {
-        if (cn.getNodeName().equals("range-match")
-                && (cn.getAttributeNode("from-value") == null & cn.getAttributeNode("from-parameter") == null)) {
+        if (
+            cn.getNodeName().equals("range-match") &&
+            ((cn.getAttributeNode("from-value") == null) &
+                (cn.getAttributeNode("from-parameter") == null))
+        ) {
             return "from-";
-        } else if (cn.getNodeName().equals("range-match")
-                && (cn.getAttributeNode("to-value") == null & cn.getAttributeNode("to-parameter") == null)) {
+        } else if (
+            cn.getNodeName().equals("range-match") &&
+            ((cn.getAttributeNode("to-value") == null) &
+                (cn.getAttributeNode("to-parameter") == null))
+        ) {
             return "to-";
         }
         return "";
@@ -1196,9 +1839,15 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private Node calculateUsageParameterSet(Element e2, AnnotationMirror a, org.w3c.dom.Element node) {
+    private Node calculateUsageParameterSet(
+        Element e2,
+        AnnotationMirror a,
+        org.w3c.dom.Element node
+    ) {
         DocumentFragment f = doc.createDocumentFragment();
-        List<ExecutableElement> ee = ElementFilter.methodsIn(this.processingEnv.getElementUtils().getAllMembers((TypeElement) e2));
+        List<ExecutableElement> ee = ElementFilter.methodsIn(
+            this.processingEnv.getElementUtils().getAllMembers((TypeElement) e2)
+        );
         org.w3c.dom.Element n = null;
 
         final org.w3c.dom.Element mnode = doc.createElement("methods");
@@ -1207,28 +1856,70 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         MessageFormat mf = new MessageFormat("public {0} {1} ();");
 
         for (ExecutableElement m : ee) {
+            if (
+                m.getSimpleName().toString().startsWith("increment") ||
+                m.getSimpleName().toString().startsWith("sample")
+            ) {
+                String ename = (
+                    (TypeElement) m.getEnclosingElement()
+                ).getQualifiedName().toString();
 
-            if (m.getSimpleName().toString().startsWith("increment") || m.getSimpleName().toString().startsWith("sample")) {
-                String ename = ((TypeElement) m.getEnclosingElement()).getQualifiedName().toString();
-
-                if (!ename.equals(Object.class
-                        .getName())) {
+                if (!ename.equals(Object.class.getName())) {
                     f.appendChild(n = (org.w3c.dom.Element) this.createNode(m));
                     n.appendChild(n = doc.createElement("annotation"));
 
-                    ((org.w3c.dom.Element) n).setAttribute("name", mobi.mofokom.javax.slee.annotation.UsageParameter.class.getName());
-                    final String name = formatUsageParameter(m.getSimpleName().toString());
-                    ((org.w3c.dom.Element) n).setAttribute("processed-value", name);
+                    ((org.w3c.dom.Element) n).setAttribute(
+                        "name",
+                        mobi.mofokom.javax.slee.annotation
+                            .UsageParameter.class.getName()
+                    );
+                    final String name = formatUsageParameter(
+                        m.getSimpleName().toString()
+                    );
+                    ((org.w3c.dom.Element) n).setAttribute(
+                        "processed-value",
+                        name
+                    );
 
-                    if (!ee.stream().filter(m2 -> !m.equals(m2)).anyMatch(
-                            m2 -> m2.getSimpleName().toString().equals("get" + this.capitalizeFirst(name))
-                    )) {
-                        ((org.w3c.dom.Element) n).setAttribute("missing-counter", Boolean.TRUE.toString());
+                    if (
+                        !ee
+                            .stream()
+                            .filter(m2 -> !m.equals(m2))
+                            .anyMatch(m2 ->
+                                m2
+                                    .getSimpleName()
+                                    .toString()
+                                    .equals("get" + this.capitalizeFirst(name))
+                            )
+                    ) {
+                        ((org.w3c.dom.Element) n).setAttribute(
+                            "missing-counter",
+                            Boolean.TRUE.toString()
+                        );
 
-                        final org.w3c.dom.Element me = doc.createElement("method");
-                        String r = m.getSimpleName().toString().startsWith("sample") ? javax.slee.usage.SampleStatistics.class.getName() : "long";
+                        final org.w3c.dom.Element me = doc.createElement(
+                            "method"
+                        );
+                        String r = m
+                            .getSimpleName()
+                            .toString()
+                            .startsWith("sample")
+                            ? javax.slee.usage.SampleStatistics.class.getName()
+                            : "long";
 
-                        me.setAttribute("name", mf.format(new Object[]{r, "get" + this.capitalizeFirst(name)}, new StringBuffer(), new FieldPosition(0)).toString());
+                        me.setAttribute(
+                            "name",
+                            mf
+                                .format(
+                                    new Object[] {
+                                        r,
+                                        "get" + this.capitalizeFirst(name),
+                                    },
+                                    new StringBuffer(),
+                                    new FieldPosition(0)
+                                )
+                                .toString()
+                        );
                         me.setAttribute("enclosing", e2.toString());
                         mnode.appendChild(me);
                     }
@@ -1241,79 +1932,135 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         return f;
     }
 
-    private void getResourceName(org.w3c.dom.Element node, AnnotationMirror a, Element e2) {
+    private void getResourceName(
+        org.w3c.dom.Element node,
+        AnnotationMirror a,
+        Element e2
+    ) {
         a.getElementValues();
 
-        e2.accept(new ElementKindVisitor6<Node, org.w3c.dom.Element>() {
-
-            @Override
-            public Node visitType(TypeElement e, org.w3c.dom.Element p) {
-                p.setAttribute("processed-value",
-                        e.getModifiers().toString() + " " + e.toString().trim());
-                return null;
-            }
-
-            @Override
-            public Node visitVariableAsField(VariableElement e, org.w3c.dom.Element p) {
-                p.setAttribute("type", e.asType().toString());
-                p.setAttribute("processed-value", getSleeJndiName(e.asType().toString()));
-                return null;
-            }
-
-            @Override
-            public Node visitExecutable(ExecutableElement e, org.w3c.dom.Element p) {
-                p.setAttribute("type", e.getReturnType().toString());
-                p.setAttribute("processed-value", e.toString().trim());
-                String s = e.getModifiers().stream().filter(m -> !m.equals(Modifier.ABSTRACT)).map(m -> m.toString()).collect(Collectors.joining(" ")).toString();
-
-                p.setAttribute("modifiers", s);
-                return null;
-            }
-
-            private String getSleeJndiName(String cn) {
-                if (cn.startsWith("javax.slee")) {
-                    try {
-                        return Class.forName(cn).getField("JNDI_NAME").get(Class.forName(cn)).toString();
-                    } catch (IllegalArgumentException ex) {
-                    } catch (IllegalAccessException ex) {
-                    } catch (NoSuchFieldException ex) {
-                    } catch (SecurityException ex) {
-                    } catch (ClassNotFoundException ex) {
-                    }
+        e2.accept(
+            new ElementKindVisitor6<Node, org.w3c.dom.Element>() {
+                @Override
+                public Node visitType(TypeElement e, org.w3c.dom.Element p) {
+                    p.setAttribute(
+                        "processed-value",
+                        e.getModifiers().toString() + " " + e.toString().trim()
+                    );
+                    return null;
                 }
-                return "{unknown}";
-            }
-        }, node);
+
+                @Override
+                public Node visitVariableAsField(
+                    VariableElement e,
+                    org.w3c.dom.Element p
+                ) {
+                    p.setAttribute("type", e.asType().toString());
+                    p.setAttribute(
+                        "processed-value",
+                        getSleeJndiName(e.asType().toString())
+                    );
+                    return null;
+                }
+
+                @Override
+                public Node visitExecutable(
+                    ExecutableElement e,
+                    org.w3c.dom.Element p
+                ) {
+                    p.setAttribute("type", e.getReturnType().toString());
+                    p.setAttribute("processed-value", e.toString().trim());
+                    String s = e
+                        .getModifiers()
+                        .stream()
+                        .filter(m -> !m.equals(Modifier.ABSTRACT))
+                        .map(m -> m.toString())
+                        .collect(Collectors.joining(" "))
+                        .toString();
+
+                    p.setAttribute("modifiers", s);
+                    return null;
+                }
+
+                private String getSleeJndiName(String cn) {
+                    if (cn.startsWith("javax.slee")) {
+                        try {
+                            return Class.forName(cn)
+                                .getField("JNDI_NAME")
+                                .get(Class.forName(cn))
+                                .toString();
+                        } catch (IllegalArgumentException ex) {
+                        } catch (IllegalAccessException ex) {
+                        } catch (NoSuchFieldException ex) {
+                        } catch (SecurityException ex) {
+                        } catch (ClassNotFoundException ex) {
+                        }
+                    }
+                    return "{unknown}";
+                }
+            },
+            node
+        );
     }
 
-    private void setIdAttributes(Node node) {
-    }
+    private void setIdAttributes(Node node) {}
 
     private String BeanifySentenceCase(String v) {
         return v.substring(0, 1).toUpperCase() + v.substring(1);
     }
 
     private void doResourceAdaptorACI(final Element e2, AnnotationMirror a) {
-        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : this.processingEnv.getElementUtils().getElementValuesWithDefaults(a).entrySet()) {
+        for (Entry<
+            ? extends ExecutableElement,
+            ? extends AnnotationValue
+        > e : this.processingEnv.getElementUtils()
+            .getElementValuesWithDefaults(a)
+            .entrySet()) {
             if (e.getKey().getSimpleName().toString().equals("aciFactory")) {
                 Object o = e.getValue().getValue();
-                TypeElement aci = super.processingEnv.getElementUtils().getTypeElement(o.toString());
+                TypeElement aci = super.processingEnv
+                    .getElementUtils()
+                    .getTypeElement(o.toString());
 
-                for (Element m : processingEnv.getElementUtils().getAllMembers(aci)) {
-                    m.accept(new ElementKindVisitor6<Boolean, Object>() {
-
-                        @Override
-                        public Boolean visitExecutableAsMethod(ExecutableElement e, Object p) {
-                            if (e.getReturnType().toString().equals(javax.slee.ActivityContextInterface.class.getName())) {
-                                org.w3c.dom.Element n;
-                                n = doc.createElement("activitycontextinterface");
-                                n.setAttribute("activity", e.getParameters().get(0).asType().toString());
-                                n.setAttribute("enclosing", e2.toString());
-                                rootNode.appendChild(n);
+                for (Element m : processingEnv
+                    .getElementUtils()
+                    .getAllMembers(aci)) {
+                    m.accept(
+                        new ElementKindVisitor6<Boolean, Object>() {
+                            @Override
+                            public Boolean visitExecutableAsMethod(
+                                ExecutableElement e,
+                                Object p
+                            ) {
+                                if (
+                                    e
+                                        .getReturnType()
+                                        .toString()
+                                        .equals(
+                                            javax.slee
+                                                .ActivityContextInterface.class.getName()
+                                        )
+                                ) {
+                                    org.w3c.dom.Element n;
+                                    n = doc.createElement(
+                                        "activitycontextinterface"
+                                    );
+                                    n.setAttribute(
+                                        "activity",
+                                        e
+                                            .getParameters()
+                                            .get(0)
+                                            .asType()
+                                            .toString()
+                                    );
+                                    n.setAttribute("enclosing", e2.toString());
+                                    rootNode.appendChild(n);
+                                }
+                                return Boolean.TRUE;
                             }
-                            return Boolean.TRUE;
-                        }
-                    }, o);
+                        },
+                        o
+                    );
                 }
             }
         }
@@ -1324,155 +2071,288 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         int i = 0;
 
-        MessageFormat f = new MessageFormat("public {0} {1}.{2}{3} {4} '{' {5} '}'");
+        MessageFormat f = new MessageFormat(
+            "public {0} {1}.{2}{3} {4} '{' {5} '}'"
+        );
 
         String mm = m.getSimpleName().toString();
         String mb = "";
         String mt = "";
 
-        String mp = m.getParameters().stream().map(p -> {
-            return toName(p.asType()) + " " + p.getSimpleName();
-        }).collect(Collectors.joining(",", "(", ")"));
+        String mp = m
+            .getParameters()
+            .stream()
+            .map(p -> {
+                return toName(p.asType()) + " " + p.getSimpleName();
+            })
+            .collect(Collectors.joining(",", "(", ")"));
 
         if (!m.getReturnType().toString().equals("void")) {
             mb = "return null;";
         }
 
         if (m.getThrownTypes().size() > 0) {
-            mt = "throws " + m.getThrownTypes().stream().map(this::toName).collect(Collectors.joining(",")).toString();
+            mt =
+                "throws " +
+                m
+                    .getThrownTypes()
+                    .stream()
+                    .map(this::toName)
+                    .collect(Collectors.joining(","))
+                    .toString();
         }
 
-        return f.format(new Object[]{m.getReturnType().toString(), e.toString(), mm, mp, mt, mb}, buffy, null).toString();
-
+        return f
+            .format(
+                new Object[] {
+                    m.getReturnType().toString(),
+                    e.toString(),
+                    mm,
+                    mp,
+                    mt,
+                    mb,
+                },
+                buffy,
+                null
+            )
+            .toString();
     }
 
     private String toName(TypeMirror t) {
         switch (t.getKind()) {
             case DECLARED:
-                return ((TypeElement) ((DeclaredType) t).asElement()).getQualifiedName().toString();
+                return (
+                    (TypeElement) ((DeclaredType) t).asElement()
+                ).getQualifiedName().toString();
             default:
                 return ((PrimitiveType) t).toString();
         }
     }
 
-    private void processPackage(org.w3c.dom.Element node, AnnotationMirror a, Element e2) {
-
-        if (a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.Sbb.class.getName())
-                || a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName())
-                || a.getAnnotationType().asElement().toString().equals(mobi.mofokom.javax.slee.annotation.ResourceAdaptor.class.getName())) {
-            TypeElement clazz = super.processingEnv.getElementUtils().getTypeElement(e2.toString());
+    private void processPackage(
+        org.w3c.dom.Element node,
+        AnnotationMirror a,
+        Element e2
+    ) {
+        String annType = a.getAnnotationType().asElement().toString();
+        if (
+            isIn(annType, ANN_SBB) ||
+            isIn(annType, ANN_PROFILE_SPEC) ||
+            isIn(annType, ANN_RESOURCE_ADAPTOR)
+        ) {
+            TypeElement clazz = super.processingEnv
+                .getElementUtils()
+                .getTypeElement(e2.toString());
             //if (!((PackageElement) clazz.getEnclosingElement()).getQualifiedName().toString().isEmpty()) {
-            node.setAttribute("package", ((PackageElement) clazz.getEnclosingElement()).getQualifiedName().toString());
+            node.setAttribute(
+                "package",
+                (
+                    (PackageElement) clazz.getEnclosingElement()
+                ).getQualifiedName().toString()
+            );
             //}
             node.setAttribute("simple-name", clazz.getSimpleName().toString());
         }
     }
 
-    private void addMethods(Element e2, TypeElement base) {
-    }
+    private void addMethods(Element e2, TypeElement base) {}
 
-    private void generateDescriptors() throws XPathExpressionException, InstantiationException, IllegalAccessException, IOException, ParserConfigurationException, SAXException, ClassNotFoundException, TransformerException {
+    private void generateDescriptors()
+        throws XPathExpressionException, InstantiationException, IllegalAccessException, IOException, ParserConfigurationException, SAXException, ClassNotFoundException, TransformerException {
+        DOMSource domDoc = new DOMSource(
+            doc.getDocumentElement().getFirstChild(),
+            "annotations.xml"
+        );
 
-        DOMSource domDoc = new DOMSource(doc.getDocumentElement().getFirstChild(), "annotations.xml");
-
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.event.EventType.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        // Build XPath for EventType (supports multiple package prefixes)
+        String eventTypeXPath = String.format(
+            "count(/process/element[@kind='CLASS']/annotation[@name='%s' or @name='%s'])>0",
+            ANN_MOFOKOM + "event." + ANN_EVENT_TYPE,
+            ANN_MOBICENTS + ANN_EVENT_TYPE
+        );
+        if (
+            xpath
+                .compile(eventTypeXPath)
+                .evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN)
+                .equals(Boolean.TRUE)
+        ) {
             processOutput(doc, "event-jar.xslt", "META-INF/event-jar.xml", "");
         } else {
             log.info("no events for event-jar.xml");
         }
 
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.Service.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        // Build XPath for Service (supports multiple package prefixes)
+        String serviceXPath = String.format(
+            "count(/process/element[@kind='CLASS']/annotation[@name='%s' or @name='%s'])>0",
+            ANN_MOFOKOM + ANN_SERVICE,
+            ANN_MOBICENTS + ANN_SERVICE
+        );
+        if (
+            xpath
+                .compile(serviceXPath)
+                .evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN)
+                .equals(Boolean.TRUE)
+        ) {
             processOutput(doc, "service.xslt", "service.xml", "");
         } else {
             log.info("no services for service-jar.xml");
         }
 
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.ResourceAdaptor.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
-            processOutput(doc, "resource-adaptor-jar.xslt", "META-INF/resource-adaptor-jar.xml", "");
+        // Build XPath for ResourceAdaptor (supports multiple package prefixes)
+        String resourceAdaptorXPath = String.format(
+            "count(/process/element[@kind='CLASS']/annotation[@name='%s' or @name='%s'])>0",
+            ANN_MOFOKOM + ANN_RESOURCE_ADAPTOR,
+            ANN_MOBICENTS + ANN_RESOURCE_ADAPTOR
+        );
+        if (
+            xpath
+                .compile(resourceAdaptorXPath)
+                .evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN)
+                .equals(Boolean.TRUE)
+        ) {
+            processOutput(
+                doc,
+                "resource-adaptor-jar.xslt",
+                "META-INF/resource-adaptor-jar.xml",
+                ""
+            );
         } else {
             log.info("no resource-adaptors for resource-adaptors-jar.xml");
         }
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.ResourceAdaptorType.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
-            processOutput(doc, "resource-adaptor-type-jar.xslt", "META-INF/resource-adaptor-type-jar.xml", "");
+        // Build XPath for ResourceAdaptorType (supports multiple package prefixes)
+        String resourceAdaptorTypeXPath = String.format(
+            "count(/process/element[@kind='CLASS']/annotation[@name='%s' or @name='%s'])>0",
+            ANN_MOFOKOM + ANN_RESOURCE_ADAPTOR_TYPE,
+            ANN_MOBICENTS + ANN_RESOURCE_ADAPTOR_TYPE
+        );
+        if (
+            xpath
+                .compile(resourceAdaptorTypeXPath)
+                .evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN)
+                .equals(Boolean.TRUE)
+        ) {
+            processOutput(
+                doc,
+                "resource-adaptor-type-jar.xslt",
+                "META-INF/resource-adaptor-type-jar.xml",
+                ""
+            );
         } else {
-            log.info("no resource-adaptor-types for resource-adaptor-type-jar.xml");
+            log.info(
+                "no resource-adaptor-types for resource-adaptor-type-jar.xml"
+            );
         }
-        if (xpath.compile("count(/process/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.ProfileSpec.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
-            processOutput(doc, "profile-spec-jar.xslt", "META-INF/profile-spec-jar.xml", "");
+        // Build XPath for ProfileSpec (supports multiple package prefixes)
+        String profileSpecXPath = String.format(
+            "count(/process/element[@kind='CLASS' or @kind='INTERFACE']/annotation[@name='%s' or @name='%s'])>0",
+            ANN_MOFOKOM + ANN_PROFILE_SPEC,
+            ANN_MOBICENTS + ANN_PROFILE_SPEC
+        );
+        if (
+            xpath
+                .compile(profileSpecXPath)
+                .evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN)
+                .equals(Boolean.TRUE)
+        ) {
+            processOutput(
+                doc,
+                "profile-spec-jar.xslt",
+                "META-INF/profile-spec-jar.xml",
+                ""
+            );
         } else {
             log.info("no profiles for profile-jar.xml");
         }
-        if (xpath.compile("count(/process/element[@kind='CLASS']/annotation[@name='" + mobi.mofokom.javax.slee.annotation.Sbb.class.getName() + "'])>0").evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN).equals(Boolean.TRUE)) {
+        // Build XPath for Sbb (supports multiple package prefixes)
+        String sbbXPath = String.format(
+            "count(/process/element[@kind='CLASS']/annotation[@name='%s' or @name='%s'])>0",
+            ANN_MOFOKOM + ANN_SBB,
+            ANN_MOBICENTS + ANN_SBB
+        );
+        if (
+            xpath
+                .compile(sbbXPath)
+                .evaluate(doc.getDocumentElement(), XPathConstants.BOOLEAN)
+                .equals(Boolean.TRUE)
+        ) {
             processOutput(doc, "sbb-jar.xslt", "META-INF/sbb-jar.xml", "");
         } else {
             log.info("no sbbs for sbb-jar.xml");
         }
-
     }
 
     private void runAjcCompiler() {
         /*
-             * Filer filer = super.processingEnv.getFiler();
-             * String pi = "notused.package-info";
-             * JavaFileObject testFile = filer.createClassFile(pi);
-             * File baseDir = new File(testFile.toUri().getPath());
-             * baseDir = baseDir.getParentFile().getParentFile();
-             * logger.info(Arrays.toString(baseDir.list()));
-             * testFile.delete();
-             *
-             * AjcCompiler ajcCompiler = new AjcCompiler();
-             * ajcCompiler.setOutputDirectory(baseDir);
-             * ajcCompiler.setBasedir(baseDir);
-             * switch (this.processingEnv.getSourceVersion()) {
-             * case RELEASE_3:
-             * ajcCompiler.setSource("1.3");
-             * break;
-             * case RELEASE_4:
-             * ajcCompiler.setSource("1.4");
-             * break;
-             * case RELEASE_5:
-             * ajcCompiler.setSource("1.5");
-             * break;
-             * case RELEASE_6:
-             * ajcCompiler.setSource("1.6");
-             * break;
-             * default:
-             * ajcCompiler.setSource("1.5");
-             *
-             * }
-             *
-             * //ajcCompiler.setWeaveDirectories(new String[]{baseDir.toString()});
-             * ajcCompiler.setVerbose(true);
-             * ajcCompiler.setForceAjcCompile(true);
-             * ajcCompiler.setIncludes(aspects.toArray(new String[aspects.size()]));
-             *
-             * String cp = "";
-             * for (URL u : ((URLClassLoader) this.getClass().getClassLoader()).getURLs()) {
-             * cp += u.getPath();
-             * cp += File.pathSeparatorChar;
-             * }
-             *
-             * for (URL u : ((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs()) {
-             * cp += u.getPath();
-             * cp += File.pathSeparatorChar;
-             * }
-             * cp += System.getProperty("sun.boot.class.path");
-             * cp += File.pathSeparatorChar;
-             * cp += baseDir.toString();
-             *
-             * ajcCompiler.setBootClassPath(cp);
-             * ajcCompiler.execute();
-             *
+         * Filer filer = super.processingEnv.getFiler();
+         * String pi = "notused.package-info";
+         * JavaFileObject testFile = filer.createClassFile(pi);
+         * File baseDir = new File(testFile.toUri().getPath());
+         * baseDir = baseDir.getParentFile().getParentFile();
+         * logger.info(Arrays.toString(baseDir.list()));
+         * testFile.delete();
+         *
+         * AjcCompiler ajcCompiler = new AjcCompiler();
+         * ajcCompiler.setOutputDirectory(baseDir);
+         * ajcCompiler.setBasedir(baseDir);
+         * switch (this.processingEnv.getSourceVersion()) {
+         * case RELEASE_3:
+         * ajcCompiler.setSource("1.3");
+         * break;
+         * case RELEASE_4:
+         * ajcCompiler.setSource("1.4");
+         * break;
+         * case RELEASE_5:
+         * ajcCompiler.setSource("1.5");
+         * break;
+         * case RELEASE_6:
+         * ajcCompiler.setSource("1.6");
+         * break;
+         * default:
+         * ajcCompiler.setSource("1.5");
+         *
+         * }
+         *
+         * //ajcCompiler.setWeaveDirectories(new String[]{baseDir.toString()});
+         * ajcCompiler.setVerbose(true);
+         * ajcCompiler.setForceAjcCompile(true);
+         * ajcCompiler.setIncludes(aspects.toArray(new String[aspects.size()]));
+         *
+         * String cp = "";
+         * for (URL u : ((URLClassLoader) this.getClass().getClassLoader()).getURLs()) {
+         * cp += u.getPath();
+         * cp += File.pathSeparatorChar;
+         * }
+         *
+         * for (URL u : ((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs()) {
+         * cp += u.getPath();
+         * cp += File.pathSeparatorChar;
+         * }
+         * cp += System.getProperty("sun.boot.class.path");
+         * cp += File.pathSeparatorChar;
+         * cp += baseDir.toString();
+         *
+         * ajcCompiler.setBootClassPath(cp);
+         * ajcCompiler.execute();
+         *
          */
     }
 
     private void addModifiers(Element e2, org.w3c.dom.Element node) {
-        String s = e2.getModifiers().stream().filter(m -> !m.equals(Modifier.ABSTRACT)).map(m -> m.toString()).collect(Collectors.joining(" ")).toString();
+        String s = e2
+            .getModifiers()
+            .stream()
+            .filter(m -> !m.equals(Modifier.ABSTRACT))
+            .map(m -> m.toString())
+            .collect(Collectors.joining(" "))
+            .toString();
 
         ((org.w3c.dom.Element) node).setAttribute("modifiers", s);
         Boolean isAbstract = e2.getModifiers().contains(Modifier.ABSTRACT);
         if (isAbstract) {
-            ((org.w3c.dom.Element) node).setAttribute("abstract", isAbstract.toString());
+            ((org.w3c.dom.Element) node).setAttribute(
+                "abstract",
+                isAbstract.toString()
+            );
         }
     }
 
@@ -1481,7 +2361,11 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private Optional<? extends Element> getElement(String name, Element e) {
-        return e.getEnclosedElements().stream().filter(e2 -> name.equals(e2.getSimpleName())).findFirst();
+        return e
+            .getEnclosedElements()
+            .stream()
+            .filter(e2 -> name.equals(e2.getSimpleName()))
+            .findFirst();
     }
 
     private TypeElement getTypeElement(String name) {
@@ -1489,7 +2373,13 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private Optional<String> getElementValue(AnnotationMirror a, String name) {
-        return a.getElementValues().entrySet().stream().filter(e -> name.equals(e.getKey().getSimpleName().toString())).map(e -> e.getValue().getValue().toString()).findFirst();
+        return a
+            .getElementValues()
+            .entrySet()
+            .stream()
+            .filter(e -> name.equals(e.getKey().getSimpleName().toString()))
+            .map(e -> e.getValue().getValue().toString())
+            .findFirst();
     }
 
     private String capitalizeFirst(String name) {
@@ -1503,40 +2393,63 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
     }
 
     private boolean isEventHandler(String c) {
-
-        return Arrays.asList(
-                mobi.mofokom.javax.slee.annotation.event.EventHandler.class.getName(),
-                mobi.mofokom.javax.slee.annotation.event.ProfileAddedEventHandler.class.getName(),
-                mobi.mofokom.javax.slee.annotation.event.ProfileRemovedEventHandler.class.getName(),
-                mobi.mofokom.javax.slee.annotation.event.ProfileUpdatedEventHandler.class.getName(),
-                mobi.mofokom.javax.slee.annotation.event.ServiceStartedEventHandler.class.getName(),
-                mobi.mofokom.javax.slee.annotation.event.TimerEventHandler.class.getName()).contains(c);
+        return isIn(
+            c,
+            ANN_EVENT_HANDLER,
+            ANN_PROFILE_ADDED_EVENT_HANDLER,
+            ANN_PROFILE_REMOVED_EVENT_HANDLER,
+            ANN_PROFILE_UPDATED_EVENT_HANDLER,
+            ANN_SERVICE_STARTED_EVENT_HANDLER,
+            ANN_TIMER_EVENT_HANDLER
+        );
     }
 
     private String formatEventHandler(String methodName) {
         return methodName.replaceFirst("^on", "");
     }
 
-    public void processExistingDescriptors(RoundEnvironment roundEnv) throws SAXException, ParserConfigurationException, FileNotFoundException, IOException, TransformerConfigurationException, TransformerException {
+    public void processExistingDescriptors(RoundEnvironment roundEnv)
+        throws SAXException, ParserConfigurationException, FileNotFoundException, IOException, TransformerConfigurationException, TransformerException {
         // Load xslt-base.xml using JAXP
         dbf.setNamespaceAware(true);
-        rsysmap.put("http://java.sun.com/dtd/slee-event-jar_1_1.dtd", "event-jar-aj.xslt");
-        rsysmap.put("http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd", "profile-spec-jar-aj.xslt");
-        rsysmap.put("http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd", "resource-adaptor-type-jar-aj.xslt");
-        rsysmap.put("http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd", "resource-adaptor-jar-aj.xslt");
-        rsysmap.put("http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd", "sbb-jar-aj.xslt");
-        rsysmap.put("http://java.sun.com/dtd/slee-service_1_1.dtd", "service-aj.xslt");
-        rsysmap.put("http://java.sun.com/dtd/slee-deployable-unit_1_1.dtd", "deployable-unit");
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-event-jar_1_1.dtd",
+            "event-jar-aj.xslt"
+        );
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-profile-spec-jar_1_1.dtd",
+            "profile-spec-jar-aj.xslt"
+        );
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-resource-adaptor-type-jar_1_1.dtd",
+            "resource-adaptor-type-jar-aj.xslt"
+        );
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-resource-adaptor-jar_1_1.dtd",
+            "resource-adaptor-jar-aj.xslt"
+        );
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-sbb-jar_1_1.dtd",
+            "sbb-jar-aj.xslt"
+        );
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-service_1_1.dtd",
+            "service-aj.xslt"
+        );
+        rsysmap.put(
+            "http://java.sun.com/dtd/slee-deployable-unit_1_1.dtd",
+            "deployable-unit"
+        );
 
-        for (String s : new String[]{
+        for (String s : new String[] {
             "META-INF/deployable-unit.xml",
             "META-INF/event-jar.xml",
             //"META-INF/library-jar.xml",
             "META-INF/profile-spec-jar.xml",
             "META-INF/resource-adaptor-jar.xml",
             "META-INF/resource-adaptor-type-jar.xml",
-            "META-INF/sbb-jar.xml",}) {
-
+            "META-INF/sbb-jar.xml",
+        }) {
             try {
                 processExistingResource(s);
             } catch (RuntimeException x) {
@@ -1545,11 +2458,107 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    ClassLoader resourceClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader resourceClassLoader =
+        Thread.currentThread().getContextClassLoader();
+
+    // Annotation name constants - prefixes for different package origins
+    private static final String ANN_MOFOKOM =
+        "mobi.mofokom.javax.slee.annotation.";
+    private static final String ANN_MOBICENTS =
+        "org.mobicents.slee.annotations.";
+    private static final String ANN_JAKARTA = "jakarta.annotation.";
+    private static final String ANN_JAVAX = "javax.annotation.";
+
+    // Annotation name constants from @SupportedAnnotationTypes
+    private static final String ANN_RESOURCE = "Resource";
+    private static final String ANN_ACTIVITY_CONTEXT_ATTRIBUTE_ALIAS =
+        "ActivityContextAttributeAlias";
+    private static final String ANN_CMP_FIELD = "CMPField";
+    private static final String ANN_CHILD_RELATION = "ChildRelation";
+    private static final String ANN_CLEAR_ALARM = "ClearAlarm";
+    private static final String ANN_CONFIG_PROPERTY = "ConfigProperty";
+    private static final String ANN_COLLATOR = "Collator";
+    private static final String ANN_ENV_ENTRY = "EnvEntry";
+    private static final String ANN_EJB_REF = "EJBRef";
+    private static final String ANN_LIBRARY_REF = "LibraryRef";
+    private static final String ANN_PROFILE_CMP = "ProfileCMP";
+    private static final String ANN_PROFILE_CMP_FIELD = "ProfileCMPField";
+    private static final String ANN_PROFILE_SPEC = "ProfileSpec";
+    private static final String ANN_PROFILE_SPEC_REF = "ProfileSpecRef";
+    private static final String ANN_RAISE_ALARM = "RaiseAlarm";
+    private static final String ANN_REENTRANT = "Reentrant";
+    private static final String ANN_RESOURCE_ADAPTOR = "ResourceAdaptor";
+    private static final String ANN_RESOURCE_ADAPTOR_TYPE_REF =
+        "ResourceAdaptorTypeRef";
+    private static final String ANN_RESOURCE_ADAPTOR_TYPE =
+        "ResourceAdaptorType";
+    private static final String ANN_RESOURCE_ADAPTOR_TYPE_BINDING =
+        "ResourceAdaptorTypeBinding";
+    private static final String ANN_ROLLBACK = "Rollback";
+    private static final String ANN_SBB = "Sbb";
+    private static final String ANN_SBB_ACTIVITY_CONTEXT_FACTORY =
+        "SbbActivityContextFactory";
+    private static final String ANN_SBB_REF = "SbbRef";
+    private static final String ANN_SERVICE = "Service";
+    private static final String ANN_SERVICE_CONFIG_PROPERTIES =
+        "ServiceConfigProperties";
+    private static final String ANN_STATIC_QUERY = "StaticQuery";
+    private static final String ANN_USAGE_PARAMETER = "UsageParameter";
+    private static final String ANN_USAGE_PARAMETERS_INTERFACE =
+        "UsageParametersInterface";
+    private static final String ANN_ACTIVITY_END_EVENT_HANDLER =
+        "ActivityEndEventHandler";
+    private static final String ANN_EVENT_FIRING = "EventFiring";
+    private static final String ANN_EVENT_HANDLER = "EventHandler";
+    private static final String ANN_EVENT_TYPE = "EventType";
+    private static final String ANN_EVENT_TYPE_REF = "EventTypeRef";
+    private static final String ANN_INITIAL_EVENT_SELECT = "InitialEventSelect";
+    private static final String ANN_INITIAL_EVENT_SELECTOR_METHOD =
+        "InitialEventSelectorMethod";
+    private static final String ANN_PROFILE_ADDED_EVENT_HANDLER =
+        "ProfileAddedEventHandler";
+    private static final String ANN_PROFILE_REMOVED_EVENT_HANDLER =
+        "ProfileRemovedEventHandler";
+    private static final String ANN_PROFILE_UPDATED_EVENT_HANDLER =
+        "ProfileUpdatedEventHandler";
+    private static final String ANN_SERVICE_STARTED_EVENT_HANDLER =
+        "ServiceStartedEventHandler";
+    private static final String ANN_TIMER_EVENT_HANDLER = "TimerEventHandler";
+
+    /**
+     * Helper method to check if an annotation name matches any of the expected
+     * fully qualified names across different package prefixes.
+     *
+     * @param name The fully qualified annotation name to check
+     * @param expectedNames The simple annotation names to match against
+     * @return true if name matches any expected name with supported prefixes
+     */
+    private boolean isIn(String name, String... expectedNames) {
+        for (String expectedName : expectedNames) {
+            // Check if it's a fully qualified name matching any prefix
+            if (
+                name.equals(ANN_MOFOKOM + expectedName) ||
+                name.equals(ANN_MOBICENTS + expectedName) ||
+                name.equals(ANN_JAKARTA + expectedName) ||
+                name.equals(ANN_JAVAX + expectedName)
+            ) {
+                return true;
+            }
+            // Also check for event package annotations
+            if (
+                name.equals(ANN_MOFOKOM + "event." + expectedName) ||
+                name.equals(ANN_MOBICENTS + expectedName)
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private void processExistingResource(String s) {
-
-        List<URL> resources = resourceClassLoader.resources(s).collect(toList());
+        List<URL> resources = resourceClassLoader
+            .resources(s)
+            .collect(toList());
 
         if (resources.isEmpty()) {
             log.warning("no " + s + " files found on classpath.");
@@ -1575,18 +2584,30 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 String transformFile = rsysmap.get(sys);
                 if ("deployable-unit".equals(transformFile)) {
                     //TODO: locate service-xml elements and process those
-                    NodeList ret = (NodeList) xpath.compile("/deployable-unit/service-xml").evaluate(doc.getDocumentElement(), XPathConstants.NODESET);
+                    NodeList ret = (NodeList) xpath
+                        .compile("/deployable-unit/service-xml")
+                        .evaluate(
+                            doc.getDocumentElement(),
+                            XPathConstants.NODESET
+                        );
                     if (ret != null) {
                         for (Node n : new NodeListIterator(ret)) {
-                            log.info(n.getLocalName() + " " + n.getTextContent());
+                            log.info(
+                                n.getLocalName() + " " + n.getTextContent()
+                            );
                             processExistingResource(n.getTextContent().trim());
                         }
                     }
                     continue;
                 }
 
-                String outputFile = "target/generated-sources/aj/" + transformFile.replace(".xslt", ".aj");
-                URL xsltBase = SleeAnnotationProcessor.class.getClassLoader().getResource("aj/" + transformFile);
+                String outputFile =
+                    "target/generated-sources/aj/" +
+                    transformFile.replace(".xslt", ".aj");
+                URL xsltBase =
+                    SleeAnnotationProcessor.class.getClassLoader().getResource(
+                        "aj/" + transformFile
+                    );
 
                 if (xsltBase == null) {
                     throw new FileNotFoundException(transformFile);
@@ -1595,12 +2616,23 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
                 InputStream xsltBaseStream = xsltBase.openStream();
 
                 InputSource is = new InputSource(in);
-                TransformerFactory transformerFactory = TransformerFactory.newInstance("org.apache.xalan.processor.TransformerFactoryImpl", null);
-                Templates template = transformerFactory.newTemplates(new StreamSource(xsltBaseStream));
+                TransformerFactory transformerFactory =
+                    TransformerFactory.newInstance(
+                        "org.apache.xalan.processor.TransformerFactoryImpl",
+                        null
+                    );
+                Templates template = transformerFactory.newTemplates(
+                    new StreamSource(xsltBaseStream)
+                );
                 Transformer transformer = template.newTransformer();
                 transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                transformer.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
-                transformer.setErrorListener(new SleeAnnotationProcessor.CollectAndThrowErrorListener());
+                transformer.setOutputProperty(
+                    "{http://xml.apache.org/xalan}indent-amount",
+                    "2"
+                );
+                transformer.setErrorListener(
+                    new SleeAnnotationProcessor.CollectAndThrowErrorListener()
+                );
                 File f = new File(outputFile);
                 f.getParentFile().mkdirs();
                 Result result = new StreamResult(f);
@@ -1617,34 +2649,43 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
 
         List<TransformerException> exceptions = new ArrayList<>();
 
-        public CollectAndThrowErrorListener() {
-        }
+        public CollectAndThrowErrorListener() {}
 
-        public void warning(TransformerException exception) throws TransformerException {
+        public void warning(TransformerException exception)
+            throws TransformerException {
             log.log(Level.WARNING, message(exception));
         }
 
-        public void error(TransformerException exception) throws TransformerException {
+        public void error(TransformerException exception)
+            throws TransformerException {
             log.log(Level.SEVERE, message(exception));
             exceptions.add(exception);
         }
 
-        public void fatalError(TransformerException exception) throws TransformerException {
+        public void fatalError(TransformerException exception)
+            throws TransformerException {
             log.log(Level.SEVERE, message(exception));
             exceptions.add(exception);
         }
 
         private String message(TransformerException exception) {
-            return String.format("%1$s - %2$s", (exception.getLocator() == null) ? "<unknown system id>" : exception.getLocator().getSystemId(), exception.getMessageAndLocation() + " - cause: " + (exception.getCause() == null ? null : exception.getCause().getMessage()));
+            return String.format(
+                "%1$s - %2$s",
+                (exception.getLocator() == null)
+                    ? "<unknown system id>"
+                    : exception.getLocator().getSystemId(),
+                exception.getMessageAndLocation() +
+                    " - cause: " +
+                    (exception.getCause() == null
+                        ? null
+                        : exception.getCause().getMessage())
+            );
         }
 
         private void checkAndThrow() throws TransformerException {
-
             try {
                 throw exceptions.iterator().next();
-            } catch (NoSuchElementException x) {
-            }
-
+            } catch (NoSuchElementException x) {}
         }
     }
 
@@ -1659,7 +2700,6 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
         @Override
         public Iterator<Node> iterator() {
             return new Iterator() {
-
                 int i = 0;
 
                 @Override
@@ -1674,5 +2714,4 @@ public class SleeAnnotationProcessor extends AbstractProcessor {
             };
         }
     }
-
 }
