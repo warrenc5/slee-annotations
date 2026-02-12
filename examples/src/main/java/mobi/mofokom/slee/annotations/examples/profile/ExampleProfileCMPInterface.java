@@ -5,13 +5,12 @@
 package mobi.mofokom.slee.annotations.examples.profile;
 
 import mobi.mofokom.javax.slee.annotation.ProfileCMPField;
-import javax.slee.profile.Profile;
 
 /**
  *
  * @author wozza
  */
-public interface ExampleProfileCMPInterface extends Profile {
+public interface ExampleProfileCMPInterface {
     
 	@ProfileCMPField
 	public String getX();

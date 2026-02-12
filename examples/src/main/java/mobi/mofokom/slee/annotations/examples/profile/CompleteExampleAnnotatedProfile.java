@@ -28,12 +28,10 @@ import mobi.mofokom.javax.slee.annotation.Collator;
 import mobi.mofokom.javax.slee.annotation.Reentrant;
 import java.util.Collection;
 import jakarta.annotation.Resource;
-import javax.slee.CreateException;
 import javax.slee.facilities.Tracer;
 import javax.slee.profile.Profile;
 import javax.slee.profile.ProfileContext;
 import javax.slee.profile.ProfileLocalObject;
-import javax.slee.profile.ProfileVerificationException;
 
 import mobi.mofokom.slee.annotations.examples.ExampleUsageParametersInterface;
 
@@ -81,6 +79,7 @@ public abstract class CompleteExampleAnnotatedProfile implements Profile{
             this.profileContext.getProfileTable().remove(local.getProfileName());
         }
     }
+    /**
 
     @Override
     public void setProfileContext(ProfileContext context) {
@@ -121,5 +120,6 @@ public abstract class CompleteExampleAnnotatedProfile implements Profile{
     @Override
     public void profileVerify() throws ProfileVerificationException {
     }
+*/
     
 }

@@ -100,7 +100,7 @@ public abstract class CompleteExampleAnnotatedSbb implements javax.slee.Sbb {
     private Integer someOtherEnvEntry;
 
     @Resource
-    private SbbContext sbbContext;
+    private SbbContext _sbbContext;
     @Resource(name = "ExampleAnnotatedResourceAdaptor Entity Link")
     private ExampleResourceAdaptorSbbInterface raSbbInterface;
     @Resource(mappedName = "slee/resources/http/activitycontextinterfacefactory")

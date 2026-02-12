@@ -90,7 +90,7 @@ public abstract class SimpleExampleAnnotatedSbb implements javax.slee.Sbb {
     @Resource(name = "MyTracer")
     private Tracer tracer2;
     @Resource
-    private SbbContext sbbContext;
+    private SbbContext _sbbContext;
     @CMPField
     private Long startTime = 100L;
 
@@ -113,7 +113,7 @@ public abstract class SimpleExampleAnnotatedSbb implements javax.slee.Sbb {
     public boolean doSomethingElse() {
         NullActivity nullActivity = nullActivityFactory.createNullActivity();
         nullAciFactory.getActivityContextInterface(nullActivity);
-        tracer.info("HELLO " + sbbContext.getSbb().toString());
+        tracer.info("HELLO " + _sbbContext.getSbb().toString());
         tracer2.info("HELLO 2 ");
         return true;
     }
