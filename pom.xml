@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>mobi.mofokom.jakarta.slee</groupId>
     <artifactId>jain-slee-annotations-parent</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <name>jain-slee-annotation-modules</name>
     <packaging>pom</packaging>
     <description>jain-slee-annotations-parent</description>
@@ -32,9 +32,7 @@
         <module>annotations</module>
         <module>processor</module>
         <module>examples</module>
-        <!--
         <module>feature-pack</module>
-        -->
     </modules>
     <scm>
         <connection>scm:git:https://github.com/warrenc5/slee-annotations.git</connection>

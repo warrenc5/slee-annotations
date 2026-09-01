@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+
+<package-spec xmlns="urn:jboss:galleon:package:3.0" name="mobi.mofokom.jain-slee-annotations">
+    <dependencies>
+        <package name="org.telestax.slee.container.lib" />
+    </dependencies>
+</package-spec>

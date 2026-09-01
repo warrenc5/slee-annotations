@@ -1,7 +1,7 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
-    <id>du</id>
+    <id>service-du</id>
     <formats>
         <format>jar</format>
     </formats>
@@ -12,21 +12,21 @@
             <directory>${project.build.directory}</directory>
             <outputDirectory></outputDirectory>
             <includes>
-                <include>${pom.artifactId}-${pom.version}-ra.jar</include>
-                <include>${pom.artifactId}-${pom.version}-ra-type.jar</include>
-                <include>${pom.artifactId}-${pom.version}-event.jar</include>
-                <include>${pom.artifactId}-${pom.version}-profile.jar</include>
-                <include>${pom.artifactId}-${pom.version}-library.jar</include>
+                <include>${pom.artifactId}-${pom.version}-sbb.jar</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.outputDirectory}/META-INF.service</directory>
+            <outputDirectory>META-INF</outputDirectory>
+            <includes>
+                <include>deployable-unit.xml</include>
             </includes>
         </fileSet>
         <fileSet>
             <outputDirectory></outputDirectory>
-            <directory>
-                target/classes/
-            </directory>
+            <directory>${directory.annotations}</directory>
             <includes>
-                <include>META-INF/deploy-config.xml</include>
-                <include>META-INF/deployable-unit.xml</include>
+                <include>service.xml</include>
             </includes>
         </fileSet>
     </fileSets>

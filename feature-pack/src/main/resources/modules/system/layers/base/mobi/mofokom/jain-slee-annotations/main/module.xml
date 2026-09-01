@@ -1,0 +1,79 @@
+<!--
+~ JBoss, Home of Professional Open Source.
+~ Copyright 2010, Red Hat, Inc., and individual contributors
+~ as indicated by the @author tags. See the copyright.txt file in the
+~ distribution for a full listing of individual contributors.
+~
+~ This is free software; you can redistribute it and/or modify it
+~ under the terms of the GNU Lesser General Public License as
+~ published by the Free Software Foundation; either version 2.1 of
+~ the License, or (at your option) any later version.
+~
+~ This software is distributed in the hope that it will be useful,
+~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+~ Lesser General Public License for more details.
+~
+~ You should have received a copy of the GNU Lesser General Public
+~ License along with this software; if not, write to the Free
+~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+<module xmlns="urn:jboss:module:1.3" name="mobi.mofokom.jain-slee-annotations">
+    <resources>
+        <artifact name="${mobi.mofokom.jakarta.slee:jain-slee-annotations}" />
+        <artifact name="${mobi.mofokom.jakarta.slee:jain-slee-annotations-processor}" />
+        <artifact name="${org.aspectj:aspectjrt}" /> <!--aspectweaver-->
+    </resources>
+    <dependencies>
+
+        <module name="javax.ejb.api" export="true" />
+        <module name="org.jboss.as.ejb3" export="true" />
+        <module name="org.telestax.slee.container.lib" export="true" />
+        <!--
+        <module name="org.jboss.ejb-client" export="true"/>
+        <module name="javax.ejb.api" export="true"/>
+        -->
+        <module xmlns="urn:jboss:module:1.3" name="javax.resource.api" />
+        <module name="org.yaml.snakeyaml" export="true" />
+        <module name="com.fasterxml.jackson.core.jackson-core" export="true" />
+        <module name="com.fasterxml.jackson.core.jackson-databind" export="true" />
+        <system export="true">
+            <paths>
+                <path name="javax/xml" />
+                <path name="javax/xml/datatype" />
+                <path name="javax/xml/namespace" />
+                <path name="javax/xml/parsers" />
+                <path name="javax/xml/stream" />
+                <path name="javax/xml/stream/events" />
+                <path name="javax/xml/stream/util" />
+                <path name="javax/xml/transform" />
+                <path name="javax/xml/transform/dom" />
+                <path name="javax/xml/transform/sax" />
+                <path name="javax/xml/transform/stax" />
+                <path name="javax/xml/transform/stream" />
+                <path name="javax/xml/validation" />
+                <path name="javax/xml/xpath" />
+                <path name="org/ietf/jgss" />
+                <path name="org/w3c/dom" />
+                <path name="org/w3c/dom/bootstrap" />
+                <path name="org/w3c/dom/css" />
+                <path name="org/w3c/dom/events" />
+                <path name="org/w3c/dom/html" />
+                <path name="org/w3c/dom/ranges" />
+                <path name="org/w3c/dom/stylesheets" />
+                <path name="org/w3c/dom/traversal" />
+                <path name="org/w3c/dom/ls" />
+                <path name="org/w3c/dom/views" />
+                <path name="org/w3c/dom/xpath" />
+                <path name="org/xml/sax" />
+                <path name="org/xml/sax/ext" />
+                <path name="org/xml/sax/helpers" />
+            </paths>
+        </system>
+        <module name="org.apache.xalan" optional="true" /> <!-- WF39 -->
+        <module name="org.apache.log4j" optional="true" />
+        <module name="javax.annotation.api" export="true" />
+        <module name="javax.api" />
+    </dependencies>
+</module>

@@ -33,6 +33,7 @@ import mobi.mofokom.javax.slee.annotation.RaiseAlarm;
 import mobi.mofokom.javax.slee.annotation.Reentrant;
 import jakarta.annotation.Resource;
 import java.util.Arrays;
+import java.util.Collection;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.slee.*;
@@ -57,33 +58,34 @@ import mobi.mofokom.slee.annotations.examples.ejb.SomeEJBRemote;
 import mobi.mofokom.slee.annotations.examples.event.ExampleEvent;
 import mobi.mofokom.slee.annotations.examples.event.ExampleSecondEvent;
 import mobi.mofokom.slee.annotations.examples.profile.ExampleProfileCMPInterface;
+import mobi.mofokom.slee.annotations.examples.profile.ExampleProfileTableInterface;
 import mobi.mofokom.slee.annotations.examples.resource.ExampleActivityContextInterfaceFactory;
 import mobi.mofokom.slee.annotations.examples.resource.ExampleResourceAdaptorSbbInterface;
 
 @Service(name = "CompleteExampleService", vendor = "ISV1", version = "1.0", rootSbb = CompleteExampleAnnotatedSbb.class)
 @Reentrant
 @Sbb(id = "N67689", name = "CompleteExampleAnnotatedSbb", vendor = "ISV1", version = "1.0",
-localInterface = ExampleSbbLocalObject.class,
-activityContextInterface = ExampleSbbActivityContextInterface.class,
-sbbRefs = {
-    @SbbRef(name = "SimpleExampleAnnotatedSbb", vendor = "ISV1", version = "1.0", alias = "SimpleSbb")},
-libraryRefs = {
-    @LibraryRef(name = "ExampleLibrary", vendor = "ISV1", version = "1.0")},
-profileSpecRefs = {
-    @ProfileSpecRef(name = "CompleteExampleAnnotatedProfile", vendor = "ISV1", version = "1.0", alias = "profileSpec")},
-    usageParametersInterface = ExampleUsageParametersInterface.class,
-    resourceAdaptorTypeBinding = {
-    @ResourceAdaptorTypeBinding(description = "",
-    raTypeRef =
-    @ResourceAdaptorTypeRef(name = "ExampleAnnotatedResourceAdaptorType", vendor = "ISV1", version = "1.0"),
-    aciFactoryName = "slee/resources/http/activitycontextinterfacefactory",
-    raEntityLink = "ExampleAnnotatedResourceAdaptor Entity Link")},
-    /*
+        localInterface = ExampleSbbLocalObject.class,
+        activityContextInterface = ExampleSbbActivityContextInterface.class,
+        sbbRefs = {
+            @SbbRef(name = "SimpleExampleAnnotatedSbb", vendor = "ISV1", version = "1.0", alias = "SimpleSbb")},
+        libraryRefs = {
+            @LibraryRef(name = "ExampleLibrary", vendor = "ISV1", version = "1.0")},
+        profileSpecRefs = {
+            @ProfileSpecRef(name = "CompleteExampleAnnotatedProfile", vendor = "ISV1", version = "1.0", alias = "profileSpec")},
+        usageParametersInterface = ExampleUsageParametersInterface.class,
+        resourceAdaptorTypeBinding = {
+            @ResourceAdaptorTypeBinding(description = "",
+                    raTypeRef
+                    = @ResourceAdaptorTypeRef(name = "ExampleAnnotatedResourceAdaptorType", vendor = "ISV1", version = "1.0"),
+                    aciFactoryName = "slee/resources/http/activitycontextinterfacefactory",
+                    raEntityLink = "ExampleAnnotatedResourceAdaptor Entity Link")},
+        /*
 ejbRef = {
     @EJBRef(name = "myejb", type = EJBRef.Type.ENTITY, home = SomeEJBHome.class, remote = SomeEJBRemote.class)},
     * 
-    */
-securityPermissions = Sbb.ALL_PERMISSIONS)
+         */
+        securityPermissions = Sbb.ALL_PERMISSIONS)
 public abstract class CompleteExampleAnnotatedSbb implements javax.slee.Sbb {
 
     @Resource(name = "Sbb Tracer")
@@ -112,8 +114,7 @@ public abstract class CompleteExampleAnnotatedSbb implements javax.slee.Sbb {
     @Resource
     public abstract Integer getAnotherEnvEntry();
     * 
-    */
-    
+     */
     @Resource(name = "java:comp/env")
     private Context envContext;
 
@@ -137,19 +138,45 @@ public abstract class CompleteExampleAnnotatedSbb implements javax.slee.Sbb {
 
     @ProfileCMP(profileAliasRef = "profileSpec")
     public abstract ExampleProfileCMPInterface getExampleProfile(ProfileID profileID) throws UnrecognizedProfileTableNameException, UnrecognizedProfileNameException;
-    
+
     @Resource
     private ExampleUsageParametersInterface defaultSbbUsageParameterSet;
     @Resource(name = "someUsageParametersSet")
     private ExampleUsageParametersInterface someSbbUsageParameterSet;
     //throws UnrecognizedUsageParameterSetNameException;
 
+    @Resource(name = ProfileFacility.JNDI_NAME)
+    protected ProfileFacility profileFacility;
+
     public abstract mobi.mofokom.slee.annotations.examples.sbb.ExampleSbbActivityContextInterface asSbbActivityContextInterface(javax.slee.ActivityContextInterface aci);
-    
+
     @ServiceStartedEventHandler
     public void onServiceStartedEvent(ServiceStartedEvent event, ActivityContextInterface aci) {
-       Object mycmp = this.anotherCMPField; 
-       tracer.info(" " + anotherCMPField);
+        Object mycmp = this.anotherCMPField;
+        tracer.info(event.getService() + " STARTED1 " + anotherCMPField);
+        try {
+            ExampleProfileTableInterface profileTable = (ExampleProfileTableInterface) profileFacility.getProfileTable("Table1");
+            if (profileTable != null) {
+                Collection<ExampleProfileCMPInterface> profiles = profileTable.findAll();
+                tracer.info("Found " + profiles.size() + " profiles");
+                if (!profiles.isEmpty()) {
+                    tracer.info("First profile:" + profiles.iterator().next().getX());
+                }
+                String prefix =  "x1771";
+
+                profiles = profileTable.queryLongestPrefix(prefix);
+
+                if (!profiles.isEmpty()) {
+                    tracer.info("First longest prefix: "  + prefix + " : "+ profiles.iterator().next().getX());
+                } else {
+                    tracer.info("No prefix match " + prefix);
+                }
+            }
+        } catch (Exception x) {
+            tracer.severe("" + x.getMessage());
+        }
+        tracer.info("Done");
+        aci.detach(_sbbContext.getSbbLocalObject());
     }
 
     @TimerEventHandler
@@ -160,16 +187,16 @@ public abstract class CompleteExampleAnnotatedSbb implements javax.slee.Sbb {
 
     @InitialEventSelectorMethod({
         @EventTypeRef(name = ExampleEvent.EVENT_TYPE_NAME,
-        vendor = ExampleEvent.EVENT_TYPE_VENDOR,
-        version = ExampleEvent.EVENT_TYPE_VERSION)})
+                vendor = ExampleEvent.EVENT_TYPE_VENDOR,
+                version = ExampleEvent.EVENT_TYPE_VERSION)})
     public InitialEventSelector ies(InitialEventSelector ies) {
         return ies;
     }
 
-    @EventHandler(initialEvent = true, eventType =
-    @EventTypeRef(name = ExampleEvent.EVENT_TYPE_NAME,
-    vendor = ExampleEvent.EVENT_TYPE_VENDOR,
-    version = ExampleEvent.EVENT_TYPE_VERSION))
+    @EventHandler(initialEvent = true, eventType
+            = @EventTypeRef(name = ExampleEvent.EVENT_TYPE_NAME,
+                    vendor = ExampleEvent.EVENT_TYPE_VENDOR,
+                    version = ExampleEvent.EVENT_TYPE_VERSION))
     public void onExampleEvent(ExampleEvent event,
             ActivityContextInterface aci) {
         // ...
@@ -183,11 +210,11 @@ public abstract class CompleteExampleAnnotatedSbb implements javax.slee.Sbb {
     public abstract void fireExampleEvent(ExampleEvent event,
             ActivityContextInterface aci, Address address);
 
-**/
+     **/
     @EventFiring(
-    @EventTypeRef(name = ExampleSecondEvent.EVENT_TYPE_NAME,
-    vendor = ExampleSecondEvent.EVENT_TYPE_VENDOR,
-    version = ExampleSecondEvent.EVENT_TYPE_VERSION))
+            @EventTypeRef(name = ExampleSecondEvent.EVENT_TYPE_NAME,
+                    vendor = ExampleSecondEvent.EVENT_TYPE_VENDOR,
+                    version = ExampleSecondEvent.EVENT_TYPE_VERSION))
     public abstract void fireSecondExampleEvent(ExampleSecondEvent event,
             ActivityContextInterface aci, Address address);
 

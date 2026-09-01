@@ -24,7 +24,6 @@ package mobi.mofokom.slee.annotations.examples.profile;
 
 import java.util.Collection;
 import mobi.mofokom.javax.slee.annotation.StaticQuery;
-import javax.slee.profile.ProfileLocalObject;
 import javax.slee.profile.ProfileTable;
 
 public interface ExampleProfileTableInterface extends ProfileTable {
@@ -35,4 +34,8 @@ public interface ExampleProfileTableInterface extends ProfileTable {
     public abstract Collection queryTestThis(String something, int anotherParameter);
     //public abstract Collection<ProfileLocalObject> queryTestQuery(String something, int anotherParameter);
 	
+    @StaticQuery(readOnly = "true",
+            maxMatches = "2",
+            query = "x longest-prefix-match prefix")
+    public abstract Collection queryLongestPrefix(String prefix);
 }

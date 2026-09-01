@@ -91,8 +91,9 @@ public abstract class SimpleExampleAnnotatedSbb implements javax.slee.Sbb {
     private Tracer tracer2;
     @Resource
     private SbbContext _sbbContext;
+    //TODO: move assignments of CMP fields to sbbLoad method private Long startTime = 100L;
     @CMPField
-    private Long startTime = 100L;
+    private Long startTime;
 
     @ServiceStartedEventHandler
     public void onServiceStartedEvent(ServiceStartedEvent event,
@@ -100,14 +101,17 @@ public abstract class SimpleExampleAnnotatedSbb implements javax.slee.Sbb {
         tracer.info("service started");
         timerFacility.setTimer(aci, null, TIMER_DURATION,
                 new TimerOptions());
-        if(startTime == null || startTime == 0)
-            startTime = Long.valueOf(System.currentTimeMillis());
+        aci.detach(_sbbContext.getSbbLocalObject());
     }
 
     @TimerEventHandler
     public void onTimerEvent(TimerEvent event, ActivityContextInterface aci) {
         long delay = (System.currentTimeMillis() - TIMER_DURATION) - startTime;
+
         tracer.info("timer expired, delay = " + delay + " ms.");
+
+        if(startTime == null || startTime == 0)
+            startTime = Long.valueOf(System.currentTimeMillis());
     }
 
     public boolean doSomethingElse() {

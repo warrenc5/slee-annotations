@@ -17,16 +17,22 @@
                 <include>${pom.artifactId}-${pom.version}-event.jar</include>
                 <include>${pom.artifactId}-${pom.version}-profile.jar</include>
                 <include>${pom.artifactId}-${pom.version}-library.jar</include>
+                <include>${pom.artifactId}-${pom.version}-sbb.jar</include>
             </includes>
         </fileSet>
         <fileSet>
+            <directory>${project.build.outputDirectory}</directory>
             <outputDirectory></outputDirectory>
-            <directory>
-                target/classes/
-            </directory>
             <includes>
                 <include>META-INF/deploy-config.xml</include>
                 <include>META-INF/deployable-unit.xml</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${directory.annotations}</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>service.xml</include>
             </includes>
         </fileSet>
     </fileSets>
